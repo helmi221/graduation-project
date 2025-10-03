@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>منجرة | سلة المشتريات</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      #order-confirm-modal .modal-content {
+        max-width: 550px;
+        text-align: center;
+        padding: 50px 30px;
+        background: linear-gradient(
+          135deg,
+          var(--white-color) 0%,
+          #fefcfb 100%
+        );
+        border: 2px solid var(--primary-color);
+      }
+      #order-confirm-modal h2 {
+        font-size: 2.5rem;
+        color: var(--primary-color);
+        margin-bottom: 1.5rem;
+        position: relative;
+      }
+      #order-confirm-modal h2::after {
+        content: "✔";
+        display: block;
+        font-size: 3.5rem;
+        color: var(--primary-color);
+        margin-top: -1rem;
+        margin-bottom: 1rem;
+        line-height: 1;
+      }
+      #order-confirm-modal p {
+        font-size: 1.2rem;
+        color: var(--dark-color);
+        margin-bottom: 1.5rem;
+        line-height: 1.6;
+      }
+      #order-confirm-modal .tracking-id-display {
+        background-color: var(--light-color);
+        border: 1px dashed var(--accent-color);
+        padding: 15px 25px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: var(--dark-color);
+        display: inline-block;
+        direction: ltr;
+        user-select: all;
+        margin-bottom: 1.5rem;
+      }
+      #order-confirm-modal .modal-close {
+        color: #aaa;
+        top: 20px;
+        right: 20px;
+        font-size: 2rem;
+        transition: color 0.2s;
+      }
+      #order-confirm-modal .modal-close:hover {
+        color: var(--dark-color);
+      }
+      .modal-content .modal-close {
+        z-index: 10;
+      }
+      .modal-body {
+        display: block;
+        text-align: right;
+      }
+      .cart-item-color {
+        font-size: 0.9rem;
+        color: #777;
+        margin-top: -5px;
+        margin-bottom: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav class="container">
+        <a href="index.html" class="logo">منجرة</a>
+        <div class="nav-items">
+          <ul class="desktop-nav">
+            <li><a href="index.html" class="nav-link">العودة للمتجر</a></li>
+            <li><a href="order-status.html" class="nav-link">حالة الطلب</a></li>
+            <li><a href="recommendation.html" class="nav-link">المساعد</a></li>
+            <li><a href="design.html" class="nav-link">صمم منتجك</a></li>
+          </ul>
+          <a href="cart.html" class="cart-icon-wrapper">
+            <svg
+              id="cart-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.658-.463 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+              />
+            </svg>
+            <span id="cart-count-badge">0</span>
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="section container">
+        <div class="section-title-wrapper"><h2>سلة المشتريات</h2></div>
+        <div class="cart-container" id="cart-container">
+          <div class="cart-items-list" id="cart-items-list"></div>
+          <div class="cart-summary" id="cart-summary">
+            <h3>ملخص الطلب</h3>
+            <div class="summary-row">
+              <span>المجموع الفرعي</span
+              ><span id="summary-subtotal">0 شيكل</span>
+            </div>
+            <div class="summary-row">
+              <span>الشحن</span><span>يتم تحديده لاحقاً</span>
+            </div>
+            <div class="summary-row summary-total">
+              <span>الإجمالي</span><span id="summary-total">0 شيكل</span>
+            </div>
+            <button class="btn checkout-btn">إتمام الشراء</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="checkout-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close" data-modal="checkout">&times;</span>
+        <div class="modal-body">
+          <div class="checkout-form-container">
+            <h2>إتمام الشراء</h2>
+            <p>الرجاء إدخال بياناتك لإكمال الطلب. سيتم تأكيد طلبك لاحقًا.</p>
+            <form id="checkout-form">
+              <div class="form-group">
+                <label for="name">الاسم الكامل</label
+                ><input type="text" id="name" name="name" required />
+              </div>
+              <div class="form-group">
+                <label for="phone">رقم الهاتف</label
+                ><input type="tel" id="phone" name="phone" required />
+              </div>
+              <div class="form-group">
+                <label for="email">البريد الإلكتروني (اختياري)</label
+                ><input type="email" id="email" name="email" />
+              </div>
+              <div class="form-group">
+                <label for="address">العنوان</label
+                ><textarea
+                  id="address"
+                  name="address"
+                  rows="3"
+                  required
+                ></textarea>
+              </div>
+              <div class="form-group">
+                <label for="notes">ملاحظات إضافية</label
+                ><textarea id="notes" name="notes" rows="3"></textarea>
+              </div>
+              <button
+                type="submit"
+                class="btn checkout-btn"
+                id="confirm-order-btn"
+              >
+                تأكيد الطلب
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="order-confirm-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close" data-modal="order-confirm">&times;</span>
+        <h2>شكراً لك!</h2>
+        <p>تم استلام طلبك بنجاح. سنقوم بمعالجته في أقرب وقت ممكن.</p>
+        <p>رمز التتبع الخاص بطلبك هو:</p>
+        <span id="order-tracking-id" class="tracking-id-display"></span>
+        <p style="margin-top: 1rem; font-size: 0.9rem; color: #888">
+          الرجاء حفظ هذا الرمز لتتمكن من تتبع حالة طلبك.
+        </p>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
+        authDomain: "ecomers-dd329.firebaseapp.com",
+        projectId: "ecomers-dd329",
+        storageBucket: "ecomers-dd329.firebasestorage.app",
+        messagingSenderId: "190646144215",
+        appId: "1:190646144215:web:d55f24091a920f92b6b492",
+        measurementId: "G-NVYK3DZR00",
+      };
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      let cart = [];
+
+      function saveCart() {
+        localStorage.setItem("shoppingCart", JSON.stringify(cart));
+      }
+      function loadCart() {
+        const storedCart = localStorage.getItem("shoppingCart");
+        cart = storedCart ? JSON.parse(storedCart) : [];
+      }
+
+      function changeQuantity(index, change) {
+        if (cart[index]) {
+          cart[index].quantity += change;
+          if (cart[index].quantity < 1) {
+            cart.splice(index, 1);
+          }
+          saveCart();
+          updateCartUI();
+        }
+      }
+
+      function removeItem(index) {
+        if (cart[index]) {
+          cart.splice(index, 1);
+          saveCart();
+          updateCartUI();
+        }
+      }
+
+      function updateCartBadge() {
+        const cartCountBadge = document.getElementById("cart-count-badge");
+        if (!cartCountBadge) return;
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        cartCountBadge.textContent = totalItems;
+        cartCountBadge.classList.toggle("visible", totalItems > 0);
+      }
+
+      function updateCartUI() {
+        const cartItemsList = document.getElementById("cart-items-list");
+        const summarySubtotal = document.getElementById("summary-subtotal");
+        const summaryTotal = document.getElementById("summary-total");
+        const cartContainer = document.getElementById("cart-container");
+
+        updateCartBadge();
+
+        if (!cart || cart.length === 0) {
+          cartContainer.innerHTML = `<div class="cart-empty-msg"><h2>سلتك فارغة!</h2><p>لم تقم بإضافة أي منتجات بعد.</p><a href="index.html" class="btn back-to-shop">العودة للمتجر</a></div>`;
+          return;
+        }
+
+        cartItemsList.innerHTML = "";
+        let subtotal = 0;
+        cart.forEach((item, index) => {
+          subtotal += item.price * item.quantity;
+          const itemEl = document.createElement("div");
+          itemEl.className = "cart-item";
+
+          const colorInfo = item.color
+            ? `<p class="cart-item-color">اللون: ${item.color}</p>`
+            : "";
+
+          const priceDisplay = item.originalPrice
+            ? `<div><p class="cart-item-price old-price">${item.originalPrice} شيكل</p><p class="cart-item-price new-price">${item.price} شيكل</p></div>`
+            : `<p class="cart-item-price">${item.price} شيكل</p>`;
+
+          itemEl.innerHTML = `
+            <img src="${item.image}" alt="${item.name}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80';">
+            <div class="cart-item-details">
+                <h4>${item.name}</h4>
+                ${colorInfo}
+                ${priceDisplay}
+                <div class="cart-item-actions">
+                    <div class="quantity-controls">
+                        <button class="quantity-btn" data-index="${index}" data-change="-1">-</button>
+                        <input type="number" value="${item.quantity}" min="1" readonly>
+                        <button class="quantity-btn" data-index="${index}" data-change="1">+</button>
+                    </div>
+                    <button class="remove-item-btn" data-index="${index}">&times;</button>
+                </div>
+            </div>`;
+          cartItemsList.appendChild(itemEl);
+        });
+
+        summarySubtotal.textContent = subtotal.toFixed(0) + " شيكل";
+        summaryTotal.textContent = subtotal.toFixed(0) + " شيكل";
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadCart();
+        updateCartUI();
+
+        const checkoutBtn = document.querySelector(".checkout-btn");
+        const checkoutModal = document.getElementById("checkout-modal");
+        const orderConfirmModal = document.getElementById(
+          "order-confirm-modal"
+        );
+        const checkoutForm = document.getElementById("checkout-form");
+        const modalCloseBtns = document.querySelectorAll(".modal-close");
+        const cartItemsList = document.getElementById("cart-items-list");
+
+        if (cartItemsList) {
+          cartItemsList.addEventListener("click", (event) => {
+            const target = event.target;
+            if (target.classList.contains("quantity-btn")) {
+              changeQuantity(
+                parseInt(target.dataset.index),
+                parseInt(target.dataset.change)
+              );
+            } else if (target.classList.contains("remove-item-btn")) {
+              removeItem(parseInt(target.dataset.index));
+            }
+          });
+        }
+
+        function closeModal(modalId) {
+          const modal = document.getElementById(modalId);
+          if (modal) {
+            modal.classList.remove("active");
+            document.body.classList.remove("scroll-lock");
+          }
+        }
+
+        if (checkoutBtn) {
+          checkoutBtn.addEventListener("click", () => {
+            if (cart.length === 0) {
+              alert("سلة المشتريات فارغة.");
+              return;
+            }
+            checkoutModal.classList.add("active");
+            document.body.classList.add("scroll-lock");
+          });
+        }
+
+        modalCloseBtns.forEach((btn) => {
+          btn.addEventListener("click", () =>
+            closeModal(btn.getAttribute("data-modal"))
+          );
+        });
+
+        [checkoutModal, orderConfirmModal].forEach((modal) => {
+          if (modal) {
+            modal.addEventListener("click", (e) => {
+              if (e.target === modal) {
+                modal.classList.remove("active");
+                document.body.classList.remove("scroll-lock");
+              }
+            });
+          }
+        });
+
+        function generateTrackingId() {
+          return `TRK-${new Date().getTime().toString(36)}-${Math.random()
+            .toString(36)
+            .substr(2, 5)}`.toUpperCase();
+        }
+
+        checkoutForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const trackingId = generateTrackingId();
+          const customerData = {
+            name: document.getElementById("name").value,
+            phone: document.getElementById("phone").value,
+            email: document.getElementById("email").value,
+            address: document.getElementById("address").value,
+            notes: document.getElementById("notes").value,
+            order_date: new Date().toISOString(),
+            status: "قيد المراجعة",
+            tracking_id: trackingId,
+            items: cart,
+            total: cart.reduce(
+              (sum, item) => sum + item.price * item.quantity,
+              0
+            ),
+          };
+
+          try {
+            await addDoc(collection(db, "orders"), customerData);
+            closeModal("checkout-modal");
+            document.getElementById("order-tracking-id").textContent =
+              trackingId;
+            orderConfirmModal.classList.add("active");
+            document.body.classList.add("scroll-lock");
+            cart = [];
+            saveCart();
+            updateCartUI();
+          } catch (e) {
+            console.error("Error adding document: ", e);
+            alert("حدث خطأ أثناء إرسال الطلب.");
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

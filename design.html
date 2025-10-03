@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>منجرة | صمم منتجك</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      /* New styles for the design page */
+      .design-page-section {
+        max-width: 800px;
+        margin: 5rem auto;
+        padding: 40px;
+        background-color: var(--white-color);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        text-align: right;
+      }
+
+      .design-form {
+        margin-top: 2rem;
+      }
+
+      .design-form .form-group {
+        margin-bottom: 2rem;
+      }
+
+      .design-form .form-group label {
+        display: block;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+        font-size: 1.1rem;
+      }
+
+      .design-form .form-group input,
+      .design-form .form-group select,
+      .design-form .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+        font-family: "Cairo", sans-serif;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+
+      .design-form .form-group input:focus,
+      .design-form .form-group select:focus,
+      .design-form .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(121, 85, 72, 0.2);
+      }
+
+      .design-form .btn {
+        display: block;
+        width: 100%;
+        margin-top: 2rem;
+      }
+
+      .design-result-section {
+        margin-top: 3rem;
+        text-align: center;
+        display: none;
+      }
+
+      .design-result-section.show {
+        display: block;
+      }
+
+      .design-result-image-wrapper {
+        max-width: 500px;
+        margin: 0 auto;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        border: 1px solid var(--border-color);
+        display: none; /* تم إخفاء قسم الصورة */
+      }
+
+      .design-result-image-wrapper img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+
+      .design-result-text {
+        margin-top: 2rem;
+      }
+      .design-result-text h3 {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+      }
+      .design-result-text p {
+        line-height: 1.8;
+        color: #555;
+      }
+
+      .design-result-actions {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 2rem;
+      }
+
+      .design-result-actions .btn {
+        width: auto;
+        flex-grow: 1;
+        max-width: 250px;
+      }
+
+      /* Tracking confirmation */
+      #design-confirm-modal .modal-content {
+        max-width: 550px;
+        text-align: center;
+        padding: 50px 30px;
+      }
+
+      #design-confirm-modal .tracking-id-display {
+        background-color: var(--light-color);
+        border: 1px dashed var(--accent-color);
+        padding: 15px 25px;
+        border-radius: 10px;
+        font-family: monospace;
+        font-size: 1.3rem;
+        font-weight: bold;
+        color: var(--dark-color);
+        display: inline-block;
+        direction: ltr;
+        user-select: all;
+        margin-bottom: 1.5rem;
+      }
+
+      .loading-bar-container {
+        width: 100%;
+        background-color: #f3f3f3;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 2rem;
+        display: none;
+      }
+      .loading-bar {
+        height: 20px;
+        background-color: var(--primary-color);
+        width: 0%;
+        animation: loading-animation 2s forwards;
+      }
+      @keyframes loading-animation {
+        0% {
+          width: 0%;
+        }
+        100% {
+          width: 100%;
+        }
+      }
+      .suggested-product-card {
+        background-color: #fff;
+        border-radius: 16px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        padding: 20px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .suggested-product-card img {
+        max-width: 150px;
+        height: auto;
+        border-radius: 8px;
+        margin-bottom: 15px;
+      }
+      .suggested-product-card h4 {
+        margin-bottom: 10px;
+        font-size: 1.2rem;
+      }
+      .suggested-product-card .product-price {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: 15px;
+      }
+      .suggested-product-card .btn {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav class="container">
+        <a href="index.html" class="logo">منجرة</a>
+        <div class="nav-items">
+          <ul class="desktop-nav">
+            <li>
+              <a href="index.html" class="nav-link">الرئيسية</a>
+            </li>
+            <li>
+              <a href="index.html#products-page" class="nav-link">منتجاتنا</a>
+            </li>
+            <li>
+              <a href="order-status.html" class="nav-link">حالة الطلب</a>
+            </li>
+            <li>
+              <a href="recommendation.html" class="nav-link">المساعد</a>
+            </li>
+            <li>
+              <a href="design.html" class="nav-link active">صمم منتجك</a>
+            </li>
+          </ul>
+          <a href="cart.html" class="cart-icon-wrapper">
+            <svg
+              id="cart-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.658-.463 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+              />
+            </svg>
+            <span id="cart-count-badge">0</span>
+          </a>
+          <button class="menu-toggle" id="menu-toggle">
+            <div class="hamburger-icon">
+              <span></span><span></span><span></span>
+            </div>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="index.html" class="nav-link">الرئيسية</a>
+      <a href="index.html#products-page" class="nav-link">منتجاتنا</a>
+      <a href="order-status.html" class="nav-link">حالة الطلب</a>
+      <a href="recommendation.html" class="nav-link">المساعد</a>
+      <a href="design.html" class="nav-link">صمم منتجك</a>
+    </div>
+
+    <main>
+      <section class="section container design-page-section">
+        <div class="section-title-wrapper">
+          <h2>صمم منتجك الخاص</h2>
+        </div>
+        <p style="text-align: center; color: #777">
+          املأ النموذج التالي، وسيقوم مساعدنا الذكي باقتراح تصميم فريد لك.
+        </p>
+
+        <form id="design-form" class="design-form">
+          <div class="form-group">
+            <label for="product-type">نوع المنتج</label>
+            <select id="product-type" name="product-type">
+              <option value="">-- اختر نوع المنتج --</option>
+              <option value="طاولة سفرة">طاولة سفرة</option>
+              <option value="كرسي">كرسي</option>
+              <option value="طقم كنب">طقم كنب</option>
+              <option value="غرفة نوم">غرفة نوم</option>
+              <option value="مطبخ">مطبخ</option>
+              <option value="طاولة وسط">طاولة وسط</option>
+              <option value="خزانة">خزانة</option>
+              <option value="طاولة تلفاز">طاولة تلفاز</option>
+              <option value="آخر">آخر...</option>
+            </select>
+          </div>
+
+          <div id="dynamic-fields"></div>
+
+          <div class="form-group" id="notes-group" style="display: none">
+            <label for="notes">وصف إضافي للمنتج الذي تريده</label>
+            <textarea id="notes" name="notes" rows="4"></textarea>
+          </div>
+
+          <button type="submit" class="btn" id="generate-design-btn" disabled>
+            اقتراح تصميم
+          </button>
+        </form>
+
+        <div id="processing-message" class="loading-bar-container">
+          <div class="loading-bar"></div>
+          <p style="text-align: center; font-weight: bold; padding-top: 5px">
+            جارٍ معالجة طلبك...
+          </p>
+        </div>
+
+        <div id="design-result" class="design-result-section">
+          <h2>اقتراحنا لك</h2>
+          <div class="design-result-text" id="result-content"></div>
+          <div class="design-result-actions">
+            <button class="btn" id="submit-design-btn" style="display: none">
+              أعجبني، اطلب المنتج
+            </button>
+            <button
+              class="btn"
+              id="regenerate-design-btn"
+              style="background-color: var(--accent-color); display: none"
+            >
+              اقتراح آخر
+            </button>
+            <button
+              class="btn"
+              id="view-product-btn"
+              style="background-color: var(--primary-color); display: none"
+            >
+              عرض المنتج
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div id="design-confirm-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close" data-modal="design-confirm">&times;</span>
+        <h2>شكراً لك!</h2>
+        <p>
+          تم استلام طلبك للتصميم المخصص بنجاح. سنقوم بمراجعته والرد عليك خلال
+          يومي عمل.
+        </p>
+        <p>رمز التتبع الخاص بطلبك هو:</p>
+        <span id="design-tracking-id" class="tracking-id-display"></span>
+        <p style="margin-top: 1rem; font-size: 0.9rem; color: #888">
+          الرجاء حفظ هذا الرمز لتتمكن من تتبع حالة طلبك.
+        </p>
+      </div>
+    </div>
+    <div id="toast-notification" class="toast"></div>
+
+    <div id="product-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <div class="modal-body">
+          <div class="modal-image-container">
+            <img id="modal-img" src="" alt="صورة المنتج" />
+          </div>
+          <div class="modal-details-container">
+            <h2 id="modal-title"></h2>
+            <p id="modal-price" class="product-price"></p>
+            <p id="modal-description"></p>
+            <hr class="modal-options-separator" />
+            <div class="modal-options">
+              <div id="color-section">
+                <label for="modal-color-select">اختر اللون</label>
+                <select id="modal-color-select"></select>
+              </div>
+              <div>
+                <label for="modal-quantity">الكمية</label>
+                <div id="modal-quantity-selector" class="quantity-selector">
+                  <button
+                    class="quantity-btn quantity-btn-plus"
+                    data-change="1"
+                  >
+                    +
+                  </button>
+                  <input
+                    type="number"
+                    id="modal-quantity"
+                    value="1"
+                    min="1"
+                    readonly
+                  />
+                  <button
+                    class="quantity-btn quantity-btn-minus"
+                    data-change="-1"
+                  >
+                    -
+                  </button>
+                </div>
+              </div>
+            </div>
+            <button class="btn" id="add-to-cart-btn">إضافة إلى السلة</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="products.js"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        addDoc,
+      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+      import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
+        authDomain: "ecomers-dd329.firebaseapp.com",
+        projectId: "ecomers-dd329",
+        storageBucket: "ecomers-dd329.firebasestorage.app",
+        messagingSenderId: "190646144215",
+        appId: "1:190646144215:web:d55f24091a920f92b6b492",
+        measurementId: "G-NVYK3DZR00",
+      };
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      const API_KEY = "AIzaSyBcFkJsomDYhm1uGqoq3-8mHr0LTu-mZ9s";
+      const genAI = new GoogleGenerativeAI(API_KEY);
+      const textModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+      const designForm = document.getElementById("design-form");
+      const productTypeSelect = document.getElementById("product-type");
+      const dynamicFieldsContainer = document.getElementById("dynamic-fields");
+      const notesGroup = document.getElementById("notes-group");
+      const designResultSection = document.getElementById("design-result");
+      const resultContent = document.getElementById("result-content");
+      const submitDesignBtn = document.getElementById("submit-design-btn");
+      const regenerateDesignBtn = document.getElementById(
+        "regenerate-design-btn"
+      );
+      const generateDesignBtn = document.getElementById("generate-design-btn");
+      const viewProductBtn = document.getElementById("view-product-btn");
+      const designConfirmModal = document.getElementById(
+        "design-confirm-modal"
+      );
+      const designTrackingIdSpan =
+        document.getElementById("design-tracking-id");
+      const toast = document.getElementById("toast-notification");
+      const processingMessage = document.getElementById("processing-message");
+
+      const productDimensions = {
+        "طاولة سفرة": ["180x90x75 سم", "160x80x75 سم", "120x120x75 سم"],
+        كرسي: ["45x50x90 سم", "40x40x85 سم", "60x65x90 سم"],
+        "طقم كنب": ["220x90x85 سم", "160x90x85 سم", "250x180x85 سم"],
+        "غرفة نوم": [
+          "200x160x100 سم (سرير مزدوج)",
+          "200x90x80 سم (سرير مفرد)",
+          "100x45x140 سم (تسريحة)",
+        ],
+        مطبخ: [
+          "80x30x60 سم (خزانة علوية)",
+          "80x60x90 سم (خزانة سفلية)",
+          "120x80x90 سم (جزيرة مطبخ)",
+        ],
+        "طاولة وسط": ["80x80x45 سم", "100x60x45 سم", "120x70x40 سم"],
+        خزانة: ["90x50x180 سم", "80x30x160 سم", "120x55x180 سم"],
+        "طاولة تلفاز": ["140x40x50 سم", "120x40x45 سم", "150x30x30 سم"],
+        آخر: [],
+      };
+
+      let currentDesign = null;
+      let suggestedProductId = null;
+
+      function generateTrackingId() {
+        return `DGN-${new Date().getTime().toString(36)}-${Math.random()
+          .toString(36)
+          .substr(2, 5)}`.toUpperCase();
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 3000);
+      }
+
+      function updateDynamicFields() {
+        const selectedType = productTypeSelect.value;
+        dynamicFieldsContainer.innerHTML = "";
+        notesGroup.style.display = "block";
+        generateDesignBtn.disabled = !selectedType;
+
+        if (
+          productDimensions[selectedType] &&
+          productDimensions[selectedType].length > 0
+        ) {
+          const dimensionsGroup = document.createElement("div");
+          dimensionsGroup.className = "form-group";
+          dimensionsGroup.innerHTML = `
+            <label for="dimensions">الأبعاد المقترحة</label>
+            <select id="dimensions" name="dimensions">
+              ${productDimensions[selectedType]
+                .map((dim) => `<option value="${dim}">${dim}</option>`)
+                .join("")}
+            </select>
+          `;
+          dynamicFieldsContainer.appendChild(dimensionsGroup);
+          notesGroup.style.display = "none";
+        } else if (selectedType) {
+          const dimensionsGroup = document.createElement("div");
+          dimensionsGroup.className = "form-group";
+          dimensionsGroup.innerHTML = `
+            <label for="dimensions">الأبعاد (مثال: 120x80x45 سم)</label>
+            <input type="text" id="dimensions" name="dimensions" />
+          `;
+          dynamicFieldsContainer.appendChild(dimensionsGroup);
+        }
+
+        if (selectedType) {
+          const commonFields = `
+            <div class="form-group">
+              <label for="material">المادة المفضلة (مثال: خشب صنوبر، خشب جوز)</label>
+              <input type="text" id="material" name="material" />
+            </div>
+            <div class="form-group">
+              <label for="color">اللون</label>
+              <input type="text" id="color" name="color" />
+            </div>
+            <div class="form-group">
+              <label for="features">ميزات إضافية (مثال: أدراج مخفية، رفوف مفتوحة)</label>
+              <textarea id="features" name="features" rows="3"></textarea>
+            </div>
+          `;
+          dynamicFieldsContainer.innerHTML += commonFields;
+        }
+      }
+
+      function showSuggestedProduct(product) {
+        suggestedProductId = product.id;
+        submitDesignBtn.style.display = "none";
+        regenerateDesignBtn.style.display = "block";
+        viewProductBtn.style.display = "block";
+
+        resultContent.innerHTML = `
+          <p>يبدو أن طلبك يشبه أحد منتجاتنا الجاهزة!</p>
+          <div class="suggested-product-card">
+            <img src="images/${product.id}.png" alt="${product.name}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80';"/>
+            <h4>${product.name}</h4>
+            <p>${product.description}</p>
+            <p class="product-price">${product.price} شيكل</p>
+          </div>
+          <p style="margin-top: 1rem;">هل ترغب في شراء هذا المنتج الجاهز أم تفضل تصميمًا مخصصًا؟</p>
+        `;
+        designResultSection.classList.add("show");
+        window.scrollTo(0, designResultSection.offsetTop - 50);
+        showToast("💡 تم العثور على منتج مشابه في المتجر!");
+      }
+
+      function showCustomDesignResult(title, description, priceLine) {
+        suggestedProductId = null;
+        submitDesignBtn.style.display = "block";
+        regenerateDesignBtn.style.display = "block";
+        viewProductBtn.style.display = "none";
+
+        resultContent.innerHTML = `
+          <h3 id="result-title">${title}</h3>
+          <p id="result-description">${description}</p>
+          <p id="result-price" style="font-size: 1.4rem; font-weight: bold; color: var(--primary-color);">${priceLine}</p>
+          <p style="font-size: 0.9rem; color: #888; margin-top: 10px">
+            السعر المقترح ليس نهائياً، وسيتم تأكيده بعد مراجعة طلبك.
+          </p>
+        `;
+        designResultSection.classList.add("show");
+        window.scrollTo(0, designResultSection.offsetTop - 50);
+        showToast("🎉 تم إنشاء التصميم المقترح بنجاح!");
+      }
+
+      function closeDesignConfirmModal() {
+        designConfirmModal.classList.remove("active");
+        document.body.classList.remove("scroll-lock");
+      }
+
+      document
+        .querySelector(".modal-close[data-modal='design-confirm']")
+        .addEventListener("click", closeDesignConfirmModal);
+      designConfirmModal.addEventListener("click", (e) => {
+        if (e.target === designConfirmModal) {
+          closeDesignConfirmModal();
+        }
+      });
+
+      productTypeSelect.addEventListener("change", updateDynamicFields);
+      document.addEventListener("DOMContentLoaded", updateDynamicFields);
+
+      designForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        designResultSection.classList.remove("show");
+        processingMessage.style.display = "block";
+
+        const productType = productTypeSelect.value;
+        const dimensions = document.getElementById("dimensions")?.value;
+        const material = document.getElementById("material")?.value;
+        const color = document.getElementById("color")?.value;
+        const features = document.getElementById("features")?.value;
+        const notes = document.getElementById("notes")?.value;
+
+        // First, check for similar products in the inventory
+        const filteredProducts = allProducts.filter(
+          (p) => p.category === productType
+        );
+        if (filteredProducts.length > 0) {
+          const similarityPrompt = `
+                Given the following customer request for a custom furniture piece and a list of our available products, please determine if any existing product is a close match.
+
+                Customer Request:
+                - Type: ${productType}
+                - Dimensions: ${dimensions || "Not specified"}
+                - Material: ${material || "Not specified"}
+                - Color: ${color || "Not specified"}
+                - Features: ${features || "None"}
+                - Notes: ${notes || "None"}
+
+                Available Products:
+                ${filteredProducts
+                  .map(
+                    (p) =>
+                      `- ${p.name} (ID: ${p.id}, Price: ${p.price} ISK, Description: ${p.description})`
+                  )
+                  .join("\n")}
+
+                Is there a product in our list that is a very close match to the customer's request?
+                If yes, reply ONLY with the product ID.
+                If no, reply with "NONE".
+            `;
+
+          try {
+            const searchResult = await textModel.generateContent(
+              similarityPrompt
+            );
+            const searchResponse = searchResult.response.text().trim();
+            const matchedProductId = parseInt(searchResponse, 10);
+
+            if (!isNaN(matchedProductId)) {
+              const matchedProduct = allProducts.find(
+                (p) => p.id === matchedProductId
+              );
+              if (matchedProduct) {
+                processingMessage.style.display = "none";
+                showSuggestedProduct(matchedProduct);
+                return;
+              }
+            }
+          } catch (error) {
+            console.error("Error checking for similar products:", error);
+            // Continue to custom design generation if search fails
+          }
+        }
+
+        // If no match is found, proceed with custom design generation
+        const promptText = `
+          صمم منتج أثاث خشبي بناءً على المواصفات التالية:
+          - النوع: ${productType}
+          - الأبعاد: ${dimensions || "غير محدد"}
+          - المادة: ${material || "غير محدد"}
+          - اللون: ${color || "غير محدد"}
+          - الميزات الإضافية: ${features || "لا يوجد"}
+          - وصف العميل: ${notes || "لا يوجد"}
+          
+          أعطني عنوانًا موجزًا للمنتج (مثلاً: "طاولة قهوة بسيطة").
+          ثم صف المنتج بأسلوب احترافي ومختصر.
+          أضف في النهاية السعر التقريبي للمنتج بناءً على مواصفاته (أعطه رقماً تقديرياً)
+          ثم أضف ملاحظة توضيحية بخصوص السعر وهي "السعر المقترح ليس نهائياً، وسيتم تأكيده بعد مراجعة طلبك."
+          مثال على الإخراج:
+          طاولة قهوة بسيطة
+          طاولة خشبية بتصميم كلاسيكي، مثالية لغرف المعيشة.
+          السعر التقريبي: 500 شيكل
+          السعر المقترح ليس نهائياً، وسيتم تأكيده بعد مراجعة طلبك.
+        `;
+
+        try {
+          const textResult = await textModel.generateContent(promptText);
+          const textResponse = textResult.response.text();
+          const [title, description, ...rest] = textResponse.split("\n");
+          const priceLine = rest.join("\n");
+
+          currentDesign = {
+            title,
+            description,
+            price: priceLine,
+            type: productType,
+            dimensions,
+            material,
+            color,
+            features,
+            notes,
+          };
+
+          processingMessage.style.display = "none";
+          showCustomDesignResult(title, description, priceLine);
+        } catch (error) {
+          console.error("Error generating design:", error);
+          processingMessage.style.display = "none";
+          showToast("❌ حدث خطأ أثناء إنشاء التصميم. حاول مرة أخرى.");
+        }
+      });
+
+      regenerateDesignBtn.addEventListener("click", () => {
+        designForm.dispatchEvent(
+          new Event("submit", { cancelable: true, bubbles: true })
+        );
+      });
+
+      submitDesignBtn.addEventListener("click", async () => {
+        if (!currentDesign) return;
+
+        const trackingId = generateTrackingId();
+        const customOrder = {
+          ...currentDesign,
+          tracking_id: trackingId,
+          order_date: new Date().toISOString(),
+          status: "قيد المراجعة",
+          type: "تصميم مخصص",
+        };
+
+        try {
+          await addDoc(collection(db, "custom_designs"), customOrder);
+
+          designTrackingIdSpan.textContent = trackingId;
+          designConfirmModal.classList.add("active");
+          document.body.classList.add("scroll-lock");
+
+          showToast("✅ تم إرسال طلبك للتصميم المخصص بنجاح!");
+        } catch (error) {
+          console.error("Error submitting design order:", error);
+          showToast("❌ حدث خطأ أثناء إرسال طلبك. حاول مرة أخرى.");
+        }
+      });
+
+      viewProductBtn.addEventListener("click", () => {
+        if (suggestedProductId) {
+          const product = allProducts.find((p) => p.id === suggestedProductId);
+          if (product) {
+            // Using the modal logic from the main index.html
+            openProductModal(product);
+          }
+        }
+      });
+
+      // Re-useable modal logic from index.html
+      const productModal = document.getElementById("product-modal");
+      const productModalClose = productModal.querySelector(".modal-close");
+
+      function openProductModal(product) {
+        productModal.querySelector(
+          "#modal-img"
+        ).src = `images/${product.id}.png`;
+        productModal.querySelector("#modal-title").textContent = product.name;
+        productModal.querySelector(
+          "#modal-price"
+        ).textContent = `${product.price} شيكل`;
+        productModal.querySelector("#modal-description").textContent =
+          product.description || "";
+
+        const colorSection = productModal.querySelector("#color-section");
+        const colorSelect = productModal.querySelector("#modal-color-select");
+        colorSelect.innerHTML = "";
+        if (product.specs && product.specs.includes("خيارات الألوان:")) {
+          const colors = product.specs
+            .replace("خيارات الألوان:", "")
+            .split("،")
+            .map((c) => c.trim())
+            .filter(Boolean);
+          colors.forEach((color) => {
+            const option = document.createElement("option");
+            option.value = color;
+            option.textContent = color;
+            colorSelect.appendChild(option);
+          });
+          colorSection.style.display = "block";
+        } else {
+          colorSection.style.display = "none";
+        }
+
+        productModal.querySelector("#modal-quantity").value = 1;
+        productModal.querySelector("#add-to-cart-btn").dataset.productId =
+          product.id;
+        productModal.classList.add("active");
+        document.body.classList.add("scroll-lock");
+      }
+
+      productModalClose.addEventListener("click", () => {
+        productModal.classList.remove("active");
+        document.body.classList.remove("scroll-lock");
+      });
+
+      productModal.addEventListener("click", (e) => {
+        if (e.target === productModal) {
+          productModal.classList.remove("active");
+          document.body.classList.remove("scroll-lock");
+        }
+      });
+
+      // Add to cart functionality for the modal
+      productModal
+        .querySelector("#add-to-cart-btn")
+        .addEventListener("click", (e) => {
+          const productId = parseInt(e.currentTarget.dataset.productId, 10);
+          const quantity = parseInt(
+            productModal.querySelector("#modal-quantity").value,
+            10
+          );
+          const colorSelect = productModal.querySelector("#modal-color-select");
+          const color =
+            colorSelect.style.display !== "none" ? colorSelect.value : null;
+
+          const product = allProducts.find((p) => p.id === productId);
+          if (!product) return;
+
+          let cart = JSON.parse(localStorage.getItem("shoppingCart")) || [];
+          const existingItem = cart.find(
+            (item) => item.id === productId && item.color === color
+          );
+          if (existingItem) {
+            existingItem.quantity += quantity;
+          } else {
+            cart.push({
+              id: product.id,
+              name: product.name,
+              price: parseFloat(product.price),
+              quantity,
+              color,
+              image: `images/${product.id}.png`,
+            });
+          }
+          localStorage.setItem("shoppingCart", JSON.stringify(cart));
+
+          // Update cart badge
+          const cartCountBadge = document.getElementById("cart-count-badge");
+          const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+          cartCountBadge.textContent = totalItems;
+
+          productModal.classList.remove("active");
+          document.body.classList.remove("scroll-lock");
+          showToast("✅ تمت إضافة المنتج إلى السلة بنجاح!");
+        });
+    </script>
+  </body>
+</html>

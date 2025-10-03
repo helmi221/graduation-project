@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>منجرة | مساعد الأثاث الذكي</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .recommendation-container {
+        max-width: 900px;
+        margin: 5rem auto;
+        padding: 30px;
+        background-color: var(--white-color);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        text-align: right;
+      }
+      .chat-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 20px;
+        background-color: #f7f5f2;
+        border-radius: var(--border-radius);
+      }
+      .chat-messages {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        max-height: 50vh;
+        overflow-y: auto;
+        padding: 10px;
+        border-bottom: 1px solid #ccc;
+        margin-bottom: 15px;
+      }
+      .chat-message {
+        padding: 10px 15px;
+        border-radius: 18px;
+        max-width: 75%;
+        line-height: 1.6;
+      }
+      .user-message {
+        background-color: var(--primary-color);
+        color: white;
+        align-self: flex-end;
+      }
+      .ai-message {
+        background-color: var(--white-color);
+        border: 1px solid #ddd;
+        align-self: flex-start;
+      }
+      .chat-input {
+        display: flex;
+        gap: 10px;
+      }
+      .chat-input input {
+        flex-grow: 1;
+        padding: 10px;
+        border-radius: 20px;
+        border: 1px solid #ccc;
+        font-family: "Cairo", sans-serif;
+      }
+      .chat-input button {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .chat-input button:hover {
+        background-color: var(--dark-color);
+      }
+      .chat-input button svg {
+        width: 20px;
+        height: 20px;
+      }
+      .ai-message.typing-indicator span {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: #aaa;
+        border-radius: 50%;
+        margin: 0 2px;
+        animation: bounce 1.4s infinite ease-in-out both;
+      }
+      .ai-message.typing-indicator span:nth-child(1) {
+        animation-delay: -0.32s;
+      }
+      .ai-message.typing-indicator span:nth-child(2) {
+        animation-delay: -0.16s;
+      }
+      @keyframes bounce {
+        0%,
+        80%,
+        100% {
+          transform: scale(0);
+        }
+        40% {
+          transform: scale(1);
+        }
+      }
+      .product-link {
+        background-color: transparent;
+        border: none;
+        color: var(--primary-color);
+        text-decoration: underline;
+        font-weight: bold;
+        cursor: pointer;
+        padding: 0;
+        font-size: inherit;
+        font-family: inherit;
+      }
+      .product-link:hover {
+        color: var(--dark-color);
+      }
+      .new-price {
+        color: green;
+        font-size: 1.8rem;
+        font-weight: bold;
+      }
+      .old-price {
+        text-decoration: line-through;
+        color: #888;
+        font-size: 1.2rem;
+        margin-right: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav class="container">
+        <a href="index.html" class="logo">منجرة</a>
+        <div class="nav-items">
+          <ul class="desktop-nav">
+            <li><a href="index.html" class="nav-link">الرئيسية</a></li>
+            <li>
+              <a href="index.html#products-page" class="nav-link">منتجاتنا</a>
+            </li>
+            <li><a href="order-status.html" class="nav-link">حالة الطلب</a></li>
+            <li>
+              <a href="recommendation.html" class="nav-link active">المساعد</a>
+            </li>
+            <li>
+              <a href="design.html" class="nav-link">صمم منتجك</a>
+            </li>
+          </ul>
+          <a href="cart.html" class="cart-icon-wrapper">
+            <svg
+              id="cart-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.658-.463 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+              />
+            </svg>
+            <span id="cart-count-badge">0</span>
+          </a>
+          <button class="menu-toggle" id="menu-toggle">
+            <div class="hamburger-icon">
+              <span></span><span></span><span></span>
+            </div>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="index.html" class="nav-link">الرئيسية</a>
+      <a href="index.html#products-page" class="nav-link">منتجاتنا</a>
+      <a href="order-status.html" class="nav-link">حالة الطلب</a>
+      <a href="recommendation.html" class="nav-link">المساعد</a>
+      <a href="design.html" class="nav-link">صمم منتجك</a>
+    </div>
+    >
+
+    <main>
+      <div class="container recommendation-container">
+        <div class="section-title-wrapper" style="margin-bottom: 1rem">
+          <h2>مساعد الأثاث الذكي</h2>
+        </div>
+        <p
+          style="
+            text-align: center;
+            color: #777;
+            max-width: 600px;
+            margin: 0 auto 2rem auto;
+          "
+        >
+          أهلاً بك! صف لي ما تبحث عنه، وسأساعدك في العثور على قطعة الأثاث
+          المثالية.
+        </p>
+        <div class="chat-container" id="chat-box">
+          <div class="chat-messages" id="chat-messages">
+            <div
+              id="typing-indicator"
+              class="chat-message ai-message typing-indicator"
+              style="display: none"
+            >
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+          <form class="chat-input" id="chat-form">
+            <input
+              type="text"
+              id="chat-input"
+              placeholder="اكتب رسالتك..."
+              autofocus
+            />
+            <button type="submit">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="white"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
+                />
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <div id="product-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <div class="modal-body">
+          <div class="modal-image-container">
+            <img id="modal-img" src="" alt="صورة المنتج" />
+          </div>
+          <div class="modal-details-container">
+            <h2 id="modal-title"></h2>
+            <div class="price-container">
+              <span id="modal-new-price" class="new-price"></span>
+              <span id="modal-old-price" class="old-price"></span>
+            </div>
+            <p id="modal-description"></p>
+            <h3>التفاصيل الفنية</h3>
+            <ul id="modal-specs-list"></ul>
+            <button class="btn" id="add-to-cart-btn">إضافة إلى السلة</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast-notification" class="toast"></div>
+
+    <script src="products.js"></script>
+    <script type="module">
+      import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const API_KEY = "AIzaSyBcFkJsomDYhm1uGqoq3-8mHr0LTu-mZ9s";
+        const genAI = new GoogleGenerativeAI(API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+        const chatForm = document.getElementById("chat-form");
+        const chatInput = document.getElementById("chat-input");
+        const chatMessages = document.getElementById("chat-messages");
+        const typingIndicator = document.getElementById("typing-indicator");
+        const modal = document.getElementById("product-modal");
+        const modalClose = document.querySelector(".modal-close");
+        const modalTitle = document.getElementById("modal-title");
+        const modalImg = document.getElementById("modal-img");
+        const modalNewPrice = document.getElementById("modal-new-price");
+        const modalOldPrice = document.getElementById("modal-old-price");
+        const modalDesc = document.getElementById("modal-description");
+        const modalSpecs = document.getElementById("modal-specs-list");
+        const addToCartBtn = document.getElementById("add-to-cart-btn");
+        const cartCountBadge = document.getElementById("cart-count-badge");
+
+        let cart = JSON.parse(localStorage.getItem("shoppingCart")) || [];
+        let chatHistory = [];
+        let currentProduct = null;
+        let currentDiscountPrice = null;
+
+        const updateCartBadge = () => {
+          const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
+          cartCountBadge.textContent = totalItems;
+        };
+        updateCartBadge();
+
+        const showToast = (message) => {
+          const toast = document.getElementById("toast-notification");
+          toast.textContent = message;
+          toast.classList.add("show");
+          setTimeout(() => toast.classList.remove("show"), 3000);
+        };
+
+        const appendMessage = (sender, text, isHtml = false) => {
+          typingIndicator.style.display = "none";
+          const el = document.createElement("div");
+          el.className = `chat-message ${sender}-message`;
+          if (isHtml) {
+            el.innerHTML = text;
+          } else {
+            el.textContent = text;
+          }
+
+          if (sender === "ai") {
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = el.innerHTML;
+            allProducts.forEach((p) => {
+              const regex = new RegExp(p.name, "g");
+              const discountedPrice = localStorage.getItem(
+                `negotiatedPrice_${p.id}`
+              );
+              const link = `<button class="product-link" data-id="${
+                p.id
+              }" data-discount="${discountedPrice || ""}">${p.name}</button>`;
+              tempDiv.innerHTML = tempDiv.innerHTML.replace(regex, link);
+            });
+            el.innerHTML = tempDiv.innerHTML;
+          }
+
+          chatMessages.insertBefore(el, typingIndicator);
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        };
+
+        const openProductModal = (product, discountedPrice) => {
+          currentProduct = product;
+          currentDiscountPrice = discountedPrice;
+          modalTitle.textContent = product.name;
+          modalImg.src = `images/${product.id}.png`;
+          modalDesc.textContent = product.description;
+          modalSpecs.innerHTML = "";
+          if (product.measurements)
+            modalSpecs.innerHTML += `<li><strong>القياسات:</strong> ${product.measurements}</li>`;
+          if (product.materials)
+            modalSpecs.innerHTML += `<li><strong>المواد:</strong> ${product.materials}</li>`;
+          if (product.specs)
+            modalSpecs.innerHTML += `<li><strong>المواصفات:</strong> ${product.specs}</li>`;
+          if (discountedPrice) {
+            modalNewPrice.textContent = `${parseFloat(discountedPrice).toFixed(
+              0
+            )} شيكل`;
+            modalOldPrice.textContent = `${product.price} شيكل`;
+            modalOldPrice.style.display = "inline";
+          } else {
+            modalNewPrice.textContent = `${product.price} شيكل`;
+            modalOldPrice.style.display = "none";
+          }
+          modal.classList.add("active");
+        };
+
+        chatMessages.addEventListener("click", (e) => {
+          if (e.target.classList.contains("product-link")) {
+            const productId = e.target.dataset.id;
+            const discountedPrice = e.target.dataset.discount;
+            const product = allProducts.find((p) => p.id == productId);
+            if (product) {
+              openProductModal(product, discountedPrice || null);
+            }
+          }
+        });
+
+        addToCartBtn.addEventListener("click", () => {
+          if (!currentProduct) return;
+          const priceToUse = currentDiscountPrice || currentProduct.price;
+          const existing = cart.find((i) => i.id === currentProduct.id);
+          if (existing) {
+            existing.quantity += 1;
+            existing.price = priceToUse;
+          } else {
+            const newItem = {
+              id: currentProduct.id,
+              name: currentProduct.name,
+              price: parseFloat(priceToUse),
+              originalPrice: currentDiscountPrice ? currentProduct.price : null,
+              quantity: 1,
+              image: `images/${currentProduct.id}.png`,
+            };
+            cart.push(newItem);
+          }
+          localStorage.setItem("shoppingCart", JSON.stringify(cart));
+          localStorage.removeItem(`negotiatedPrice_${currentProduct.id}`);
+          updateCartBadge();
+          showToast("✅ تمت إضافة المنتج إلى السلة بنجاح!");
+          modal.classList.remove("active");
+        });
+
+        modalClose.addEventListener("click", () => {
+          modal.classList.remove("active");
+        });
+
+        const initializeChat = () => {
+          const msg = "أهلاً بك 👋 خبرني شو بدك، وأنا بساعدك تختار الأنسب 😉";
+          appendMessage("ai", msg);
+          chatHistory.push({ role: "model", parts: [{ text: msg }] });
+        };
+
+        chatForm.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const userMsg = chatInput.value.trim();
+          if (!userMsg) return;
+          appendMessage("user", userMsg);
+          chatInput.value = "";
+          typingIndicator.style.display = "flex";
+          chatHistory.push({ role: "user", parts: [{ text: userMsg }] });
+
+          const productsString = allProducts
+            .map(
+              (p) =>
+                `${p.name} (الفئة: ${p.category}, السعر: ${p.price}, الوصف: ${p.description}, المواد: ${p.materials}, ساعات التصنيع: ${p.manufacturing_time_hours}, المكونات: ${p.components})`
+            )
+            .join(", ");
+
+          const chatPrompt = `
+            أنت مساعد مبيعات ودود ومرن لمتجر "منجرة".
+            - كن ودودًا ومرنًا في الحوار.
+            - اقترح فقط من المنتجات المتوفرة التالية: ${productsString}.
+            - إذا كان السعر عاليًا، يمكنك تقديم خصم حتى 15% بالشكل: [عرض-خاص: <اسم المنتج> | <السعر الجديد>].
+            - اسأل العميل أسئلة توضيحية إذا لزم الأمر.
+            - استخدم عبارات ودية، واقعية، ومختصرة.
+            - لا تقدم الخصم الكامل مرة واحدة، فاوض تدريجياً. ابدأ بخصم بسيط (5% مثلاً)، ثم زد الخصم في المحاولات اللاحقة.
+            - لا تقدم خصمًا على منتج لا يزيد سعره عن 1000 شيكل.
+            - إذا كان طلب العميل لا يتناسب مع أي منتج من منتجاتنا الموجودة، قم بتوجيهه إلى صفحة "صمم منتجك" بالرسالة التالية:
+            "يبدو أن طلبك مميز جداً! 🤩 يمكننا صناعة منتج خصيصاً لك. تفضل بالانتقال إلى صفحة "صمم منتجك" لتقديم مواصفاتك، وسيقوم فريقنا بمراجعة طلبك والرد عليك في أسرع وقت.
+            "
+
+            المحادثة:
+            ${chatHistory
+              .map((h) => `${h.role}: ${h.parts[0].text}`)
+              .join("\n")}
+          `;
+
+          try {
+            const result = await model.generateContent(chatPrompt);
+            let aiResponse = result.response.text();
+            let displayResponse = aiResponse;
+
+            const offerRegex = /\[عرض-خاص:\s*(.*?)\s*\|\s*([\d.]+)\s*\]/;
+            const offerMatch = aiResponse.match(offerRegex);
+
+            if (offerMatch) {
+              const productName = offerMatch[1].trim();
+              const newPrice = parseFloat(offerMatch[2]);
+              const product = allProducts.find((p) => p.name === productName);
+
+              if (product) {
+                localStorage.setItem(`negotiatedPrice_${product.id}`, newPrice);
+                const discountPercentage =
+                  ((product.price - newPrice) / product.price) * 100;
+                displayResponse = `
+                  <p>${aiResponse.replace(offerMatch[0], "").trim()}</p>
+                  <p>يسعدني أن أقدم لك **خصمًا خاصًا** على ${
+                    product.name
+                  }! ✨</p>
+                  <p>الخصم: **${discountPercentage.toFixed(0)}%**</p>
+                  <p>السعر الجديد: **${newPrice.toFixed(0)} شيكل**</p>
+                `;
+              }
+            } else {
+              displayResponse = `
+                <p>${aiResponse}</p>
+              `;
+            }
+
+            appendMessage("ai", displayResponse, true);
+            chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
+          } catch {
+            appendMessage("ai", "عذراً، حصل خطأ أثناء الرد 😅 حاول مرة ثانية.");
+          }
+
+          typingIndicator.style.display = "none";
+        });
+
+        initializeChat();
+      });
+    </script>
+  </body>
+</html>

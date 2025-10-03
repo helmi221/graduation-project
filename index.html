@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>منجرة | الرئيسية</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <nav class="container">
+        <a href="index.html" class="logo">منجرة</a>
+        <div class="nav-items">
+          <ul class="desktop-nav">
+            <li>
+              <a href="#" class="nav-link active" data-target="home-page"
+                >الرئيسية</a
+              >
+            </li>
+            <li>
+              <a href="#" class="nav-link" data-target="products-page"
+                >منتجاتنا</a
+              >
+            </li>
+            <li>
+              <a href="order-status.html" class="nav-link">حالة الطلب</a>
+            </li>
+            <li>
+              <a href="recommendation.html" class="nav-link">المساعد</a>
+            </li>
+            <li>
+              <a href="design.html" class="nav-link">صمم منتجك</a>
+            </li>
+          </ul>
+          <a href="cart.html" class="cart-icon-wrapper">
+            <svg
+              id="cart-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.658-.463 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+              />
+            </svg>
+            <span id="cart-count-badge">0</span>
+          </a>
+          <button class="menu-toggle" id="menu-toggle">
+            <div class="hamburger-icon">
+              <span></span><span></span><span></span>
+            </div>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="#" class="nav-link" data-target="home-page">الرئيسية</a>
+      <a href="#" class="nav-link" data-target="products-page">منتجاتنا</a>
+      <a href="order-status.html" class="nav-link">حالة الطلب</a>
+      <a href="recommendation.html" class="nav-link">المساعد</a>
+      <a href="design.html" class="nav-link">صمم منتجك</a>
+    </div>
+
+    <main>
+      <div id="home-page" class="page active">
+        <section class="hero">
+          <div class="hero-content">
+            <h1>فن الخشب، في كل قطعة</h1>
+            <p>
+              نصنع أثاثاً يروي قصة، مصمم ليبعث الدفء والأناقة في أرجاء منزلك.
+            </p>
+            <a href="#" class="btn nav-link" data-target="products-page"
+              >تصفح أعمالنا</a
+            >
+          </div>
+        </section>
+        <section class="section container">
+          <div class="section-title-wrapper"><h2>مختاراتنا</h2></div>
+          <div class="product-grid" id="featured-products-grid"></div>
+        </section>
+      </div>
+      <div id="products-page" class="page">
+        <section class="section container">
+          <div class="section-title-wrapper"><h2>جميع منتجاتنا</h2></div>
+          <div class="filters">
+            <button class="filter-btn active" data-filter="all">الكل</button>
+            <button class="filter-btn" data-filter="طاولة سفرة">
+              طاولات سفرة
+            </button>
+            <button class="filter-btn" data-filter="كرسي">كراسي</button>
+            <button class="filter-btn" data-filter="طقم كنب">أطقم كنب</button>
+            <button class="filter-btn" data-filter="غرفة نوم">غرف نوم</button>
+            <button class="filter-btn" data-filter="مطبخ">أثاث مطبخ</button>
+            <button class="filter-btn" data-filter="طاولة وسط">
+              طاولات وسط
+            </button>
+            <button class="filter-btn" data-filter="خزانة">خزائن</button>
+            <button class="filter-btn" data-filter="طاولة تلفاز">
+              طاولات تلفاز
+            </button>
+          </div>
+          <div
+            class="product-grid"
+            id="product-grid-container"
+            style="margin-top: 4rem"
+          ></div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <div class="container footer-content">
+        <a href="index.html" class="footer-logo">منجرة</a>
+        <div class="footer-links">
+          <a href="#">من نحن</a> <a href="#">تواصل معنا</a>
+        </div>
+      </div>
+      <div class="copyright">&copy; 2025 جميع الحقوق محفوظة.</div>
+    </footer>
+
+    <div id="product-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close">&times;</span>
+        <div class="modal-body">
+          <div class="modal-image-container">
+            <img id="modal-img" src="" alt="صورة المنتج" />
+          </div>
+          <div class="modal-details-container">
+            <h2 id="modal-title"></h2>
+            <p id="modal-price" class="product-price"></p>
+            <p id="modal-description"></p>
+
+            <hr class="modal-options-separator" />
+
+            <div class="modal-options">
+              <div id="color-section">
+                <label for="modal-color-select">اختر اللون</label>
+                <select id="modal-color-select"></select>
+              </div>
+              <div>
+                <label for="modal-quantity">الكمية</label>
+                <div id="modal-quantity-selector" class="quantity-selector">
+                  <button
+                    class="quantity-btn quantity-btn-plus"
+                    data-change="1"
+                  >
+                    +
+                  </button>
+                  <input
+                    type="number"
+                    id="modal-quantity"
+                    value="1"
+                    min="1"
+                    readonly
+                  />
+                  <button
+                    class="quantity-btn quantity-btn-minus"
+                    data-change="-1"
+                  >
+                    -
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn" id="add-to-cart-btn">إضافة إلى السلة</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast-notification" class="toast"></div>
+
+    <script src="products.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const productGrid = document.getElementById("product-grid-container");
+        const featuredGrid = document.getElementById("featured-products-grid");
+        const filterButtons = document.querySelectorAll(".filter-btn");
+        const pages = document.querySelectorAll(".page");
+        const modal = document.getElementById("product-modal");
+        const modalClose = document.querySelector(".modal-close");
+        const addToCartBtn = document.getElementById("add-to-cart-btn");
+        const cartCountBadge = document.getElementById("cart-count-badge");
+        const body = document.body;
+        const menuToggle = document.getElementById("menu-toggle");
+        const mobileMenu = document.getElementById("mobile-menu");
+        const toast = document.getElementById("toast-notification");
+        const quantitySelector = document.getElementById(
+          "modal-quantity-selector"
+        );
+
+        let cart = [];
+
+        function createProductCard(product) {
+          const card = document.createElement("div");
+          card.className = "product-card";
+          card.dataset.productId = product.id;
+          const imageSrc = `images/${product.id}.png`;
+          card.innerHTML = `
+            <div class="product-image-container">
+                <img src="${imageSrc}" alt="${product.name}" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80';">
+            </div>
+            <div class="product-card-content">
+                <span class="product-category">${product.category}</span>
+                <h3>${product.name}</h3>
+                <p class="product-price">${product.price} شيكل</p>
+            </div>`;
+          return card;
+        }
+
+        const displayProducts = (productsToDisplay, gridElement) => {
+          if (!gridElement) return;
+          gridElement.innerHTML = "";
+          productsToDisplay.forEach((product) => {
+            gridElement.appendChild(createProductCard(product));
+          });
+        };
+
+        function openModal(product) {
+          const imageSrc = `images/${product.id}.png`;
+          document.getElementById("modal-img").src = imageSrc;
+          document.getElementById("modal-img").onerror = function () {
+            this.onerror = null;
+            this.src =
+              "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80";
+          };
+
+          document.getElementById("modal-title").textContent = product.name;
+          document.getElementById(
+            "modal-price"
+          ).textContent = `${product.price} شيكل`;
+          document.getElementById("modal-description").textContent =
+            product.description || "";
+
+          const colorSection = document.getElementById("color-section");
+          const colorSelect = document.getElementById("modal-color-select");
+          colorSelect.innerHTML = "";
+
+          if (product.specs && product.specs.includes("خيارات الألوان:")) {
+            const colors = product.specs
+              .replace("خيارات الألوان:", "")
+              .split("،")
+              .map((c) => c.trim())
+              .filter(Boolean);
+
+            colors.forEach((color) => {
+              const option = document.createElement("option");
+              option.value = color;
+              option.textContent = color;
+              colorSelect.appendChild(option);
+            });
+            colorSection.style.display = "block";
+          } else {
+            colorSection.style.display = "none";
+          }
+
+          document.getElementById("modal-quantity").value = 1;
+          addToCartBtn.dataset.productId = product.id;
+          modal.classList.add("active");
+          body.classList.add("scroll-lock");
+        }
+
+        function addToCart(productId, quantity, color) {
+          const product = allProducts.find((p) => p.id === productId);
+          if (!product) return;
+          const existingItem = cart.find(
+            (item) => item.id === productId && item.color === color
+          );
+          if (existingItem) {
+            existingItem.quantity += quantity;
+          } else {
+            cart.push({
+              id: product.id,
+              name: product.name,
+              price: parseFloat(product.price),
+              quantity,
+              color,
+              image: `images/${product.id}.png`,
+            });
+          }
+          saveCart();
+          updateCartBadge();
+        }
+
+        quantitySelector.addEventListener("click", (e) => {
+          if (e.target.classList.contains("quantity-btn")) {
+            const quantityInput = document.getElementById("modal-quantity");
+            let currentValue = parseInt(quantityInput.value, 10);
+            currentValue += parseInt(e.target.dataset.change, 10);
+            if (currentValue < 1) currentValue = 1;
+            quantityInput.value = currentValue;
+          }
+        });
+
+        addToCartBtn.addEventListener("click", (e) => {
+          const productId = parseInt(e.currentTarget.dataset.productId, 10);
+          const quantity = parseInt(
+            document.getElementById("modal-quantity").value,
+            10
+          );
+          const colorSelect = document.getElementById("modal-color-select");
+          const color =
+            colorSelect.style.display !== "none" ? colorSelect.value : null;
+
+          addToCart(productId, quantity, color);
+          closeModal();
+          showToast("✅ تمت إضافة المنتج إلى السلة بنجاح!");
+        });
+
+        function closeModal() {
+          modal.classList.remove("active");
+          if (!mobileMenu.classList.contains("active")) {
+            body.classList.remove("scroll-lock");
+          }
+        }
+        function handleGridClick(e) {
+          const card = e.target.closest(".product-card");
+          if (card) {
+            const productId = parseInt(card.dataset.productId, 10);
+            const product = allProducts.find((p) => p.id === productId);
+            if (product) openModal(product);
+          }
+        }
+        function saveCart() {
+          localStorage.setItem("shoppingCart", JSON.stringify(cart));
+        }
+        function loadCart() {
+          const storedCart = localStorage.getItem("shoppingCart");
+          cart = storedCart ? JSON.parse(storedCart) : [];
+        }
+        function updateCartBadge() {
+          const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+          cartCountBadge.textContent = totalItems;
+          cartCountBadge.classList.toggle("visible", totalItems > 0);
+        }
+        function showToast(message) {
+          toast.textContent = message;
+          toast.classList.add("show");
+          setTimeout(() => {
+            toast.classList.remove("show");
+          }, 3000);
+        }
+        menuToggle.addEventListener("click", () => {
+          mobileMenu.classList.toggle("active");
+          body.classList.toggle("scroll-lock");
+        });
+        const switchPage = (targetId) => {
+          if (!document.getElementById(targetId)) return;
+          pages.forEach((page) => page.classList.remove("active"));
+          document.getElementById(targetId).classList.add("active");
+          document
+            .querySelectorAll(".desktop-nav a.nav-link")
+            .forEach((link) => {
+              link.classList.remove("active");
+              if (link.dataset.target === targetId)
+                link.classList.add("active");
+            });
+          window.scrollTo(0, 0);
+          mobileMenu.classList.remove("active");
+          body.classList.remove("scroll-lock");
+        };
+        document.querySelectorAll(".nav-link").forEach((link) => {
+          link.addEventListener("click", (e) => {
+            e.preventDefault();
+            const target = link.dataset.target;
+            if (target) {
+              switchPage(target);
+            } else if (link.href) {
+              window.location.href = link.href;
+            }
+          });
+        });
+        filterButtons.forEach((button) => {
+          button.addEventListener("click", () => {
+            filterButtons.forEach((btn) => btn.classList.remove("active"));
+            button.classList.add("active");
+            const filter = button.dataset.filter;
+            const filteredProducts =
+              filter === "all"
+                ? allProducts
+                : allProducts.filter((p) => p.category === filter);
+            displayProducts(filteredProducts, productGrid);
+          });
+        });
+        productGrid.addEventListener("click", handleGridClick);
+        featuredGrid.addEventListener("click", handleGridClick);
+        modalClose.addEventListener("click", closeModal);
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) closeModal();
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") closeModal();
+        });
+
+        loadCart();
+        updateCartBadge();
+        displayProducts(allProducts, productGrid);
+
+        const featuredProducts = [
+          allProducts.find((p) => p.id === 3),
+          allProducts.find((p) => p.id === 15),
+          allProducts.find((p) => p.id === 43),
+        ].filter(Boolean);
+        displayProducts(featuredProducts, featuredGrid);
+      });
+    </script>
+  </body>
+</html>

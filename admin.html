@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>منجرة | لوحة المدير</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-color: #795548;
+        --dark-color: #3e2723;
+        --light-color: #f7f5f2;
+        --border-color: #eaeaea;
+        --border-radius: 16px;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Cairo", sans-serif;
+        background-color: var(--light-color);
+        color: var(--dark-color);
+        line-height: 1.8;
+        font-size: 16px;
+        padding: 20px;
+      }
+      .container {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 0 15px;
+      }
+      h1 {
+        text-align: center;
+        font-size: clamp(2rem, 5vw, 2.8rem);
+        margin-bottom: 2rem;
+        color: var(--dark-color);
+      }
+      .orders-list {
+        display: grid;
+        gap: 20px;
+      }
+      .order-card {
+        background-color: white;
+        padding: 20px;
+        border-radius: var(--border-radius);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        position: relative;
+      }
+      .order-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+      }
+      .order-header h3 {
+        font-size: 1.4rem;
+        color: var(--primary-color);
+      }
+      .order-header .status {
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 5px;
+      }
+      .status.قيد-المراجعة {
+        background-color: #ffeb3b;
+        color: #795548;
+      }
+      .status.قيد-التصنيع {
+        background-color: #34495e;
+        color: white;
+      }
+      .status.قيد-الطلاء {
+        background-color: #f39c12;
+        color: white;
+      }
+      .status.قيد-التغليف {
+        background-color: #c0392b;
+        color: white;
+      }
+      .status.قيد-الشحن {
+        background-color: #3498db;
+        color: white;
+      }
+      .status.مكتمل {
+        background-color: #2ecc71;
+        color: white;
+      }
+      .status.تم-الرفض {
+        background-color: #e74c3c;
+        color: white;
+      }
+      .order-details p {
+        margin-bottom: 5px;
+      }
+      .order-items,
+      .design-details {
+        list-style: none;
+        padding: 0;
+        margin-top: 10px;
+        border-top: 1px dashed var(--border-color);
+        padding-top: 10px;
+      }
+      .order-items li,
+      .design-details li {
+        background-color: #f9f9f9;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 5px;
+      }
+      .loading-msg {
+        text-align: center;
+        font-size: 1.2rem;
+        color: #888;
+        padding: 50px;
+      }
+      .admin-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .admin-actions button {
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: "Cairo", sans-serif;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: background-color 0.2s;
+      }
+      .admin-actions button.reject-btn {
+        background-color: #e74c3c;
+      }
+      .admin-actions button.reject-btn:hover {
+        background-color: #c0392b;
+      }
+      .admin-actions button:hover {
+        background-color: var(--dark-color);
+      }
+      .admin-actions button.selected {
+        background-color: #2c3e50;
+      }
+      .custom-design-label {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: var(--dark-color);
+        color: white;
+        padding: 5px 10px;
+        font-size: 0.8rem;
+        border-radius: 5px;
+      }
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 2000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease-in-out;
+      }
+      .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+      .modal-content {
+        background-color: var(--white-color);
+        border-radius: var(--border-radius);
+        width: 90%;
+        max-width: 500px;
+        padding: 30px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        position: relative;
+        text-align: right;
+      }
+      .modal-close {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 2.5rem;
+        color: #aaa;
+        cursor: pointer;
+        line-height: 1;
+        transition: transform 0.2s, color 0.2s;
+        z-index: 2010;
+      }
+      .modal-close:hover {
+        transform: scale(1.2);
+        color: var(--dark-color);
+      }
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+        font-family: "Cairo", sans-serif;
+      }
+      .btn {
+        display: inline-block;
+        background: var(--primary-color);
+        color: var(--white-color);
+        padding: 14px 35px;
+        border-radius: 50px;
+        font-weight: 600;
+        transition: all 0.4s;
+        border: none;
+        cursor: pointer;
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>لوحة تحكم الطلبات</h1>
+      <div class="orders-list" id="orders-list">
+        <p class="loading-msg">جارٍ تحميل الطلبات...</p>
+      </div>
+    </div>
+
+    <div id="custom-design-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close" data-modal="custom-design">&times;</span>
+        <h2>تحديث حالة التصميم المخصص</h2>
+        <form id="custom-design-form">
+          <div class="form-group">
+            <label for="new-status">الحالة الجديدة</label>
+            <select id="new-status" name="new-status">
+              <option value="قيد المراجعة">قيد المراجعة</option>
+              <option value="قيد التصنيع">قيد التصنيع</option>
+              <option value="قيد الطلاء">قيد الطلاء</option>
+              <option value="قيد التغليف">قيد التغليف</option>
+              <option value="قيد الشحن">قيد الشحن</option>
+              <option value="مكتمل">مكتمل</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="final-price">السعر النهائي (شيكل)</label>
+            <input type="number" id="final-price" name="final-price" required />
+          </div>
+          <button type="submit" class="btn">حفظ التغييرات</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="rejection-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close" data-modal="rejection">&times;</span>
+        <h2>سبب الرفض</h2>
+        <form id="rejection-form">
+          <div class="form-group">
+            <label for="rejection-reason">الرجاء إدخال سبب رفض الطلب</label>
+            <textarea
+              id="rejection-reason"
+              name="rejection-reason"
+              rows="4"
+              required
+            ></textarea>
+          </div>
+          <button type="submit" class="btn">إرسال الرفض</button>
+        </form>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+        orderBy,
+        query,
+        doc,
+        updateDoc,
+      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
+        authDomain: "ecomers-dd329.firebaseapp.com",
+        projectId: "ecomers-dd329",
+        storageBucket: "ecomers-dd329.firebasestorage.app",
+        messagingSenderId: "190646144215",
+        appId: "1:190646144215:web:d55f24091a920f92b6b492",
+        measurementId: "G-NVYK3DZR00",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const ordersListElement = document.getElementById("orders-list");
+      const customDesignModal = document.getElementById("custom-design-modal");
+      const rejectionModal = document.getElementById("rejection-modal");
+      const customDesignForm = document.getElementById("custom-design-form");
+      const rejectionForm = document.getElementById("rejection-form");
+
+      let currentOrderId = null;
+      let currentOrderCollection = null;
+
+      const orderStatuses = [
+        "قيد المراجعة",
+        "مقبول",
+        "قيد التصنيع",
+        "قيد الطلاء",
+        "قيد التغليف",
+        "قيد الشحن",
+        "مكتمل",
+        "تم الرفض",
+      ];
+
+      function openModal(modalId) {
+        document.getElementById(modalId).classList.add("active");
+      }
+
+      function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove("active");
+      }
+
+      document.querySelectorAll(".modal-close").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          closeModal(btn.dataset.modal + "-modal");
+        });
+      });
+
+      async function fetchOrders() {
+        ordersListElement.innerHTML =
+          '<p class="loading-msg">جارٍ تحميل الطلبات...</p>';
+        try {
+          const ordersCollection = collection(db, "orders");
+          const customDesignsCollection = collection(db, "custom_designs");
+
+          const ordersQuery = query(
+            ordersCollection,
+            orderBy("order_date", "desc")
+          );
+          const customDesignsQuery = query(
+            customDesignsCollection,
+            orderBy("order_date", "desc")
+          );
+
+          const [ordersSnapshot, customDesignsSnapshot] = await Promise.all([
+            getDocs(ordersQuery),
+            getDocs(customDesignsQuery),
+          ]);
+
+          const orders = ordersSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+            type: "ready",
+          }));
+          const customDesigns = customDesignsSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+            type: "custom",
+          }));
+
+          const allOrders = [...orders, ...customDesigns].sort(
+            (a, b) => new Date(b.order_date) - new Date(a.order_date)
+          );
+
+          if (allOrders.length === 0) {
+            ordersListElement.innerHTML =
+              '<p class="loading-msg">لا توجد طلبات حالياً.</p>';
+            return;
+          }
+
+          ordersListElement.innerHTML = "";
+          allOrders.forEach((order) => {
+            const orderCard = document.createElement("div");
+            orderCard.className = "order-card";
+            const statusClass = order.status.replace(/\s+/g, "-");
+
+            let orderDetailsHtml = "";
+            let header = "";
+            let actionsHtml = "";
+
+            if (order.type === "ready") {
+              header = `<h3>طلب من: ${order.name}</h3>`;
+              orderDetailsHtml = `
+                    <div class="order-details">
+                        <p><strong>رمز التتبع:</strong> ${
+                          order.tracking_id || "غير متوفر"
+                        }</p>
+                        <p><strong>رقم الهاتف:</strong> ${order.phone}</p>
+                        <p><strong>البريد الإلكتروني:</strong> ${
+                          order.email || "غير متوفر"
+                        }</p>
+                        <p><strong>العنوان:</strong> ${order.address}</p>
+                        <p><strong>ملاحظات:</strong> ${
+                          order.notes || "لا يوجد"
+                        }</p>
+                        <p><strong>الإجمالي:</strong> ${order.total.toFixed(
+                          0
+                        )} شيكل</p>
+                        <p><strong>تاريخ الطلب:</strong> ${new Date(
+                          order.order_date
+                        ).toLocaleString("ar-SA")}</p>
+                    </div>
+                    <ul class="order-items">
+                        ${order.items
+                          .map(
+                            (item) => `
+                            <li>${item.name} (الكمية: ${
+                              item.quantity
+                            }) - ${item.price.toFixed(0)} شيكل</li>
+                        `
+                          )
+                          .join("")}
+                    </ul>
+                `;
+              actionsHtml = orderStatuses
+                .filter((s) => s !== "مقبول" && s !== "تم الرفض")
+                .map(
+                  (status) => `
+                        <button data-status="${status}" ${
+                    order.status === status ? 'class="selected"' : ""
+                  }>${status}</button>
+                    `
+                )
+                .join("");
+            } else if (order.type === "custom") {
+              header = `<h3>طلب تصميم مخصص</h3><span class="custom-design-label">تصميم مخصص</span>`;
+              orderDetailsHtml = `
+                    <div class="order-details">
+                        <p><strong>رمز التتبع:</strong> ${
+                          order.tracking_id || "غير متوفر"
+                        }</p>
+                        <p><strong>الحالة الحالية:</strong> ${order.status}</p>
+                        <p><strong>تاريخ الطلب:</strong> ${new Date(
+                          order.order_date
+                        ).toLocaleString("ar-SA")}</p>
+                        <p><strong>السعر المقترح:</strong> ${
+                          order.price || "غير محدد"
+                        }</p>
+                        ${
+                          order.final_price
+                            ? `<p><strong>السعر النهائي:</strong> ${order.final_price} شيكل</p>`
+                            : ""
+                        }
+                        ${
+                          order.rejection_reason
+                            ? `<p style="color:red;"><strong>سبب الرفض:</strong> ${order.rejection_reason}</p>`
+                            : ""
+                        }
+                    </div>
+                    <ul class="design-details">
+                        <li><strong>النوع:</strong> ${order.type}</li>
+                        <li><strong>الأبعاد:</strong> ${
+                          order.dimensions || "غير محدد"
+                        }</li>
+                        <li><strong>المادة:</strong> ${
+                          order.material || "غير محدد"
+                        }</li>
+                        <li><strong>اللون:</strong> ${
+                          order.color || "غير محدد"
+                        }</li>
+                        <li><strong>الميزات:</strong> ${
+                          order.features || "لا يوجد"
+                        }</li>
+                        <li><strong>الوصف:</strong> ${
+                          order.description || "لا يوجد"
+                        }</li>
+                    </ul>
+                `;
+
+              if (order.status === "قيد المراجعة") {
+                actionsHtml = `
+                        <button class="accept-btn" data-action="accept">قبول وتحديد السعر</button>
+                        <button class="reject-btn" data-action="reject">رفض</button>
+                    `;
+              } else if (order.status === "تم الرفض") {
+                actionsHtml = ""; // No actions for rejected orders
+              } else {
+                actionsHtml = `
+                      <p><strong>تغيير حالة الطلب:</strong></p>
+                      ${orderStatuses
+                        .filter(
+                          (s) =>
+                            s !== "قيد المراجعة" &&
+                            s !== "تم الرفض" &&
+                            s !== "مقبول"
+                        )
+                        .map(
+                          (status) => `
+                          <button data-status="${status}" ${
+                            order.status === status ? 'class="selected"' : ""
+                          }>${status}</button>
+                      `
+                        )
+                        .join("")}
+                    `;
+              }
+            }
+
+            orderCard.innerHTML = `
+                <div class="order-header">
+                    ${header}
+                    <span class="status ${statusClass}">${order.status}</span>
+                </div>
+                ${orderDetailsHtml}
+                <div class="admin-actions" data-id="${
+                  order.id
+                }" data-collection="${
+              order.type === "ready" ? "orders" : "custom_designs"
+            }">
+                    ${actionsHtml}
+                </div>
+            `;
+            ordersListElement.appendChild(orderCard);
+          });
+        } catch (e) {
+          console.error("Error fetching documents: ", e);
+          ordersListElement.innerHTML =
+            '<p class="loading-msg" style="color: red;">حدث خطأ في جلب الطلبات. الرجاء التحقق من اتصالك بالشبكة.</p>';
+        }
+      }
+
+      ordersListElement.addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (
+          button &&
+          button.parentElement.classList.contains("admin-actions")
+        ) {
+          currentOrderId = button.parentElement.dataset.id;
+          currentOrderCollection = button.parentElement.dataset.collection;
+
+          if (button.dataset.action === "accept") {
+            openModal("custom-design-modal");
+          } else if (button.dataset.action === "reject") {
+            openModal("rejection-modal");
+          } else {
+            const newStatus = button.dataset.status;
+            updateOrderStatus(
+              currentOrderId,
+              newStatus,
+              currentOrderCollection
+            );
+          }
+        }
+      });
+
+      customDesignForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const newStatus = document.getElementById("new-status").value;
+        const finalPrice = document.getElementById("final-price").value;
+
+        if (!finalPrice || finalPrice <= 0) {
+          alert("الرجاء إدخال سعر نهائي صحيح.");
+          return;
+        }
+
+        try {
+          const orderRef = doc(db, currentOrderCollection, currentOrderId);
+          await updateDoc(orderRef, {
+            status: "مقبول",
+            final_price: parseFloat(finalPrice),
+          });
+          closeModal("custom-design-modal");
+          fetchOrders();
+        } catch (e) {
+          console.error("Error updating document:", e);
+          alert("حدث خطأ أثناء تحديث الطلب.");
+        }
+      });
+
+      rejectionForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const rejectionReason =
+          document.getElementById("rejection-reason").value;
+
+        try {
+          const orderRef = doc(db, currentOrderCollection, currentOrderId);
+          await updateDoc(orderRef, {
+            status: "تم الرفض",
+            rejection_reason: rejectionReason,
+          });
+          closeModal("rejection-modal");
+          fetchOrders();
+        } catch (e) {
+          console.error("Error rejecting order:", e);
+          alert("حدث خطأ أثناء رفض الطلب.");
+        }
+      });
+
+      async function updateOrderStatus(orderId, newStatus, collectionName) {
+        try {
+          const orderRef = doc(db, collectionName, orderId);
+          await updateDoc(orderRef, { status: newStatus });
+          console.log("Status updated successfully for order:", orderId);
+          fetchOrders();
+        } catch (e) {
+          console.error("Error updating document: ", e);
+          alert("حدث خطأ في تحديث حالة الطلب.");
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", fetchOrders);
+    </script>
+  </body>
+</html>

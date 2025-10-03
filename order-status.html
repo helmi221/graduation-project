@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>منجرة | حالة الطلب</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .order-check-section {
+        max-width: 600px;
+        margin: 5rem auto;
+        padding: 40px;
+        background-color: var(--white-color);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        text-align: right;
+      }
+      .order-check-section h2,
+      .order-check-section p {
+        text-align: center;
+      }
+      .order-check-section .form-group {
+        max-width: 400px;
+        margin: 1.5rem auto;
+      }
+      #check-status-btn {
+        margin-top: 15px;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      #order-status-result {
+        margin-top: 2rem;
+        padding: 20px;
+        background-color: #f0f0f0;
+        border-radius: var(--border-radius);
+        display: none;
+        text-align: right;
+      }
+      #order-status-result.show {
+        display: block;
+      }
+      #order-status-result h4 {
+        font-size: 1.2rem;
+        color: var(--primary-color);
+        margin-bottom: 10px;
+      }
+      #order-status-result p {
+        color: #555;
+        font-size: 1rem;
+      }
+      .status-rejected {
+        color: #e74c3c;
+        font-weight: bold;
+      }
+      .status-accepted {
+        color: #2ecc71;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav class="container">
+        <a href="index.html" class="logo">منجرة</a>
+        <div class="nav-items">
+          <ul class="desktop-nav">
+            <li>
+              <a href="index.html" class="nav-link">الرئيسية</a>
+            </li>
+            <li>
+              <a href="index.html#products-page" class="nav-link">منتجاتنا</a>
+            </li>
+            <li>
+              <a href="order-status.html" class="nav-link active">حالة الطلب</a>
+            </li>
+            <li>
+              <a href="recommendation.html" class="nav-link">المساعد</a>
+            </li>
+            <li>
+              <a href="design.html" class="nav-link">صمم منتجك</a>
+            </li>
+          </ul>
+          <a href="cart.html" class="cart-icon-wrapper">
+            <svg
+              id="cart-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="1.5"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.658-.463 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
+              />
+            </svg>
+            <span id="cart-count-badge">0</span>
+          </a>
+          <button class="menu-toggle" id="menu-toggle">
+            <div class="hamburger-icon">
+              <span></span><span></span><span></span>
+            </div>
+          </button>
+        </div>
+      </nav>
+    </header>
+
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="index.html" class="nav-link">الرئيسية</a>
+      <a href="index.html#products-page" class="nav-link">منتجاتنا</a>
+      <a href="order-status.html" class="nav-link">حالة الطلب</a>
+      <a href="recommendation.html" class="nav-link">المساعد</a>
+      <a href="design.html" class="nav-link">صمم منتجك</a>
+    </div>
+
+    <main>
+      <div class="section container order-check-section">
+        <div class="section-title-wrapper">
+          <h2>التحقق من حالة الطلب</h2>
+        </div>
+        <p>أدخل رمز التتبع الخاص بك للتحقق من حالة طلبك.</p>
+        <div class="form-group">
+          <label for="check-tracking-id">رمز التتبع</label>
+          <input
+            type="text"
+            id="check-tracking-id"
+            name="check-tracking-id"
+            required
+          />
+        </div>
+        <button class="btn" id="check-status-btn">تحقق</button>
+        <div id="order-status-result" class="order-status-result"></div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="container footer-content">
+        <a href="index.html" class="footer-logo">منجرة</a>
+        <div class="footer-links">
+          <a href="#">من نحن</a> <a href="#">تواصل معنا</a>
+        </div>
+      </div>
+      <div class="copyright">&copy; 2025 جميع الحقوق محفوظة.</div>
+    </footer>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
+        authDomain: "ecomers-dd329.firebaseapp.com",
+        projectId: "ecomers-dd329",
+        storageBucket: "ecomers-dd329.firebasestorage.app",
+        messagingSenderId: "190646144215",
+        appId: "1:190646144215:web:d55f24091a920f92b6b492",
+        measurementId: "G-NVYK3DZR00",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      let cart = [];
+
+      function loadCart() {
+        const storedCart = localStorage.getItem("shoppingCart");
+        cart = storedCart ? JSON.parse(storedCart) : [];
+      }
+
+      function updateCartBadge() {
+        const cartCountBadge = document.getElementById("cart-count-badge");
+        if (!cartCountBadge) return;
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        cartCountBadge.textContent = totalItems;
+        cartCountBadge.classList.toggle("visible", totalItems > 0);
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        const checkStatusBtn = document.getElementById("check-status-btn");
+        const checkTrackingIdInput =
+          document.getElementById("check-tracking-id");
+        const orderStatusResult = document.getElementById(
+          "order-status-result"
+        );
+        const menuToggle = document.getElementById("menu-toggle");
+        const mobileMenu = document.getElementById("mobile-menu");
+        const body = document.body;
+
+        menuToggle.addEventListener("click", () => {
+          mobileMenu.classList.toggle("active");
+          body.classList.toggle("scroll-lock");
+        });
+
+        checkStatusBtn.addEventListener("click", async () => {
+          const trackingId = checkTrackingIdInput.value.trim().toUpperCase();
+          if (!trackingId) {
+            alert("الرجاء إدخال رمز التتبع.");
+            return;
+          }
+
+          orderStatusResult.classList.remove("show");
+          orderStatusResult.innerHTML = "<p>جارٍ البحث عن طلبك...</p>";
+
+          let orderFound = false;
+          let orderData = null;
+          let isCustomDesign = false;
+
+          // Search in 'orders' collection first
+          const ordersQuery = query(
+            collection(db, "orders"),
+            where("tracking_id", "==", trackingId)
+          );
+          const ordersSnapshot = await getDocs(ordersQuery);
+          if (!ordersSnapshot.empty) {
+            orderFound = true;
+            orderData = ordersSnapshot.docs[0].data();
+            isCustomDesign = false;
+          }
+
+          // If not found, search in 'custom_designs' collection
+          if (!orderFound) {
+            const designsQuery = query(
+              collection(db, "custom_designs"),
+              where("tracking_id", "==", trackingId)
+            );
+            const designsSnapshot = await getDocs(designsQuery);
+            if (!designsSnapshot.empty) {
+              orderFound = true;
+              orderData = designsSnapshot.docs[0].data();
+              isCustomDesign = true;
+            }
+          }
+
+          if (!orderFound) {
+            orderStatusResult.innerHTML =
+              "<h4>لا يوجد طلب بهذا الرمز</h4><p>الرجاء التحقق من رمز التتبع والمحاولة مرة أخرى.</p>";
+          } else {
+            let resultHTML = "<h4>حالة طلبك</h4>";
+            let statusClass = "";
+
+            if (isCustomDesign) {
+              if (orderData.status === "تم الرفض") {
+                statusClass = "status-rejected";
+              } else if (orderData.status === "مقبول") {
+                statusClass = "status-accepted";
+              }
+              resultHTML += `
+                <div style="margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px;">
+                    <p><strong>رمز التتبع:</strong> ${orderData.tracking_id}</p>
+                    <p><strong>نوع الطلب:</strong> تصميم مخصص</p>
+                    <p><strong>الحالة:</strong> <span class="${statusClass}">${
+                orderData.status
+              }</span></p>
+                    ${
+                      orderData.rejection_reason
+                        ? `<p style="color:red;"><strong>سبب الرفض:</strong> ${orderData.rejection_reason}</p>`
+                        : ""
+                    }
+                    ${
+                      orderData.final_price
+                        ? `<p><strong>السعر النهائي:</strong> ${orderData.final_price} شيكل</p>`
+                        : ""
+                    }
+                </div>
+              `;
+            } else {
+              resultHTML += `
+                <div style="margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px;">
+                    <p><strong>رمز التتبع:</strong> ${orderData.tracking_id}</p>
+                    <p><strong>الحالة:</strong> ${orderData.status}</p>
+                    <p><strong>نوع الطلب:</strong> جاهز</p>
+                </div>
+              `;
+            }
+            orderStatusResult.innerHTML = resultHTML;
+          }
+          orderStatusResult.classList.add("show");
+        });
+
+        loadCart();
+        updateCartBadge();
+      });
+    </script>
+  </body>
+</html>
