@@ -328,7 +328,9 @@
               );
               const link = `<button class="product-link" data-id="${
                 p.id
-              }" data-discount="${discountedPrice || ""}">${p.name}</button>`;
+              }" data-discount="${discountedPrice || ""}">
+              ${p.name}
+              </button>`;
               tempDiv.innerHTML = tempDiv.innerHTML.replace(regex, link);
             });
             el.innerHTML = tempDiv.innerHTML;
@@ -367,8 +369,10 @@
         chatMessages.addEventListener("click", (e) => {
           if (e.target.classList.contains("product-link")) {
             const productId = e.target.dataset.id;
-            const discountedPrice = e.target.dataset.discount;
             const product = allProducts.find((p) => p.id == productId);
+            const discountedPrice = localStorage.getItem(
+              `negotiatedPrice_${productId}`
+            );
             if (product) {
               openProductModal(product, discountedPrice || null);
             }
@@ -430,15 +434,17 @@
             أنت مساعد مبيعات ودود ومرن لمتجر "منجرة".
             - كن ودودًا ومرنًا في الحوار.
             - اقترح فقط من المنتجات المتوفرة التالية: ${productsString}.
-            - إذا كان السعر عاليًا، يمكنك تقديم خصم حتى 15% بالشكل: [عرض-خاص: <اسم المنتج> | <السعر الجديد>].
-            - اسأل العميل أسئلة توضيحية إذا لزم الأمر.
-            - استخدم عبارات ودية، واقعية، ومختصرة.
-            - لا تقدم الخصم الكامل مرة واحدة، فاوض تدريجياً. ابدأ بخصم بسيط (5% مثلاً)، ثم زد الخصم في المحاولات اللاحقة.
+            - إذا كان السعر عاليًا، يمكنك تقديم خصم يصل حتى 15%.
+            - لا تقدم الخصم الكامل مرة واحدة، فاوض تدريجياً.
+            - في المحاولة الأولى، إذا أشار العميل إلى أن السعر مرتفع، قدم خصمًا بنسبة 5%.
+            - إذا طلب العميل خصمًا إضافيًا، قم بزيادة الخصم إلى 10%.
+            - إذا طلب مرة أخرى، قم بزيادة الخصم إلى 15% كحد أقصى.
             - لا تقدم خصمًا على منتج لا يزيد سعره عن 1000 شيكل.
+            - **عند تقديم العرض، استخدم التنسيق التالي بدقة: [عرض-خاص: <اسم المنتج> | <السعر الجديد>]**
             - إذا كان طلب العميل لا يتناسب مع أي منتج من منتجاتنا الموجودة، قم بتوجيهه إلى صفحة "صمم منتجك" بالرسالة التالية:
             "يبدو أن طلبك مميز جداً! 🤩 يمكننا صناعة منتج خصيصاً لك. تفضل بالانتقال إلى صفحة "صمم منتجك" لتقديم مواصفاتك، وسيقوم فريقنا بمراجعة طلبك والرد عليك في أسرع وقت.
             "
-
+            
             المحادثة:
             ${chatHistory
               .map((h) => `${h.role}: ${h.parts[0].text}`)
@@ -453,12 +459,12 @@
             const offerRegex = /\[عرض-خاص:\s*(.*?)\s*\|\s*([\d.]+)\s*\]/;
             const offerMatch = aiResponse.match(offerRegex);
 
-            if (offerMatch) {
+            if (offerMatch && offerMatch[1] && offerMatch[2]) {
               const productName = offerMatch[1].trim();
               const newPrice = parseFloat(offerMatch[2]);
               const product = allProducts.find((p) => p.name === productName);
 
-              if (product) {
+              if (product && !isNaN(newPrice)) {
                 localStorage.setItem(`negotiatedPrice_${product.id}`, newPrice);
                 const discountPercentage =
                   ((product.price - newPrice) / product.price) * 100;
@@ -470,6 +476,11 @@
                   <p>الخصم: **${discountPercentage.toFixed(0)}%**</p>
                   <p>السعر الجديد: **${newPrice.toFixed(0)} شيكل**</p>
                 `;
+              } else {
+                console.error("Product not found or new price is invalid.");
+                displayResponse = `
+                  <p>${aiResponse}</p>
+                `;
               }
             } else {
               displayResponse = `
@@ -479,7 +490,8 @@
 
             appendMessage("ai", displayResponse, true);
             chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
-          } catch {
+          } catch (error) {
+            console.error("AI Response Error:", error);
             appendMessage("ai", "عذراً، حصل خطأ أثناء الرد 😅 حاول مرة ثانية.");
           }
 

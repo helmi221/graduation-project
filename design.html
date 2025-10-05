@@ -188,6 +188,12 @@
       .suggested-product-card .btn {
         width: 100%;
       }
+
+      /* Styles for the new checkout modal */
+      #design-checkout-modal .modal-content {
+        max-width: 500px;
+        text-align: right;
+      }
     </style>
   </head>
   <body>
@@ -313,6 +319,21 @@
               عرض المنتج
             </button>
           </div>
+          <div
+            style="
+              margin-top: 2rem;
+              text-align: center;
+              font-size: 0.9rem;
+              color: #888;
+            "
+          >
+            <p>
+              بعد إرسال طلبك، سيتواصل فريقنا معك لتقديم سعر نهائي. يمكنك متابعة
+              حالة طلبك وقبول أو رفض السعر من صفحة
+              <a href="order-status.html">حالة الطلب</a> باستخدام رمز التتبع
+              الخاص بك.
+            </p>
+          </div>
         </div>
       </section>
     </main>
@@ -328,7 +349,8 @@
         <p>رمز التتبع الخاص بطلبك هو:</p>
         <span id="design-tracking-id" class="tracking-id-display"></span>
         <p style="margin-top: 1rem; font-size: 0.9rem; color: #888">
-          الرجاء حفظ هذا الرمز لتتمكن من تتبع حالة طلبك.
+          الرجاء حفظ هذا الرمز لتتمكن من متابعة حالة طلبك وقبول أو رفض السعر
+          النهائي.
         </p>
       </div>
     </div>
@@ -382,6 +404,47 @@
       </div>
     </div>
 
+    <div id="design-checkout-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close" data-modal="design-checkout">&times;</span>
+        <div class="modal-body">
+          <div class="checkout-form-container">
+            <h2>إرسال طلب التصميم</h2>
+            <p>
+              الرجاء إدخال بياناتك لإرسال طلب التصميم. سيتم التواصل معك
+              لمراجعته.
+            </p>
+            <form id="design-checkout-form">
+              <div class="form-group">
+                <label for="name">الاسم الكامل</label>
+                <input type="text" id="design-name" name="name" required />
+              </div>
+              <div class="form-group">
+                <label for="phone">رقم الهاتف</label>
+                <input type="tel" id="design-phone" name="phone" required />
+              </div>
+              <div class="form-group">
+                <label for="email">البريد الإلكتروني (اختياري)</label>
+                <input type="email" id="design-email" name="email" />
+              </div>
+              <div class="form-group">
+                <label for="address">العنوان</label>
+                <textarea
+                  id="design-address"
+                  name="address"
+                  rows="3"
+                  required
+                ></textarea>
+              </div>
+              <button type="submit" class="btn" id="confirm-design-btn">
+                تأكيد طلب التصميم
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="products.js"></script>
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
@@ -423,6 +486,12 @@
       const designConfirmModal = document.getElementById(
         "design-confirm-modal"
       );
+      const designCheckoutModal = document.getElementById(
+        "design-checkout-modal"
+      );
+      const designCheckoutForm = document.getElementById(
+        "design-checkout-form"
+      );
       const designTrackingIdSpan =
         document.getElementById("design-tracking-id");
       const toast = document.getElementById("toast-notification");
@@ -450,9 +519,10 @@
 
       let currentDesign = null;
       let suggestedProductId = null;
+      let cart = [];
 
-      function generateTrackingId() {
-        return `DGN-${new Date().getTime().toString(36)}-${Math.random()
+      function generateTrackingId(prefix = "DGN") {
+        return `${prefix}-${new Date().getTime().toString(36)}-${Math.random()
           .toString(36)
           .substr(2, 5)}`.toUpperCase();
       }
@@ -541,6 +611,10 @@
         regenerateDesignBtn.style.display = "block";
         viewProductBtn.style.display = "none";
 
+        currentDesign.title = title;
+        currentDesign.description = description;
+        currentDesign.price = priceLine;
+
         resultContent.innerHTML = `
           <h3 id="result-title">${title}</h3>
           <p id="result-description">${description}</p>
@@ -559,12 +633,25 @@
         document.body.classList.remove("scroll-lock");
       }
 
+      function closeDesignCheckoutModal() {
+        designCheckoutModal.classList.remove("active");
+        document.body.classList.remove("scroll-lock");
+      }
+
       document
         .querySelector(".modal-close[data-modal='design-confirm']")
         .addEventListener("click", closeDesignConfirmModal);
       designConfirmModal.addEventListener("click", (e) => {
         if (e.target === designConfirmModal) {
           closeDesignConfirmModal();
+        }
+      });
+      document
+        .querySelector(".modal-close[data-modal='design-checkout']")
+        .addEventListener("click", closeDesignCheckoutModal);
+      designCheckoutModal.addEventListener("click", (e) => {
+        if (e.target === designCheckoutModal) {
+          closeDesignCheckoutModal();
         }
       });
 
@@ -691,10 +778,24 @@
 
       submitDesignBtn.addEventListener("click", async () => {
         if (!currentDesign) return;
+        designCheckoutModal.classList.add("active");
+        document.body.classList.add("scroll-lock");
+      });
+
+      designCheckoutForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
         const trackingId = generateTrackingId();
+        const customerData = {
+          name: document.getElementById("design-name").value,
+          phone: document.getElementById("design-phone").value,
+          email: document.getElementById("design-email").value,
+          address: document.getElementById("design-address").value,
+        };
+
         const customOrder = {
           ...currentDesign,
+          ...customerData,
           tracking_id: trackingId,
           order_date: new Date().toISOString(),
           status: "قيد المراجعة",
@@ -704,9 +805,14 @@
         try {
           await addDoc(collection(db, "custom_designs"), customOrder);
 
+          closeDesignCheckoutModal();
           designTrackingIdSpan.textContent = trackingId;
           designConfirmModal.classList.add("active");
           document.body.classList.add("scroll-lock");
+
+          designForm.reset();
+          updateDynamicFields();
+          designResultSection.classList.remove("show");
 
           showToast("✅ تم إرسال طلبك للتصميم المخصص بنجاح!");
         } catch (error) {
@@ -822,6 +928,21 @@
           document.body.classList.remove("scroll-lock");
           showToast("✅ تمت إضافة المنتج إلى السلة بنجاح!");
         });
+
+      // Update cart badge on load
+      function loadCart() {
+        const storedCart = localStorage.getItem("shoppingCart");
+        cart = storedCart ? JSON.parse(storedCart) : [];
+      }
+      function updateCartBadge() {
+        const cartCountBadge = document.getElementById("cart-count-badge");
+        if (!cartCountBadge) return;
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        cartCountBadge.textContent = totalItems;
+        cartCountBadge.classList.toggle("visible", totalItems > 0);
+      }
+      loadCart();
+      updateCartBadge();
     </script>
   </body>
 </html>

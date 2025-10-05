@@ -63,6 +63,20 @@
         color: #2ecc71;
         font-weight: bold;
       }
+      .custom-design-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .custom-design-actions .btn {
+        flex-grow: 1;
+      }
+      .btn-danger {
+        background-color: #e74c3c;
+      }
+      .btn-danger:hover {
+        background-color: #c0392b;
+      }
     </style>
   </head>
   <body>
@@ -159,6 +173,8 @@
         query,
         where,
         getDocs,
+        doc,
+        updateDoc,
       } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 
       const firebaseConfig = {
@@ -175,6 +191,8 @@
       const db = getFirestore(app);
 
       let cart = [];
+      let currentOrderId = null;
+      let currentOrderCollection = null;
 
       function loadCart() {
         const storedCart = localStorage.getItem("shoppingCart");
@@ -187,6 +205,24 @@
         const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
         cartCountBadge.textContent = totalItems;
         cartCountBadge.classList.toggle("visible", totalItems > 0);
+      }
+
+      async function updateOrderStatus(newStatus) {
+        if (!currentOrderId || !currentOrderCollection) return;
+
+        try {
+          const orderRef = doc(db, currentOrderCollection, currentOrderId);
+          const updateData = { status: newStatus };
+          if (newStatus === "تم الرفض") {
+            updateData.final_price = null;
+          }
+          await updateDoc(orderRef, updateData);
+          alert(`تم تحديث حالة الطلب بنجاح إلى: ${newStatus}`);
+          document.getElementById("check-status-btn").click();
+        } catch (e) {
+          console.error("Error updating order status: ", e);
+          alert("حدث خطأ أثناء تحديث حالة الطلب.");
+        }
       }
 
       document.addEventListener("DOMContentLoaded", () => {
@@ -215,11 +251,13 @@
           orderStatusResult.classList.remove("show");
           orderStatusResult.innerHTML = "<p>جارٍ البحث عن طلبك...</p>";
 
+          currentOrderId = null;
+          currentOrderCollection = null;
+
           let orderFound = false;
           let orderData = null;
           let isCustomDesign = false;
 
-          // Search in 'orders' collection first
           const ordersQuery = query(
             collection(db, "orders"),
             where("tracking_id", "==", trackingId)
@@ -227,11 +265,12 @@
           const ordersSnapshot = await getDocs(ordersQuery);
           if (!ordersSnapshot.empty) {
             orderFound = true;
-            orderData = ordersSnapshot.docs[0].data();
-            isCustomDesign = false;
+            const doc = ordersSnapshot.docs[0];
+            orderData = doc.data();
+            currentOrderId = doc.id;
+            currentOrderCollection = "orders";
           }
 
-          // If not found, search in 'custom_designs' collection
           if (!orderFound) {
             const designsQuery = query(
               collection(db, "custom_designs"),
@@ -240,12 +279,15 @@
             const designsSnapshot = await getDocs(designsQuery);
             if (!designsSnapshot.empty) {
               orderFound = true;
-              orderData = designsSnapshot.docs[0].data();
+              const doc = designsSnapshot.docs[0];
+              orderData = doc.data();
               isCustomDesign = true;
+              currentOrderId = doc.id;
+              currentOrderCollection = "custom_designs";
             }
           }
 
-          if (!orderFound) {
+          if (!orderFound || orderData.status === "مؤرشف") {
             orderStatusResult.innerHTML =
               "<h4>لا يوجد طلب بهذا الرمز</h4><p>الرجاء التحقق من رمز التتبع والمحاولة مرة أخرى.</p>";
           } else {
@@ -258,8 +300,9 @@
               } else if (orderData.status === "مقبول") {
                 statusClass = "status-accepted";
               }
+
               resultHTML += `
-                <div style="margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px;">
+                <div style="margin-bottom: 15px; padding-bottom: 10px;">
                     <p><strong>رمز التتبع:</strong> ${orderData.tracking_id}</p>
                     <p><strong>نوع الطلب:</strong> تصميم مخصص</p>
                     <p><strong>الحالة:</strong> <span class="${statusClass}">${
@@ -272,14 +315,23 @@
                     }
                     ${
                       orderData.final_price
-                        ? `<p><strong>السعر النهائي:</strong> ${orderData.final_price} شيكل</p>`
+                        ? `<p><strong>السعر النهائي:</strong> <span class="status-accepted">${orderData.final_price} شيكل</span></p>`
                         : ""
                     }
                 </div>
               `;
+
+              if (orderData.status === "مقبول") {
+                resultHTML += `
+                    <div class="custom-design-actions">
+                        <button class="btn" id="accept-price-btn">قبول السعر</button>
+                        <button class="btn btn-danger" id="reject-price-btn">رفض السعر</button>
+                    </div>
+                  `;
+              }
             } else {
               resultHTML += `
-                <div style="margin-bottom: 15px; border-bottom: 1px dashed #ccc; padding-bottom: 10px;">
+                <div style="margin-bottom: 15px; padding-bottom: 10px;">
                     <p><strong>رمز التتبع:</strong> ${orderData.tracking_id}</p>
                     <p><strong>الحالة:</strong> ${orderData.status}</p>
                     <p><strong>نوع الطلب:</strong> جاهز</p>
@@ -287,6 +339,21 @@
               `;
             }
             orderStatusResult.innerHTML = resultHTML;
+
+            if (isCustomDesign && orderData.status === "مقبول") {
+              document
+                .getElementById("accept-price-btn")
+                .addEventListener("click", () => {
+                  updateOrderStatus("قيد التصنيع");
+                });
+              document
+                .getElementById("reject-price-btn")
+                .addEventListener("click", () => {
+                  if (confirm("هل أنت متأكد من رفض السعر المقترح؟")) {
+                    updateOrderStatus("تم الرفض");
+                  }
+                });
+            }
           }
           orderStatusResult.classList.add("show");
         });
