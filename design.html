@@ -605,7 +605,7 @@
         showToast("💡 تم العثور على منتج مشابه في المتجر!");
       }
 
-      function showCustomDesignResult(title, description, priceLine) {
+      function showCustomDesignResult(title, description, price) {
         suggestedProductId = null;
         submitDesignBtn.style.display = "block";
         regenerateDesignBtn.style.display = "block";
@@ -613,12 +613,14 @@
 
         currentDesign.title = title;
         currentDesign.description = description;
-        currentDesign.price = priceLine;
+        currentDesign.price = price;
 
         resultContent.innerHTML = `
-          <h3 id="result-title">${title}</h3>
-          <p id="result-description">${description}</p>
-          <p id="result-price" style="font-size: 1.4rem; font-weight: bold; color: var(--primary-color);">${priceLine}</p>
+          <h3 id="result-title">${title.replace("العنوان: ", "")}</h3>
+          <p id="result-description">${description.replace("الوصف: ", "")}</p>
+          <p id="result-price" style="font-size: 1.4rem; font-weight: bold; color: var(--primary-color);">
+            السعر المقترح: ${price.replace("السعر المقترح: ", "")}
+          </p>
           <p style="font-size: 0.9rem; color: #888; margin-top: 10px">
             السعر المقترح ليس نهائياً، وسيتم تأكيده بعد مراجعة طلبك.
           </p>
@@ -746,13 +748,14 @@
         try {
           const textResult = await textModel.generateContent(promptText);
           const textResponse = textResult.response.text();
-          const [title, description, ...rest] = textResponse.split("\n");
-          const priceLine = rest.join("\n");
+          const [title, description, priceLine] = textResponse
+            .split("\n")
+            .filter((line) => line.trim() !== "");
 
           currentDesign = {
-            title,
-            description,
-            price: priceLine,
+            title: title.trim(),
+            description: description.trim(),
+            price: priceLine.trim(),
             type: productType,
             dimensions,
             material,
@@ -762,7 +765,11 @@
           };
 
           processingMessage.style.display = "none";
-          showCustomDesignResult(title, description, priceLine);
+          showCustomDesignResult(
+            currentDesign.title,
+            currentDesign.description,
+            currentDesign.price
+          );
         } catch (error) {
           console.error("Error generating design:", error);
           processingMessage.style.display = "none";

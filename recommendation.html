@@ -294,6 +294,7 @@
         let chatHistory = [];
         let currentProduct = null;
         let currentDiscountPrice = null;
+        let discountSteps = {};
 
         const updateCartBadge = () => {
           const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
@@ -323,12 +324,7 @@
             tempDiv.innerHTML = el.innerHTML;
             allProducts.forEach((p) => {
               const regex = new RegExp(p.name, "g");
-              const discountedPrice = localStorage.getItem(
-                `negotiatedPrice_${p.id}`
-              );
-              const link = `<button class="product-link" data-id="${
-                p.id
-              }" data-discount="${discountedPrice || ""}">
+              const link = `<button class="product-link" data-id="${p.id}">
               ${p.name}
               </button>`;
               tempDiv.innerHTML = tempDiv.innerHTML.replace(regex, link);
@@ -340,9 +336,18 @@
           chatMessages.scrollTop = chatMessages.scrollHeight;
         };
 
-        const openProductModal = (product, discountedPrice) => {
+        const openProductModal = (product) => {
           currentProduct = product;
-          currentDiscountPrice = discountedPrice;
+
+          let priceToUse = product.price;
+          if (discountSteps[product.id]) {
+            const discountPercentage = discountSteps[product.id];
+            priceToUse = product.price * (1 - discountPercentage / 100);
+            currentDiscountPrice = priceToUse;
+          } else {
+            currentDiscountPrice = null;
+          }
+
           modalTitle.textContent = product.name;
           modalImg.src = `images/${product.id}.png`;
           modalDesc.textContent = product.description;
@@ -353,16 +358,18 @@
             modalSpecs.innerHTML += `<li><strong>المواد:</strong> ${product.materials}</li>`;
           if (product.specs)
             modalSpecs.innerHTML += `<li><strong>المواصفات:</strong> ${product.specs}</li>`;
-          if (discountedPrice) {
-            modalNewPrice.textContent = `${parseFloat(discountedPrice).toFixed(
-              0
-            )} شيكل`;
+
+          if (currentDiscountPrice) {
+            modalNewPrice.textContent = `${parseFloat(
+              currentDiscountPrice
+            ).toFixed(0)} شيكل`;
             modalOldPrice.textContent = `${product.price} شيكل`;
             modalOldPrice.style.display = "inline";
           } else {
             modalNewPrice.textContent = `${product.price} شيكل`;
             modalOldPrice.style.display = "none";
           }
+
           modal.classList.add("active");
         };
 
@@ -370,11 +377,8 @@
           if (e.target.classList.contains("product-link")) {
             const productId = e.target.dataset.id;
             const product = allProducts.find((p) => p.id == productId);
-            const discountedPrice = localStorage.getItem(
-              `negotiatedPrice_${productId}`
-            );
             if (product) {
-              openProductModal(product, discountedPrice || null);
+              openProductModal(product);
             }
           }
         });
@@ -398,7 +402,10 @@
             cart.push(newItem);
           }
           localStorage.setItem("shoppingCart", JSON.stringify(cart));
-          localStorage.removeItem(`negotiatedPrice_${currentProduct.id}`);
+
+          currentDiscountPrice = null;
+          delete discountSteps[currentProduct.id];
+
           updateCartBadge();
           showToast("✅ تمت إضافة المنتج إلى السلة بنجاح!");
           modal.classList.remove("active");
@@ -430,71 +437,120 @@
             )
             .join(", ");
 
-          const chatPrompt = `
-            أنت مساعد مبيعات ودود ومرن لمتجر "منجرة".
-            - كن ودودًا ومرنًا في الحوار.
-            - اقترح فقط من المنتجات المتوفرة التالية: ${productsString}.
-            - إذا كان السعر عاليًا، يمكنك تقديم خصم يصل حتى 15%.
-            - لا تقدم الخصم الكامل مرة واحدة، فاوض تدريجياً.
-            - في المحاولة الأولى، إذا أشار العميل إلى أن السعر مرتفع، قدم خصمًا بنسبة 5%.
-            - إذا طلب العميل خصمًا إضافيًا، قم بزيادة الخصم إلى 10%.
-            - إذا طلب مرة أخرى، قم بزيادة الخصم إلى 15% كحد أقصى.
-            - لا تقدم خصمًا على منتج لا يزيد سعره عن 1000 شيكل.
-            - **عند تقديم العرض، استخدم التنسيق التالي بدقة: [عرض-خاص: <اسم المنتج> | <السعر الجديد>]**
-            - إذا كان طلب العميل لا يتناسب مع أي منتج من منتجاتنا الموجودة، قم بتوجيهه إلى صفحة "صمم منتجك" بالرسالة التالية:
-            "يبدو أن طلبك مميز جداً! 🤩 يمكننا صناعة منتج خصيصاً لك. تفضل بالانتقال إلى صفحة "صمم منتجك" لتقديم مواصفاتك، وسيقوم فريقنا بمراجعة طلبك والرد عليك في أسرع وقت.
-            "
-            
-            المحادثة:
-            ${chatHistory
-              .map((h) => `${h.role}: ${h.parts[0].text}`)
-              .join("\n")}
-          `;
+          const discountPrompts = [
+            {
+              query: "غالي|السعر مرتفع|ما معي|تخفيض|خصم",
+              discount: 5,
+              minPrice: 1000,
+            },
+            {
+              query: "زيادة خصم|كمان خصم|خصم إضافي|بتقدر أكثر",
+              discount: 10,
+              minPrice: 1000,
+            },
+            {
+              query: "اخر سعر|ماكس خصم|أكبر خصم",
+              discount: 15,
+              minPrice: 1000,
+            },
+          ];
 
-          try {
-            const result = await model.generateContent(chatPrompt);
-            let aiResponse = result.response.text();
-            let displayResponse = aiResponse;
+          let aiResponse = "";
+          let isDiscountApplied = false;
 
-            const offerRegex = /\[عرض-خاص:\s*(.*?)\s*\|\s*([\d.]+)\s*\]/;
-            const offerMatch = aiResponse.match(offerRegex);
-
-            if (offerMatch && offerMatch[1] && offerMatch[2]) {
-              const productName = offerMatch[1].trim();
-              const newPrice = parseFloat(offerMatch[2]);
-              const product = allProducts.find((p) => p.name === productName);
-
-              if (product && !isNaN(newPrice)) {
-                localStorage.setItem(`negotiatedPrice_${product.id}`, newPrice);
-                const discountPercentage =
-                  ((product.price - newPrice) / product.price) * 100;
-                displayResponse = `
-                  <p>${aiResponse.replace(offerMatch[0], "").trim()}</p>
-                  <p>يسعدني أن أقدم لك **خصمًا خاصًا** على ${
-                    product.name
-                  }! ✨</p>
-                  <p>الخصم: **${discountPercentage.toFixed(0)}%**</p>
-                  <p>السعر الجديد: **${newPrice.toFixed(0)} شيكل**</p>
-                `;
-              } else {
-                console.error("Product not found or new price is invalid.");
-                displayResponse = `
-                  <p>${aiResponse}</p>
-                `;
+          for (const prompt of discountPrompts) {
+            if (userMsg.match(new RegExp(prompt.query, "i"))) {
+              const lastProductMessage = chatHistory
+                .slice(-2)
+                .find(
+                  (h) =>
+                    h.role === "model" &&
+                    h.parts[0].text.includes("يسعدني أن أقدم لك")
+                );
+              if (lastProductMessage) {
+                const lastProductName = allProducts.find((p) =>
+                  lastProductMessage.parts[0].text.includes(p.name)
+                );
+                if (
+                  lastProductName &&
+                  lastProductName.price > prompt.minPrice &&
+                  (!discountSteps[lastProductName.id] ||
+                    discountSteps[lastProductName.id] < prompt.discount)
+                ) {
+                  const newPrice =
+                    lastProductName.price * (1 - prompt.discount / 100);
+                  discountSteps[lastProductName.id] = prompt.discount;
+                  aiResponse = `[عرض-خاص: ${lastProductName.name} | ${newPrice}]`;
+                  isDiscountApplied = true;
+                  break;
+                }
               }
+            }
+          }
+
+          if (!isDiscountApplied) {
+            const chatPrompt = `
+              أنت مساعد مبيعات ودود ومرن لمتجر "منجرة".
+              - كن ودودًا ومرنًا في الحوار.
+              - اقترح فقط من المنتجات المتوفرة التالية: ${productsString}.
+              - إذا كان السعر عاليًا، يمكنك تقديم خصم يصل حتى 15%.
+              - لا تقدم الخصم الكامل مرة واحدة، فاوض تدريجياً.
+              - في المحاولة الأولى، إذا أشار العميل إلى أن السعر مرتفع، قدم خصمًا بنسبة 5%.
+              - إذا طلب العميل خصمًا إضافيًا، قم بزيادة الخصم إلى 10%.
+              - إذا طلب مرة أخرى، قم بزيادة الخصم إلى 15% كحد أقصى.
+              - لا تقدم خصمًا على منتج لا يزيد سعره عن 1000 شيكل.
+              - **عند تقديم العرض، استخدم التنسيق التالي بدقة: [عرض-خاص: <اسم المنتج> | <السعر الجديد>]**
+              - إذا كان طلب العميل لا يتناسب مع أي منتج من منتجاتنا الموجودة، قم بتوجيهه إلى صفحة "صمم منتجك" بالرسالة التالية:
+              "يبدو أن طلبك مميز جداً! 🤩 يمكننا صناعة منتج خصيصاً لك. تفضل بالانتقال إلى صفحة "صمم منتجك" لتقديم مواصفاتك، وسيقوم فريقنا بمراجعة طلبك والرد عليك في أسرع وقت.
+              "
+              
+              المحادثة:
+              ${chatHistory
+                .map((h) => `${h.role}: ${h.parts[0].text}`)
+                .join("\n")}
+            `;
+
+            try {
+              const result = await model.generateContent(chatPrompt);
+              aiResponse = result.response.text();
+            } catch (error) {
+              console.error("AI Response Error:", error);
+              aiResponse = "عذراً، حصل خطأ أثناء الرد 😅 حاول مرة ثانية.";
+            }
+          }
+
+          let displayResponse = aiResponse;
+          const offerRegex = /\[عرض-خاص:\s*(.*?)\s*\|\s*([\d.]+)\s*\]/;
+          const offerMatch = aiResponse.match(offerRegex);
+
+          if (offerMatch && offerMatch[1] && offerMatch[2]) {
+            const productName = offerMatch[1].trim();
+            const newPrice = parseFloat(offerMatch[2]);
+            const product = allProducts.find((p) => p.name === productName);
+
+            if (product && !isNaN(newPrice)) {
+              currentDiscountPrice = newPrice;
+              discountSteps[product.id] = parseFloat(
+                ((product.price - newPrice) / product.price) * 100
+              ).toFixed(0);
+              const discountPercentage = discountSteps[product.id];
+
+              displayResponse = `
+                <p>${aiResponse.replace(offerMatch[0], "").trim()}</p>
+                <p>يسعدني أن أقدم لك **خصمًا خاصًا** على ${product.name}! ✨</p>
+                <p>الخصم: **${discountPercentage}%**</p>
+                <p>السعر الجديد: **${newPrice.toFixed(0)} شيكل**</p>
+              `;
             } else {
+              console.error("Product not found or new price is invalid.");
               displayResponse = `
                 <p>${aiResponse}</p>
               `;
             }
-
-            appendMessage("ai", displayResponse, true);
-            chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
-          } catch (error) {
-            console.error("AI Response Error:", error);
-            appendMessage("ai", "عذراً، حصل خطأ أثناء الرد 😅 حاول مرة ثانية.");
           }
 
+          appendMessage("ai", displayResponse, true);
+          chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
           typingIndicator.style.display = "none";
         });
 
