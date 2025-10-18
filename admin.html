@@ -53,6 +53,7 @@
         width: 100%;
         max-width: 1400px;
         margin: 0 auto;
+        direction: rtl;
       }
       .main-header {
         background-color: var(--dark-color);
@@ -61,6 +62,9 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
       }
       .main-header .logo {
         font-size: 1.8rem;
@@ -402,12 +406,10 @@
       }
       .bulk-action-btn {
         font-family: "Cairo", sans-serif;
-
         display: none;
       }
       .bulk-action-btn.show {
         font-family: "Cairo", sans-serif;
-
         display: inline-block;
       }
       .table-checkbox {
@@ -448,7 +450,10 @@
       <div class="logo">منجرة</div>
       <nav>
         <ul>
-          <li><a href="#" class="active">لوحة التحكم</a></li>
+          <li><a href="admin.html" class="active">لوحة التحكم</a></li>
+          <li><a href="inventory.html">إدارة المنتجات</a></li>
+          <li><a href="raw_materials_admin.html">إدارة المواد الخام</a></li>
+          <li><a href="#" id="logout-btn">تسجيل الخروج</a></li>
         </ul>
       </nav>
     </header>
@@ -565,9 +570,8 @@
       </div>
     </div>
 
-    <script src="products.js"></script>
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
       import {
         getFirestore,
         collection,
@@ -578,7 +582,14 @@
         updateDoc,
         deleteDoc,
         writeBatch,
-      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+        where,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
@@ -592,6 +603,30 @@
 
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      // التحقق من صلاحيات المدير
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists() && userDoc.data().role === "admin") {
+            fetchAndRenderOrders();
+          } else {
+            alert("غير مصرح لك بالوصول إلى هذه الصفحة.");
+            window.location.href = "login.html";
+          }
+        } else {
+          window.location.href = "login.html";
+        }
+      });
+
+      document
+        .getElementById("logout-btn")
+        .addEventListener("click", async (e) => {
+          e.preventDefault();
+          await signOut(auth);
+          window.location.href = "login.html";
+        });
 
       const ordersTableContainer = document.getElementById(
         "orders-table-container"
@@ -623,12 +658,14 @@
       const orderStatuses = [
         "قيد المراجعة",
         "مقبول",
+        "مقبول-العميل", // حالة جديدة
         "قيد التصنيع",
         "قيد الطلاء",
         "قيد التغليف",
         "قيد الشحن",
         "مكتمل",
         "تم الرفض",
+        "مرفوض-العميل", // حالة جديدة
         "مؤرشف",
       ];
 
@@ -662,7 +699,6 @@
             <thead>
               <tr>
                 <th><input type="checkbox" id="select-all-checkbox" class="table-checkbox"></th>
-                <th><i class="fa-solid fa-hashtag"></i> رمز التتبع</th>
                 <th><i class="fa-solid fa-user"></i> العميل</th>
                 <th><i class="fa-solid fa-tag"></i> النوع</th>
                 <th><i class="fa-solid fa-calendar-alt"></i> التاريخ</th>
@@ -679,19 +715,20 @@
           const totalAmount =
             order.type === "ready"
               ? (order.total || 0).toFixed(0)
-              : order.final_price || "---";
+              : order.final_price
+              ? order.final_price.toFixed(0)
+              : "---";
 
           tableHtml += `
             <tr data-id="${order.id}" data-collection="${
             order.type === "ready" ? "orders" : "custom_designs"
           }">
               <td><input type="checkbox" class="table-checkbox order-checkbox"></td>
-              <td>${order.tracking_id || "---"}</td>
               <td>${order.name || "---"}</td>
               <td><span class="status-badge" style="background-color: ${
                 order.type === "ready" ? "#5bc0de" : "#3e2723"
               }; color: white;">${orderType}</span></td>
-              <td>${new Date(order.order_date).toLocaleDateString("ar-SA")}</td>
+              <td>${new Date(order.order_date).toLocaleDateString("en-US")}</td>
               <td>${totalAmount} شيكل</td>
               <td><span class="status-badge ${statusClass}">${
             order.status
@@ -719,11 +756,12 @@
         ).length;
         const inProgress = allOrders.filter((o) =>
           [
+            "مقبول",
+            "مقبول-العميل",
             "قيد التصنيع",
             "قيد الطلاء",
             "قيد التغليف",
             "قيد الشحن",
-            "مقبول",
           ].includes(o.status)
         ).length;
         const completed = allOrders.filter((o) => o.status === "مكتمل").length;
@@ -794,11 +832,13 @@
         } else if (filter === "custom") {
           filtered = allOrders.filter((o) => o.type === "custom");
         } else if (filter === "pending") {
-          filtered = allOrders.filter((o) => o.status === "قيد المراجعة");
+          filtered = allOrders.filter(
+            (o) => o.status === "قيد المراجعة" || o.status === "مقبول"
+          );
         } else if (filter === "in-progress") {
           filtered = allOrders.filter((o) =>
             [
-              "مقبول",
+              "مقبول-العميل",
               "قيد التصنيع",
               "قيد الطلاء",
               "قيد التغليف",
@@ -972,20 +1012,14 @@
           callback();
           closeModal("confirmation-modal");
         };
+        closeModal("order-details-modal");
         openModal("confirmation-modal");
       }
 
       function showDetailsModal() {
         if (!currentOrderData) return;
-
         let detailsHtml = `
           <div class="order-details-group">
-            <p><strong>رمز التتبع:</strong> ${
-              currentOrderData.tracking_id || "---"
-            }</p>
-            <p><strong>النوع:</strong> ${
-              currentOrderData.type === "ready" ? "جاهز" : "مخصص"
-            }</p>
             <p><strong>العميل:</strong> ${currentOrderData.name || "---"}</p>
             <p><strong>الهاتف:</strong> ${currentOrderData.phone || "---"}</p>
             <p><strong>العنوان:</strong> ${
@@ -993,10 +1027,13 @@
             }</p>
             <p><strong>التاريخ:</strong> ${new Date(
               currentOrderData.order_date
-            ).toLocaleDateString("ar-SA")}</p>
+            ).toLocaleDateString("en-US")}</p>
+            <p><strong>الحالة:</strong> <span class="status-badge ${currentOrderData.status.replace(
+              /\s+/g,
+              "-"
+            )}">${currentOrderData.status}</span></p>
           </div>
         `;
-
         if (currentOrderData.type === "ready") {
           detailsHtml += `
             <div class="order-details-group">
@@ -1004,19 +1041,11 @@
               <ul class="order-items-list">
                 ${currentOrderData.items
                   .map((item) => {
-                    const productInfo = allProducts.find(
-                      (p) => p.id === item.id
-                    );
-                    const productName = productInfo
-                      ? productInfo.name
-                      : "غير معروف";
-                    const color = item.color ? ` (اللون: ${item.color})` : "";
-                    const price = item.originalPrice
-                      ? `<span class="old-price">${item.originalPrice}</span>`
-                      : "";
-                    return `<li>${productName}${color} - الكمية: ${
+                    return `<li>${item.name} (الكمية: ${
                       item.quantity
-                    } - السعر: <span>${item.price.toFixed(0)} شيكل</span></li>`;
+                    }) - السعر: <span>${item.price.toFixed(
+                      0
+                    )} شيكل</span></li>`;
                   })
                   .join("")}
               </ul>
@@ -1029,7 +1058,20 @@
           detailsHtml += `
             <div class="order-details-group">
               <p><strong>وصف التصميم:</strong> ${
-                currentOrderData.description
+                currentOrderData.notes || "لا يوجد"
+              }</p>
+              <p><strong>النوع:</strong> ${
+                currentOrderData.type_of_product || "---"
+              }</p>
+              <p><strong>الأبعاد:</strong> ${
+                currentOrderData.dimensions || "---"
+              }</p>
+              <p><strong>المادة:</strong> ${
+                currentOrderData.material || "---"
+              }</p>
+              <p><strong>اللون:</strong> ${currentOrderData.color || "---"}</p>
+              <p><strong>الميزات الإضافية:</strong> ${
+                currentOrderData.features || "---"
               }</p>
               <p><strong>السعر المقترح:</strong> ${currentOrderData.price}</p>
               ${
@@ -1045,24 +1087,21 @@
             </div>
           `;
         }
-
         modalOrderDetails.innerHTML = detailsHtml;
         openModal("order-details-modal");
       }
 
       function showEditStatusModal() {
         if (!currentOrderData) return;
-
         modalOrderDetails.innerHTML = `
           <div class="order-details-group">
-            <p><strong>رمز التتبع:</strong> ${currentOrderData.tracking_id}</p>
+            <p><strong>العميل:</strong> ${currentOrderData.name || "---"}</p>
             <p><strong>الحالة الحالية:</strong> <span class="status-badge ${currentOrderData.status.replace(
               /\s+/g,
               "-"
             )}">${currentOrderData.status}</span></p>
           </div>
         `;
-
         modalStatusSelect.innerHTML = "";
         orderStatuses.forEach((status) => {
           const option = document.createElement("option");
@@ -1071,29 +1110,32 @@
           modalStatusSelect.appendChild(option);
         });
         modalStatusSelect.value = currentOrderData.status;
-
         if (currentOrderData.type === "custom") {
-          customPriceField.style.display = "block";
+          customPriceField.style.display =
+            currentOrderData.status !== "تم الرفض" ? "block" : "none";
           modalPriceInput.value = currentOrderData.final_price || "";
         } else {
           customPriceField.style.display = "none";
         }
-
-        rejectionReasonField.style.display = "none";
-
+        rejectionReasonField.style.display =
+          currentOrderData.status === "تم الرفض" ||
+          currentOrderData.status === "مرفوض-العميل"
+            ? "block"
+            : "none";
+        rejectionReasonTextarea.value = currentOrderData.rejection_reason || "";
         openModal("order-details-modal");
       }
-
       modalStatusSelect.addEventListener("change", () => {
-        const isRejected = modalStatusSelect.value === "تم الرفض";
+        const isRejected =
+          modalStatusSelect.value === "تم الرفض" ||
+          modalStatusSelect.value === "مرفوض-العميل";
         const isCustom = currentOrderData.type === "custom";
-
-        rejectionReasonField.style.display =
-          isRejected && isCustom ? "block" : "none";
+        rejectionReasonField.style.display = isRejected ? "block" : "none";
         customPriceField.style.display =
-          isCustom && !isRejected ? "block" : "none";
+          isCustom && !isRejected && modalStatusSelect.value !== "مقبول-العميل"
+            ? "block"
+            : "none";
       });
-
       saveStatusBtn.addEventListener("click", async () => {
         const newStatus = modalStatusSelect.value;
         const finalPrice = modalPriceInput.value
@@ -1101,6 +1143,13 @@
           : null;
         const rejectionReason = rejectionReasonTextarea.value;
 
+        if (
+          (newStatus === "تم الرفض" || newStatus === "مرفوض-العميل") &&
+          rejectionReason.trim() === ""
+        ) {
+          alert("الرجاء إدخال سبب الرفض عند رفض الطلب.");
+          return;
+        }
         if (
           currentOrderData.type === "custom" &&
           newStatus === "مقبول" &&
@@ -1110,30 +1159,25 @@
           return;
         }
 
-        if (
-          currentOrderData.type === "custom" &&
-          newStatus === "تم الرفض" &&
-          rejectionReason.trim() === ""
-        ) {
-          alert("الرجاء إدخال سبب الرفض.");
-          return;
-        }
-
         try {
           const orderRef = doc(db, currentOrderCollection, currentOrderId);
           const updateData = { status: newStatus };
-
           if (currentOrderData.type === "custom") {
             if (newStatus === "مقبول") {
               updateData.final_price = finalPrice;
               updateData.rejection_reason = null;
-            } else if (newStatus === "تم الرفض") {
+            } else if (
+              newStatus === "تم الرفض" ||
+              newStatus === "مرفوض-العميل"
+            ) {
               updateData.rejection_reason = rejectionReason;
-              updateData.final_price = null;
+              updateData.final_price = currentOrderData.final_price || null; // احتفظ بالسعر اذا كان موجودا
             } else {
               updateData.final_price = currentOrderData.final_price;
               updateData.rejection_reason = null;
             }
+          } else if (newStatus === "تم الرفض" || newStatus === "مرفوض-العميل") {
+            updateData.rejection_reason = rejectionReason;
           }
 
           await updateDoc(orderRef, updateData);
@@ -1144,7 +1188,6 @@
           alert("حدث خطأ أثناء تحديث حالة الطلب.");
         }
       });
-
       async function updateOrderStatus(orderId, newStatus, collectionName) {
         try {
           const orderRef = doc(db, collectionName, orderId);
@@ -1156,7 +1199,6 @@
           alert("حدث خطأ في تحديث حالة الطلب.");
         }
       }
-
       async function deleteOrder(orderId, collectionName) {
         try {
           await deleteDoc(doc(db, collectionName, orderId));
@@ -1166,8 +1208,6 @@
           alert("حدث خطأ أثناء حذف الطلب.");
         }
       }
-
-      document.addEventListener("DOMContentLoaded", fetchAndRenderOrders);
     </script>
   </body>
 </html>

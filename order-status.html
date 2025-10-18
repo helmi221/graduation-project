@@ -11,9 +11,13 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <style>
       .order-check-section {
-        max-width: 600px;
+        max-width: 900px;
         margin: 5rem auto;
         padding: 40px;
         background-color: var(--white-color);
@@ -25,57 +29,150 @@
       .order-check-section p {
         text-align: center;
       }
-      .order-check-section .form-group {
-        max-width: 400px;
-        margin: 1.5rem auto;
-      }
-      #check-status-btn {
-        margin-top: 15px;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-      }
-      #order-status-result {
+      .order-status-result-container {
         margin-top: 2rem;
-        padding: 20px;
-        background-color: #f0f0f0;
+        padding: 20px 0;
+      }
+      .order-card {
+        background-color: var(--white-color);
         border-radius: var(--border-radius);
-        display: none;
-        text-align: right;
+        box-shadow: var(--shadow);
+        padding: 25px;
+        margin-bottom: 25px;
+        position: relative;
+        overflow: hidden;
       }
-      #order-status-result.show {
-        display: block;
+      .order-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: 8px;
+        background-color: var(--primary-color);
       }
-      #order-status-result h4 {
-        font-size: 1.2rem;
-        color: var(--primary-color);
-        margin-bottom: 10px;
+      .order-card.status-مقبول-العميل::before,
+      .order-card.status-مكتمل::before {
+        background-color: #27ae60;
       }
-      #order-status-result p {
-        color: #555;
-        font-size: 1rem;
+      .order-card.status-قيد-المراجعة::before {
+        background-color: #f1c40f;
       }
-      .status-rejected {
-        color: #e74c3c;
-        font-weight: bold;
+      .order-card.status-قيد-التنفيذ::before {
+        background-color: #3498db;
       }
-      .status-accepted {
-        color: #2ecc71;
-        font-weight: bold;
-      }
-      .custom-design-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 20px;
-      }
-      .custom-design-actions .btn {
-        flex-grow: 1;
-      }
-      .btn-danger {
+      .order-card.status-تم-الرفض::before {
         background-color: #e74c3c;
       }
-      .btn-danger:hover {
+      .order-card.status-مرفوض-العميل::before {
+        background-color: #e74c3c;
+      }
+      .order-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 15px;
+      }
+      .order-id {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: var(--dark-color);
+      }
+      .order-id i {
+        color: var(--primary-color);
+        margin-left: 10px;
+      }
+      .order-type {
+        font-size: 0.9rem;
+        color: #777;
+        margin-top: 5px;
+      }
+      .status-badge {
+        display: inline-block;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: bold;
+        color: white;
+        text-align: center;
+        background-color: #34495e;
+      }
+      .status-badge.قيد-المراجعة {
+        background-color: #ffeb3b;
+        color: #3e2723;
+      }
+      .status-badge.مقبول {
+        background-color: #2ecc71;
+      }
+      .status-badge.قيد-التصنيع,
+      .status-badge.قيد-الطلاء,
+      .status-badge.قيد-التغليف,
+      .status-badge.قيد-الشحن,
+      .status-badge.قيد-التنفيذ {
+        background-color: #3498db;
+      }
+      .status-badge.مكتمل,
+      .status-badge.مقبول-العميل {
+        background-color: #27ae60;
+      }
+      .status-badge.تم-الرفض,
+      .status-badge.مرفوض-العميل {
         background-color: #c0392b;
+      }
+      .order-details-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 10px;
+      }
+      .order-details-list li {
+        padding: 5px 0;
+        border-bottom: 1px dashed #eee;
+        font-size: 1rem;
+        display: flex;
+        justify-content: space-between;
+      }
+      .order-details-list li:last-child {
+        border-bottom: none;
+      }
+      .custom-design-details {
+        margin-top: 15px;
+        padding: 15px;
+        background-color: #fafafa;
+        border-radius: 8px;
+        border: 1px dashed #ddd;
+      }
+      .custom-design-details p {
+        margin-bottom: 5px;
+      }
+      .price-buttons {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+      }
+      .price-buttons .btn {
+        font-family: "Cairo", sans-serif;
+        padding: 10px 20px;
+      }
+      .price-buttons .btn-accept {
+        background-color: #27ae60;
+      }
+      .price-buttons .btn-reject {
+        background-color: #c0392b;
+      }
+      @media (max-width: 768px) {
+        .order-card-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+        }
+        .order-id {
+          font-size: 1.1rem;
+        }
+        .order-type {
+          display: none;
+        }
       }
     </style>
   </head>
@@ -140,18 +237,9 @@
         <div class="section-title-wrapper">
           <h2>التحقق من حالة الطلب</h2>
         </div>
-        <p>أدخل رمز التتبع الخاص بك للتحقق من حالة طلبك.</p>
-        <div class="form-group">
-          <label for="check-tracking-id">رمز التتبع</label>
-          <input
-            type="text"
-            id="check-tracking-id"
-            name="check-tracking-id"
-            required
-          />
+        <div id="order-status-result" class="order-status-result-container">
+          <p>يرجى تسجيل الدخول لعرض حالة طلباتك.</p>
         </div>
-        <button class="btn" id="check-status-btn">تحقق</button>
-        <div id="order-status-result" class="order-status-result"></div>
       </div>
     </main>
 
@@ -166,17 +254,21 @@
     </footer>
 
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
       import {
         getFirestore,
         collection,
         query,
         where,
         getDocs,
+        orderBy,
         doc,
         updateDoc,
-      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
-
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
       const firebaseConfig = {
         apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
         authDomain: "ecomers-dd329.firebaseapp.com",
@@ -186,19 +278,176 @@
         appId: "1:190646144215:web:d55f24091a920f92b6b492",
         measurementId: "G-NVYK3DZR00",
       };
-
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
-
+      const auth = getAuth(app);
+      const orderStatusResult = document.getElementById("order-status-result");
       let cart = [];
-      let currentOrderId = null;
-      let currentOrderCollection = null;
 
+      const simplifyStatus = (status) => {
+        if (["قيد التصنيع", "قيد الطلاء", "قيد التغليف"].includes(status)) {
+          return "قيد التنفيذ";
+        }
+        return status;
+      };
+
+      const handlePriceDecision = async (orderId, collectionName, status) => {
+        try {
+          const orderRef = doc(db, collectionName, orderId);
+          await updateDoc(orderRef, { status: status });
+          alert(`تم تحديث حالة طلبك إلى: ${status}`);
+          location.reload();
+        } catch (e) {
+          console.error("Error updating order status: ", e);
+          alert("حدث خطأ أثناء تحديث حالة الطلب. حاول مرة أخرى.");
+        }
+      };
+
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          orderStatusResult.innerHTML =
+            "<h2 style='text-align: center;'>طلباتي</h2>";
+          const ordersCollection = collection(db, "orders");
+          const customDesignsCollection = collection(db, "custom_designs");
+
+          const q1 = query(
+            ordersCollection,
+            where("customer_uid", "==", user.uid)
+          );
+          const q2 = query(
+            customDesignsCollection,
+            where("customer_uid", "==", user.uid)
+          );
+
+          const [ordersSnapshot, customDesignsSnapshot] = await Promise.all([
+            getDocs(q1),
+            getDocs(q2),
+          ]);
+
+          const allOrders = [];
+          ordersSnapshot.forEach((doc) =>
+            allOrders.push({ ...doc.data(), id: doc.id, type: "ready" })
+          );
+          customDesignsSnapshot.forEach((doc) =>
+            allOrders.push({ ...doc.data(), id: doc.id, type: "custom" })
+          );
+
+          allOrders.sort(
+            (a, b) => new Date(b.order_date) - new Date(a.order_date)
+          );
+
+          if (allOrders.length === 0) {
+            orderStatusResult.innerHTML += "<p>لم تقم بإجراء أي طلبات بعد.</p>";
+          } else {
+            let resultHTML = "";
+            allOrders.forEach((orderData) => {
+              const simplifiedStatus = simplifyStatus(orderData.status);
+              const statusClass = simplifiedStatus.replace(/\s+/g, "-");
+              const orderType =
+                orderData.type === "ready" ? "منتج جاهز" : "تصميم مخصص";
+
+              let itemsListHTML = "";
+              let totalDisplay = "";
+              let actionsHtml = "";
+
+              if (orderData.type === "ready") {
+                itemsListHTML = orderData.items
+                  .map(
+                    (item) =>
+                      `<li><span>${item.name} (العدد: ${item.quantity})</span><span>${item.price} شيكل</span></li>`
+                  )
+                  .join("");
+                totalDisplay = `<p style="margin-top: 15px;"><strong>الإجمالي:</strong> ${orderData.total} شيكل</p>`;
+              } else {
+                itemsListHTML = `
+                      <div class="custom-design-details">
+                          <p><strong><i class="fa-solid fa-list-check"></i> وصف التصميم:</strong> ${
+                            orderData.notes
+                          }</p>
+                          <p><strong><i class="fa-solid fa-chair"></i> النوع:</strong> ${
+                            orderData.type_of_product || "---"
+                          }</p>
+                          <p><strong><i class="fa-solid fa-ruler-combined"></i> الأبعاد:</strong> ${
+                            orderData.dimensions || "---"
+                          }</p>
+                          <p><strong><i class="fa-solid fa-tree"></i> المادة:</strong> ${
+                            orderData.material || "---"
+                          }</p>
+                          <p><strong><i class="fa-solid fa-palette"></i> اللون:</strong> ${
+                            orderData.color || "---"
+                          }</p>
+                      </div>
+                  `;
+                if (orderData.status === "مقبول" && orderData.final_price) {
+                  totalDisplay = `<p><strong><i class="fa-solid fa-hand-holding-dollar"></i> السعر النهائي:</strong> <span style="color: green;">${orderData.final_price} شيكل</span></p>`;
+                  actionsHtml = `
+                    <div class="price-buttons">
+                      <button class="btn btn-accept" data-id="${orderData.id}" data-collection="custom_designs" data-status="مقبول-العميل">قبول السعر</button>
+                      <button class="btn btn-reject" data-id="${orderData.id}" data-collection="custom_designs" data-status="مرفوض-العميل">رفض السعر</button>
+                    </div>
+                  `;
+                } else if (
+                  orderData.status === "تم الرفض" &&
+                  orderData.rejection_reason
+                ) {
+                  totalDisplay = `<p><strong><i class="fa-solid fa-hand-holding-dollar"></i> السعر المقترح:</strong> ${orderData.price}</p>`;
+                  itemsListHTML += `<p style="color:red; margin-top: 10px;"><strong><i class="fa-solid fa-circle-xmark"></i> سبب الرفض:</strong> ${orderData.rejection_reason}</p>`;
+                } else {
+                  totalDisplay = `<p><strong><i class="fa-solid fa-hand-holding-dollar"></i> السعر المقترح:</strong> ${orderData.price}</p>`;
+                }
+              }
+
+              resultHTML += `
+                <div class="order-card status-${statusClass}">
+                    <div class="order-card-header">
+                        <div>
+                            <p class="order-id"><i class="fa-solid fa-receipt"></i> رقم الطلب: ${
+                              orderData.id
+                            }</p>
+                            <p class="order-type">نوع الطلب: ${orderType}</p>
+                        </div>
+                        <span class="status-badge ${statusClass}">${simplifiedStatus}</span>
+                    </div>
+                    <div class="order-card-body">
+                        <p><strong><i class="fa-solid fa-calendar-alt"></i> التاريخ:</strong> ${new Date(
+                          orderData.order_date
+                        ).toLocaleDateString("en-US")}</p>
+                        ${
+                          orderData.type === "ready"
+                            ? `<h4><i class="fa-solid fa-boxes-stacked"></i> المنتجات:</h4>`
+                            : ""
+                        }
+                        <ul class="order-details-list">
+                            ${itemsListHTML}
+                        </ul>
+                        ${totalDisplay}
+                        ${actionsHtml}
+                    </div>
+                </div>
+              `;
+            });
+            orderStatusResult.innerHTML += resultHTML;
+
+            document
+              .querySelectorAll(".price-buttons .btn")
+              .forEach((button) => {
+                button.addEventListener("click", (e) => {
+                  const id = e.target.dataset.id;
+                  const collection = e.target.dataset.collection;
+                  const status = e.target.dataset.status;
+                  handlePriceDecision(id, collection, status);
+                });
+              });
+          }
+        } else {
+          orderStatusResult.innerHTML =
+            "<p>يرجى تسجيل الدخول لعرض حالة طلباتك.</p><a href='login.html' class='btn'>تسجيل الدخول</a>";
+        }
+      });
       function loadCart() {
         const storedCart = localStorage.getItem("shoppingCart");
         cart = storedCart ? JSON.parse(storedCart) : [];
       }
-
       function updateCartBadge() {
         const cartCountBadge = document.getElementById("cart-count-badge");
         if (!cartCountBadge) return;
@@ -206,160 +455,16 @@
         cartCountBadge.textContent = totalItems;
         cartCountBadge.classList.toggle("visible", totalItems > 0);
       }
-
-      async function updateOrderStatus(newStatus) {
-        if (!currentOrderId || !currentOrderCollection) return;
-
-        try {
-          const orderRef = doc(db, currentOrderCollection, currentOrderId);
-          const updateData = { status: newStatus };
-          if (newStatus === "تم الرفض") {
-            updateData.final_price = null;
-          }
-          await updateDoc(orderRef, updateData);
-          alert(`تم تحديث حالة الطلب بنجاح إلى: ${newStatus}`);
-          document.getElementById("check-status-btn").click();
-        } catch (e) {
-          console.error("Error updating order status: ", e);
-          alert("حدث خطأ أثناء تحديث حالة الطلب.");
-        }
-      }
-
       document.addEventListener("DOMContentLoaded", () => {
-        const checkStatusBtn = document.getElementById("check-status-btn");
-        const checkTrackingIdInput =
-          document.getElementById("check-tracking-id");
-        const orderStatusResult = document.getElementById(
-          "order-status-result"
-        );
+        loadCart();
+        updateCartBadge();
         const menuToggle = document.getElementById("menu-toggle");
         const mobileMenu = document.getElementById("mobile-menu");
         const body = document.body;
-
         menuToggle.addEventListener("click", () => {
           mobileMenu.classList.toggle("active");
           body.classList.toggle("scroll-lock");
         });
-
-        checkStatusBtn.addEventListener("click", async () => {
-          const trackingId = checkTrackingIdInput.value.trim().toUpperCase();
-          if (!trackingId) {
-            alert("الرجاء إدخال رمز التتبع.");
-            return;
-          }
-
-          orderStatusResult.classList.remove("show");
-          orderStatusResult.innerHTML = "<p>جارٍ البحث عن طلبك...</p>";
-
-          currentOrderId = null;
-          currentOrderCollection = null;
-
-          let orderFound = false;
-          let orderData = null;
-          let isCustomDesign = false;
-
-          const ordersQuery = query(
-            collection(db, "orders"),
-            where("tracking_id", "==", trackingId)
-          );
-          const ordersSnapshot = await getDocs(ordersQuery);
-          if (!ordersSnapshot.empty) {
-            orderFound = true;
-            const doc = ordersSnapshot.docs[0];
-            orderData = doc.data();
-            currentOrderId = doc.id;
-            currentOrderCollection = "orders";
-          }
-
-          if (!orderFound) {
-            const designsQuery = query(
-              collection(db, "custom_designs"),
-              where("tracking_id", "==", trackingId)
-            );
-            const designsSnapshot = await getDocs(designsQuery);
-            if (!designsSnapshot.empty) {
-              orderFound = true;
-              const doc = designsSnapshot.docs[0];
-              orderData = doc.data();
-              isCustomDesign = true;
-              currentOrderId = doc.id;
-              currentOrderCollection = "custom_designs";
-            }
-          }
-
-          if (!orderFound || orderData.status === "مؤرشف") {
-            orderStatusResult.innerHTML =
-              "<h4>لا يوجد طلب بهذا الرمز</h4><p>الرجاء التحقق من رمز التتبع والمحاولة مرة أخرى.</p>";
-          } else {
-            let resultHTML = "<h4>حالة طلبك</h4>";
-            let statusClass = "";
-
-            if (isCustomDesign) {
-              if (orderData.status === "تم الرفض") {
-                statusClass = "status-rejected";
-              } else if (orderData.status === "مقبول") {
-                statusClass = "status-accepted";
-              }
-
-              resultHTML += `
-                <div style="margin-bottom: 15px; padding-bottom: 10px;">
-                    <p><strong>رمز التتبع:</strong> ${orderData.tracking_id}</p>
-                    <p><strong>نوع الطلب:</strong> تصميم مخصص</p>
-                    <p><strong>الحالة:</strong> <span class="${statusClass}">${
-                orderData.status
-              }</span></p>
-                    ${
-                      orderData.rejection_reason
-                        ? `<p style="color:red;"><strong>سبب الرفض:</strong> ${orderData.rejection_reason}</p>`
-                        : ""
-                    }
-                    ${
-                      orderData.final_price
-                        ? `<p><strong>السعر النهائي:</strong> <span class="status-accepted">${orderData.final_price} شيكل</span></p>`
-                        : ""
-                    }
-                </div>
-              `;
-
-              if (orderData.status === "مقبول") {
-                resultHTML += `
-                    <div class="custom-design-actions">
-                        <button class="btn" id="accept-price-btn">قبول السعر</button>
-                        <button class="btn btn-danger" id="reject-price-btn">رفض السعر</button>
-                    </div>
-                  `;
-              }
-            } else {
-              resultHTML += `
-                <div style="margin-bottom: 15px; padding-bottom: 10px;">
-                    <p><strong>رمز التتبع:</strong> ${orderData.tracking_id}</p>
-                    <p><strong>الحالة:</strong> ${orderData.status}</p>
-                    <p><strong>نوع الطلب:</strong> جاهز</p>
-                </div>
-              `;
-            }
-            orderStatusResult.innerHTML = resultHTML;
-
-            if (isCustomDesign && orderData.status === "مقبول") {
-              document
-                .getElementById("accept-price-btn")
-                .addEventListener("click", () => {
-                  updateOrderStatus("قيد التصنيع");
-                });
-              document
-                .getElementById("reject-price-btn")
-                .addEventListener("click", () => {
-                  if (confirm("هل أنت متأكد من رفض السعر المقترح؟")) {
-                    updateOrderStatus("تم الرفض");
-                  }
-                });
-            }
-          }
-          orderStatusResult.classList.add("show");
-        });
-
-        loadCart();
-        updateCartBadge();
       });
     </script>
   </body>

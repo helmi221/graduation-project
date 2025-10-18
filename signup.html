@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>منجرة | إنشاء حساب جديد</title>
+    <link rel="stylesheet" href="style.css" />
+    <style>
+      .auth-container {
+        max-width: 450px;
+        margin: 100px auto;
+        padding: 40px;
+        background-color: var(--white-color);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        text-align: center;
+      }
+      .auth-container h2 {
+        margin-bottom: 1.5rem;
+      }
+      .form-group {
+        text-align: right;
+      }
+      .btn-auth {
+        width: 100%;
+        margin-top: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="auth-container">
+      <h2>إنشاء حساب جديد</h2>
+      <form id="signup-form">
+        <div class="form-group">
+          <label for="name">الاسم</label>
+          <input type="text" id="name" required />
+        </div>
+        <div class="form-group">
+          <label for="email">البريد الإلكتروني</label>
+          <input type="email" id="email" required />
+        </div>
+        <div class="form-group">
+          <label for="password">كلمة المرور</label>
+          <input type="password" id="password" required />
+        </div>
+        <button type="submit" class="btn btn-auth">إنشاء حساب</button>
+      </form>
+      <p style="margin-top: 15px">
+        لديك حساب بالفعل؟ <a href="login.html">تسجيل الدخول</a>
+      </p>
+    </div>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+      import {
+        getAuth,
+        createUserWithEmailAndPassword,
+      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+      const firebaseConfig = {
+        apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
+        authDomain: "ecomers-dd329.firebaseapp.com",
+        projectId: "ecomers-dd329",
+        storageBucket: "ecomers-dd329.firebasestorage.app",
+        messagingSenderId: "190646144215",
+        appId: "1:190646144215:web:d55f24091a920f92b6b492",
+        measurementId: "G-NVYK3DZR00",
+      };
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+      const signupForm = document.getElementById("signup-form");
+      signupForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const name = signupForm.name.value;
+        const email = signupForm.email.value;
+        const password = signupForm.password.value;
+        try {
+          const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
+          const user = userCredential.user;
+          await setDoc(doc(db, "users", user.uid), {
+            name: name,
+            email: email,
+            role: "customer",
+          });
+          alert("تم إنشاء حسابك بنجاح!");
+          window.location.href = "index.html";
+        } catch (error) {
+          alert("فشل إنشاء الحساب: " + error.message);
+        }
+      });
+    </script>
+  </body>
+</html>

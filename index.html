@@ -11,6 +11,113 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
+    <style>
+      .nav-items {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+      }
+      .nav-icons {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+      }
+      .auth-info {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+      }
+      .auth-info a {
+        text-decoration: none;
+        color: var(--dark-color);
+      }
+
+      .about-section {
+        display: flex;
+        align-items: center;
+        gap: 50px;
+        padding: 80px 0;
+      }
+      @media (max-width: 900px) {
+        .about-section {
+          flex-direction: column;
+          text-align: center;
+        }
+      }
+      .about-text {
+        flex: 1;
+        text-align: right;
+      }
+
+      .about-text h2 {
+        text-align: right;
+        margin-bottom: 2rem;
+      }
+      @media (max-width: 900px) {
+        .about-text h2 {
+          text-align: center;
+        }
+      }
+
+      .about-image-container {
+        flex: 1;
+        text-align: left;
+        position: relative;
+      }
+
+      .about-image {
+        width: 100%;
+        max-width: 500px;
+        height: auto;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+      }
+
+      .cta-section {
+        background-color: var(--primary-color);
+        color: var(--white-color);
+        text-align: center;
+        padding: 80px 0;
+      }
+
+      .cta-section h2,
+      .cta-section p {
+        color: var(--white-color);
+      }
+
+      .cta-section p {
+        max-width: 700px;
+        margin: 0 auto 2rem auto;
+        opacity: 0.9;
+      }
+
+      .product-grid-4 {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+      }
+      /* NEW STYLE FOR OUT OF STOCK */
+      .product-card.out-of-stock {
+        opacity: 0.5;
+        pointer-events: none;
+        position: relative;
+      }
+      .product-card.out-of-stock::after {
+        content: "غير متوفر";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #c0392b;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        z-index: 10;
+        pointer-events: none;
+      }
+    </style>
   </head>
   <body>
     <header>
@@ -28,15 +135,9 @@
                 >منتجاتنا</a
               >
             </li>
-            <li>
-              <a href="order-status.html" class="nav-link">حالة الطلب</a>
-            </li>
-            <li>
-              <a href="recommendation.html" class="nav-link">المساعد</a>
-            </li>
-            <li>
-              <a href="design.html" class="nav-link">صمم منتجك</a>
-            </li>
+            <li><a href="order-status.html" class="nav-link">حالة الطلب</a></li>
+            <li><a href="recommendation.html" class="nav-link">المساعد</a></li>
+            <li><a href="design.html" class="nav-link">صمم منتجك</a></li>
           </ul>
           <a href="cart.html" class="cart-icon-wrapper">
             <svg
@@ -55,6 +156,12 @@
             </svg>
             <span id="cart-count-badge">0</span>
           </a>
+          <div id="auth-info" class="auth-info">
+            <span id="user-display-name"></span>
+            <a href="login.html" id="auth-link" class="nav-link"
+              >تسجيل الدخول</a
+            >
+          </div>
           <button class="menu-toggle" id="menu-toggle">
             <div class="hamburger-icon">
               <span></span><span></span><span></span>
@@ -85,11 +192,46 @@
             >
           </div>
         </section>
+
+        <section class="section container about-section">
+          <div class="about-text">
+            <div class="section-title-wrapper">
+              <h2>من نحن</h2>
+            </div>
+            <p>
+              في منجرة، نؤمن بأن الأثاث ليس مجرد قطع خشبية، بل هو جزء من قصة
+              منزلك. نكرس شغفنا ومهارتنا اليدوية لصناعة قطع فريدة تعكس شخصيتك
+              وتضفي الدفء على مساحتك. كل قطعة نصنعها مصممة لتدوم، وتجمع بين
+              الجودة العالية والجمال الخالد.
+            </p>
+          </div>
+          <div class="about-image-container">
+            <img
+              src="https://images.unsplash.com/photo-1542731518-e30ee86d34b1?q=80&w=1631&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+              alt="ورشة عمل نجارة"
+              class="about-image"
+            />
+          </div>
+        </section>
+
         <section class="section container">
           <div class="section-title-wrapper"><h2>مختاراتنا</h2></div>
-          <div class="product-grid" id="featured-products-grid"></div>
+          <div class="product-grid-4" id="featured-products-grid"></div>
+        </section>
+
+        <section class="cta-section">
+          <div class="container">
+            <h2>صمم أثاثك الخاص!</h2>
+            <p>
+              هل لديك فكرة فريدة في ذهنك؟ دعنا نحولها إلى حقيقة. في منجرة، نقدم
+              خدمة التصميم المخصص لنصنع لك قطعة أثاث تناسب ذوقك واحتياجاتك
+              تماماً.
+            </p>
+            <a href="design.html" class="btn">ابدأ الآن</a>
+          </div>
         </section>
       </div>
+
       <div id="products-page" class="page">
         <section class="section container">
           <div class="section-title-wrapper"><h2>جميع منتجاتنا</h2></div>
@@ -182,238 +324,346 @@
 
     <div id="toast-notification" class="toast"></div>
 
-    <script src="products.js"></script>
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const productGrid = document.getElementById("product-grid-container");
-        const featuredGrid = document.getElementById("featured-products-grid");
-        const filterButtons = document.querySelectorAll(".filter-btn");
-        const pages = document.querySelectorAll(".page");
-        const modal = document.getElementById("product-modal");
-        const modalClose = document.querySelector(".modal-close");
-        const addToCartBtn = document.getElementById("add-to-cart-btn");
-        const cartCountBadge = document.getElementById("cart-count-badge");
-        const body = document.body;
-        const menuToggle = document.getElementById("menu-toggle");
-        const mobileMenu = document.getElementById("mobile-menu");
-        const toast = document.getElementById("toast-notification");
-        const quantitySelector = document.getElementById(
-          "modal-quantity-selector"
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+      import {
+        doc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+      // ******* إعدادات Firebase *******
+      const firebaseConfig = {
+        apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
+        authDomain: "ecomers-dd329.firebaseapp.com",
+        projectId: "ecomers-dd329",
+        storageBucket: "ecomers-dd329.firebasestorage.app",
+        messagingSenderId: "190646144215",
+        appId: "1:190646144215:web:d55f24091a920f92b6b492",
+        measurementId: "G-NVYK3DZR00",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      const userDisplayName = document.getElementById("user-display-name");
+      const authLink = document.getElementById("auth-link");
+      const productGrid = document.getElementById("product-grid-container");
+      const featuredGrid = document.getElementById("featured-products-grid");
+      const filterButtons = document.querySelectorAll(".filter-btn");
+      const pages = document.querySelectorAll(".page");
+      const modal = document.getElementById("product-modal");
+      const modalClose = document.querySelector(".modal-close");
+      const addToCartBtn = document.getElementById("add-to-cart-btn");
+      const cartCountBadge = document.getElementById("cart-count-badge");
+      const body = document.body;
+      const menuToggle = document.getElementById("menu-toggle");
+      const mobileMenu = document.getElementById("mobile-menu");
+      const toast = document.getElementById("toast-notification");
+      const quantitySelector = document.getElementById(
+        "modal-quantity-selector"
+      );
+
+      let allProducts = []; // سيتم ملؤها من Firebase
+      let cart = [];
+
+      // تحديث بيانات المستخدم
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const userDocRef = doc(db, "users", user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            userDisplayName.textContent = "مرحباً " + userData.name;
+            authLink.textContent = "تسجيل الخروج";
+            authLink.href = "#";
+            authLink.onclick = async (e) => {
+              e.preventDefault();
+              await signOut(auth);
+              window.location.href = "index.html";
+            };
+          } else {
+            userDisplayName.textContent = "مرحباً " + user.displayName;
+            authLink.textContent = "تسجيل الخروج";
+            authLink.href = "#";
+            authLink.onclick = async (e) => {
+              e.preventDefault();
+              await signOut(auth);
+              window.location.href = "index.html";
+            };
+          }
+        } else {
+          userDisplayName.textContent = "";
+          authLink.textContent = "تسجيل الدخول";
+          authLink.href = "login.html";
+          if (authLink.onclick) {
+            authLink.onclick = null;
+          }
+        }
+      });
+
+      // دالة إنشاء بطاقة المنتج (مع إضافة علامة غير متوفر)
+      function createProductCard(product) {
+        const isAvailable = product.is_available !== false; // القيمة الافتراضية true
+        const card = document.createElement("div");
+        card.className = `product-card ${isAvailable ? "" : "out-of-stock"}`;
+        card.dataset.productId = product.id;
+        const imageSrc = `images/${product.id}.png`;
+        card.innerHTML = `
+                <div class="product-image-container">
+                    <img src="${imageSrc}" alt="${
+          product.name
+        }" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80';">
+                </div>
+                <div class="product-card-content">
+                    <span class="product-category">${product.category}</span>
+                    <h3>${product.name}</h3>
+                    <p class="product-price">${parseFloat(
+                      product.price
+                    ).toFixed(0)} شيكل</p>
+                </div>`;
+        return card;
+      }
+
+      const displayProducts = (productsToDisplay, gridElement) => {
+        if (!gridElement) return;
+        gridElement.innerHTML = "";
+        productsToDisplay.forEach((product) => {
+          gridElement.appendChild(createProductCard(product));
+        });
+      };
+
+      function openModal(product) {
+        const isAvailable = product.is_available !== false;
+        const imageSrc = `images/${product.id}.png`;
+        document.getElementById("modal-img").src = imageSrc;
+        document.getElementById("modal-img").onerror = function () {
+          this.onerror = null;
+          this.src =
+            "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80";
+        };
+        document.getElementById("modal-title").textContent = product.name;
+        document.getElementById("modal-price").textContent = `${parseFloat(
+          product.price
+        ).toFixed(0)} شيكل`;
+        document.getElementById("modal-description").textContent =
+          product.description || "";
+        const colorSection = document.getElementById("color-section");
+        const colorSelect = document.getElementById("modal-color-select");
+        colorSelect.innerHTML = "";
+        if (product.specs && product.specs.includes("خيارات الألوان:")) {
+          const colors = product.specs
+            .replace("خيارات الألوان:", "")
+            .split("،")
+            .map((c) => c.trim())
+            .filter(Boolean);
+          colors.forEach((color) => {
+            const option = document.createElement("option");
+            option.value = color;
+            option.textContent = color;
+            colorSelect.appendChild(option);
+          });
+          colorSection.style.display = "block";
+        } else {
+          colorSection.style.display = "none";
+        }
+
+        // تعديل زر الإضافة للسلة بناءً على التوفر
+        addToCartBtn.dataset.productId = product.id;
+        addToCartBtn.disabled = !isAvailable;
+        addToCartBtn.textContent = isAvailable
+          ? "إضافة إلى السلة"
+          : "غير متوفر حالياً";
+
+        document.getElementById("modal-quantity").value = 1;
+        modal.classList.add("active");
+        body.classList.add("scroll-lock");
+      }
+
+      function addToCart(productId, quantity, color) {
+        const product = allProducts.find((p) => p.id === productId);
+        if (!product || product.is_available === false) return; // حماية إضافية
+
+        if (!product) return;
+        const existingItem = cart.find(
+          (item) => item.id === productId && item.color === color
         );
-
-        let cart = [];
-
-        function createProductCard(product) {
-          const card = document.createElement("div");
-          card.className = "product-card";
-          card.dataset.productId = product.id;
-          const imageSrc = `images/${product.id}.png`;
-          card.innerHTML = `
-            <div class="product-image-container">
-                <img src="${imageSrc}" alt="${product.name}" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80';">
-            </div>
-            <div class="product-card-content">
-                <span class="product-category">${product.category}</span>
-                <h3>${product.name}</h3>
-                <p class="product-price">${product.price} شيكل</p>
-            </div>`;
-          return card;
-        }
-
-        const displayProducts = (productsToDisplay, gridElement) => {
-          if (!gridElement) return;
-          gridElement.innerHTML = "";
-          productsToDisplay.forEach((product) => {
-            gridElement.appendChild(createProductCard(product));
+        if (existingItem) {
+          existingItem.quantity += quantity;
+        } else {
+          cart.push({
+            id: product.id,
+            name: product.name,
+            price: parseFloat(product.price),
+            quantity,
+            color,
+            image: `images/${product.id}.png`,
           });
-        };
-
-        function openModal(product) {
-          const imageSrc = `images/${product.id}.png`;
-          document.getElementById("modal-img").src = imageSrc;
-          document.getElementById("modal-img").onerror = function () {
-            this.onerror = null;
-            this.src =
-              "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80";
-          };
-
-          document.getElementById("modal-title").textContent = product.name;
-          document.getElementById(
-            "modal-price"
-          ).textContent = `${product.price} شيكل`;
-          document.getElementById("modal-description").textContent =
-            product.description || "";
-
-          const colorSection = document.getElementById("color-section");
-          const colorSelect = document.getElementById("modal-color-select");
-          colorSelect.innerHTML = "";
-
-          if (product.specs && product.specs.includes("خيارات الألوان:")) {
-            const colors = product.specs
-              .replace("خيارات الألوان:", "")
-              .split("،")
-              .map((c) => c.trim())
-              .filter(Boolean);
-
-            colors.forEach((color) => {
-              const option = document.createElement("option");
-              option.value = color;
-              option.textContent = color;
-              colorSelect.appendChild(option);
-            });
-            colorSection.style.display = "block";
-          } else {
-            colorSection.style.display = "none";
-          }
-
-          document.getElementById("modal-quantity").value = 1;
-          addToCartBtn.dataset.productId = product.id;
-          modal.classList.add("active");
-          body.classList.add("scroll-lock");
         }
+        saveCart();
+        updateCartBadge();
+      }
 
-        function addToCart(productId, quantity, color) {
-          const product = allProducts.find((p) => p.id === productId);
-          if (!product) return;
-          const existingItem = cart.find(
-            (item) => item.id === productId && item.color === color
-          );
-          if (existingItem) {
-            existingItem.quantity += quantity;
-          } else {
-            cart.push({
-              id: product.id,
-              name: product.name,
-              price: parseFloat(product.price),
-              quantity,
-              color,
-              image: `images/${product.id}.png`,
-            });
-          }
-          saveCart();
-          updateCartBadge();
+      quantitySelector.addEventListener("click", (e) => {
+        if (e.target.classList.contains("quantity-btn")) {
+          const quantityInput = document.getElementById("modal-quantity");
+          let currentValue = parseInt(quantityInput.value, 10);
+          currentValue += parseInt(e.target.dataset.change, 10);
+          if (currentValue < 1) currentValue = 1;
+          quantityInput.value = currentValue;
         }
+      });
 
-        quantitySelector.addEventListener("click", (e) => {
-          if (e.target.classList.contains("quantity-btn")) {
-            const quantityInput = document.getElementById("modal-quantity");
-            let currentValue = parseInt(quantityInput.value, 10);
-            currentValue += parseInt(e.target.dataset.change, 10);
-            if (currentValue < 1) currentValue = 1;
-            quantityInput.value = currentValue;
-          }
-        });
+      addToCartBtn.addEventListener("click", (e) => {
+        const productId = parseInt(e.currentTarget.dataset.productId, 10);
+        const quantity = parseInt(
+          document.getElementById("modal-quantity").value,
+          10
+        );
+        const colorSelect = document.getElementById("modal-color-select");
+        const color =
+          colorSelect.style.display !== "none" ? colorSelect.value : null;
+        addToCart(productId, quantity, color);
+        closeModal();
+        showToast("✅ تمت إضافة المنتج إلى السلة بنجاح!");
+      });
 
-        addToCartBtn.addEventListener("click", (e) => {
-          const productId = parseInt(e.currentTarget.dataset.productId, 10);
-          const quantity = parseInt(
-            document.getElementById("modal-quantity").value,
-            10
-          );
-          const colorSelect = document.getElementById("modal-color-select");
-          const color =
-            colorSelect.style.display !== "none" ? colorSelect.value : null;
-
-          addToCart(productId, quantity, color);
-          closeModal();
-          showToast("✅ تمت إضافة المنتج إلى السلة بنجاح!");
-        });
-
-        function closeModal() {
-          modal.classList.remove("active");
-          if (!mobileMenu.classList.contains("active")) {
-            body.classList.remove("scroll-lock");
-          }
-        }
-        function handleGridClick(e) {
-          const card = e.target.closest(".product-card");
-          if (card) {
-            const productId = parseInt(card.dataset.productId, 10);
-            const product = allProducts.find((p) => p.id === productId);
-            if (product) openModal(product);
-          }
-        }
-        function saveCart() {
-          localStorage.setItem("shoppingCart", JSON.stringify(cart));
-        }
-        function loadCart() {
-          const storedCart = localStorage.getItem("shoppingCart");
-          cart = storedCart ? JSON.parse(storedCart) : [];
-        }
-        function updateCartBadge() {
-          const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-          cartCountBadge.textContent = totalItems;
-          cartCountBadge.classList.toggle("visible", totalItems > 0);
-        }
-        function showToast(message) {
-          toast.textContent = message;
-          toast.classList.add("show");
-          setTimeout(() => {
-            toast.classList.remove("show");
-          }, 3000);
-        }
-        menuToggle.addEventListener("click", () => {
-          mobileMenu.classList.toggle("active");
-          body.classList.toggle("scroll-lock");
-        });
-        const switchPage = (targetId) => {
-          if (!document.getElementById(targetId)) return;
-          pages.forEach((page) => page.classList.remove("active"));
-          document.getElementById(targetId).classList.add("active");
-          document
-            .querySelectorAll(".desktop-nav a.nav-link")
-            .forEach((link) => {
-              link.classList.remove("active");
-              if (link.dataset.target === targetId)
-                link.classList.add("active");
-            });
-          window.scrollTo(0, 0);
-          mobileMenu.classList.remove("active");
+      function closeModal() {
+        modal.classList.remove("active");
+        if (!mobileMenu.classList.contains("active")) {
           body.classList.remove("scroll-lock");
-        };
-        document.querySelectorAll(".nav-link").forEach((link) => {
-          link.addEventListener("click", (e) => {
-            e.preventDefault();
-            const target = link.dataset.target;
-            if (target) {
-              switchPage(target);
-            } else if (link.href) {
-              window.location.href = link.href;
-            }
-          });
-        });
-        filterButtons.forEach((button) => {
-          button.addEventListener("click", () => {
-            filterButtons.forEach((btn) => btn.classList.remove("active"));
-            button.classList.add("active");
-            const filter = button.dataset.filter;
-            const filteredProducts =
-              filter === "all"
-                ? allProducts
-                : allProducts.filter((p) => p.category === filter);
-            displayProducts(filteredProducts, productGrid);
-          });
-        });
-        productGrid.addEventListener("click", handleGridClick);
-        featuredGrid.addEventListener("click", handleGridClick);
-        modalClose.addEventListener("click", closeModal);
-        modal.addEventListener("click", (e) => {
-          if (e.target === modal) closeModal();
-        });
-        document.addEventListener("keydown", (e) => {
-          if (e.key === "Escape") closeModal();
-        });
+        }
+      }
 
+      function handleGridClick(e) {
+        const card = e.target.closest(".product-card");
+        if (card) {
+          const productId = parseInt(card.dataset.productId, 10);
+          const product = allProducts.find((p) => p.id === productId);
+          if (product) openModal(product);
+        }
+      }
+
+      function saveCart() {
+        localStorage.setItem("shoppingCart", JSON.stringify(cart));
+      }
+
+      function loadCart() {
+        const storedCart = localStorage.getItem("shoppingCart");
+        cart = storedCart ? JSON.parse(storedCart) : [];
+      }
+
+      function updateCartBadge() {
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        cartCountBadge.textContent = totalItems;
+        cartCountBadge.classList.toggle("visible", totalItems > 0);
+      }
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => {
+          toast.classList.remove("show");
+        }, 3000);
+      }
+
+      menuToggle.addEventListener("click", () => {
+        mobileMenu.classList.toggle("active");
+        body.classList.toggle("scroll-lock");
+      });
+
+      const switchPage = (targetId) => {
+        if (!document.getElementById(targetId)) return;
+        pages.forEach((page) => page.classList.remove("active"));
+        document.getElementById(targetId).classList.add("active");
+        document.querySelectorAll(".desktop-nav a.nav-link").forEach((link) => {
+          link.classList.remove("active");
+          if (link.dataset.target === targetId) link.classList.add("active");
+        });
+        window.scrollTo(0, 0);
+        mobileMenu.classList.remove("active");
+        body.classList.remove("scroll-lock");
+      };
+
+      document.querySelectorAll(".nav-link").forEach((link) => {
+        link.addEventListener("click", (e) => {
+          const target = link.dataset.target;
+          if (target) {
+            e.preventDefault();
+            switchPage(target);
+          }
+        });
+      });
+
+      filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          filterButtons.forEach((btn) => btn.classList.remove("active"));
+          button.classList.add("active");
+          const filter = button.dataset.filter;
+          const filteredProducts =
+            filter === "all"
+              ? allProducts
+              : allProducts.filter((p) => p.category === filter);
+          displayProducts(filteredProducts, productGrid);
+        });
+      });
+
+      productGrid.addEventListener("click", handleGridClick);
+      featuredGrid.addEventListener("click", handleGridClick);
+      modalClose.addEventListener("click", closeModal);
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") closeModal();
+      });
+
+      // ====== الوظيفة الجديدة لجلب المنتجات من Firebase (تعديل أساسي) ======
+      async function fetchProductsAndRender() {
+        try {
+          // جلب جميع المنتجات (بما في ذلك غير المتوفرة)
+          const productsSnapshot = await getDocs(collection(db, "products"));
+
+          allProducts = productsSnapshot.docs.map((doc) => ({
+            id: parseInt(doc.id),
+            ...doc.data(),
+            price: parseFloat(doc.data().price), // تأكيد تحويل السعر لرقم
+          }));
+
+          // عرض جميع المنتجات المتوفرة وغير المتوفرة
+          displayProducts(allProducts, productGrid);
+
+          // تحديد وعرض المنتجات المميزة (سنفترض توفرها مؤقتاً لعرضها)
+          const featuredProducts = [
+            allProducts.find((p) => p.id === 3),
+            allProducts.find((p) => p.id === 15),
+            allProducts.find((p) => p.id === 43),
+          ].filter(Boolean); // تصفية أي منتج لم يتم العثور عليه
+
+          displayProducts(featuredProducts, featuredGrid);
+        } catch (e) {
+          console.error("Error fetching products from Firebase: ", e);
+          productGrid.innerHTML =
+            "<p>عذراً، لم نتمكن من جلب المنتجات حالياً. يرجى المحاولة لاحقاً.</p>";
+        }
+      }
+
+      // ====== بدء تنفيذ السكربت ======
+      document.addEventListener("DOMContentLoaded", () => {
         loadCart();
         updateCartBadge();
-        displayProducts(allProducts, productGrid);
-
-        const featuredProducts = [
-          allProducts.find((p) => p.id === 3),
-          allProducts.find((p) => p.id === 15),
-          allProducts.find((p) => p.id === 43),
-        ].filter(Boolean);
-        displayProducts(featuredProducts, featuredGrid);
+        fetchProductsAndRender(); // جلب المنتجات وبدء العرض
       });
     </script>
   </body>

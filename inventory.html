@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>منجرة | إدارة المنتجات</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      :root {
+        --primary-color: #795548;
+        --dark-color: #3e2723;
+        --light-color: #f7f5f2;
+        --accent-color: #a1887f;
+        --white-color: #ffffff;
+        --border-color: #e0e0e0;
+        --border-radius: 12px;
+        --shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+        --success-color: #2ecc71;
+        --danger-color: #e74c3c;
+        --warning-color: #f39c12;
+        --info-color: #3498db;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Cairo", sans-serif;
+        background-color: var(--light-color);
+        color: var(--dark-color);
+        line-height: 1.6;
+        font-size: 16px;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+      .container-fluid {
+        padding: 0 30px;
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+        direction: rtl;
+      }
+      .main-header {
+        background-color: var(--dark-color);
+        color: var(--white-color);
+        padding: 20px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+      }
+      .main-header .logo {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: var(--primary-color);
+      }
+      .main-header nav ul {
+        display: flex;
+        gap: 20px;
+        list-style: none;
+      }
+      .main-header nav a {
+        color: #ccc;
+        font-weight: 600;
+        padding: 8px 12px;
+        border-radius: 8px;
+        transition: background-color 0.3s;
+      }
+      .main-header nav a:hover,
+      .main-header nav a.active {
+        background-color: var(--primary-color);
+        color: var(--white-color);
+      }
+      .main-content {
+        flex-grow: 1;
+        padding: 30px 0;
+        direction: rtl;
+      }
+      h1 {
+        font-size: 2.5rem;
+        color: var(--dark-color);
+        margin-bottom: 2rem;
+        text-align: center;
+      }
+      .inventory-section {
+        background-color: var(--white-color);
+        padding: 30px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+        margin-top: 30px;
+      }
+      .products-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: right;
+      }
+      .products-table th,
+      .products-table td {
+        padding: 15px;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .products-table th {
+        background-color: var(--light-color);
+        font-weight: 700;
+      }
+      .products-table tr:hover {
+        background-color: #fdfdfd;
+      }
+      .status-badge {
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-weight: bold;
+      }
+      .status-badge.متوفر {
+        background-color: var(--success-color);
+        color: white;
+      }
+      .status-badge.غير-متوفر {
+        background-color: var(--danger-color);
+        color: white;
+      }
+      .actions-buttons button {
+        margin: 0 5px;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-family: "Cairo", sans-serif;
+        cursor: pointer;
+        border: none;
+        transition: opacity 0.3s;
+      }
+      .actions-buttons button:hover {
+        opacity: 0.8;
+      }
+      .btn-toggle-status {
+        background-color: var(--info-color);
+        color: white;
+      }
+      .btn-edit {
+        background-color: var(--primary-color);
+        color: white;
+      }
+      .loading-msg {
+        text-align: center;
+        font-size: 1.2rem;
+        color: #888;
+        padding: 50px;
+      }
+
+      /* Modal Styles (reuse from admin.html) */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 2000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease-in-out;
+      }
+      .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+      .modal-content {
+        background-color: var(--white-color);
+        border-radius: var(--border-radius);
+        width: 90%;
+        max-width: 600px;
+        padding: 30px;
+        box-shadow: var(--shadow);
+        position: relative;
+        text-align: right;
+      }
+      .modal-close {
+        position: absolute;
+        top: 15px;
+        left: 15px;
+        font-size: 2.5rem;
+        color: #aaa;
+        cursor: pointer;
+        line-height: 1;
+      }
+      .modal-content h2 {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--dark-color);
+      }
+      .form-group {
+        margin-bottom: 1.5rem;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+        font-family: "Cairo", sans-serif;
+      }
+      .btn {
+        display: inline-block;
+        background: var(--primary-color);
+        color: var(--white-color);
+        padding: 12px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+      .btn:hover {
+        background-color: var(--dark-color);
+      }
+      .btn-group {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 20px;
+      }
+      /* Switch Toggle */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+        margin-right: 15px;
+      }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--danger-color);
+        transition: 0.4s;
+        border-radius: 34px;
+      }
+      .slider:before {
+        content: "";
+        position: absolute;
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+      input:checked + .slider {
+        background-color: var(--success-color);
+      }
+      input:checked + .slider:before {
+        transform: translateX(26px);
+      }
+      .toggle-label-text {
+        font-weight: 600;
+        color: var(--dark-color);
+      }
+      .toggle-wrapper {
+        display: flex;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="main-header">
+      <div class="logo">منجرة</div>
+      <nav>
+        <ul>
+          <li><a href="admin.html">لوحة التحكم</a></li>
+          <li><a href="inventory.html" class="active">إدارة المنتجات</a></li>
+          <li><a href="raw_materials_admin.html">إدارة المواد الخام</a></li>
+          <li><a href="#" id="logout-btn">تسجيل الخروج</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <div class="main-content container-fluid">
+      <h1>إدارة مخزون المنتجات الجاهزة</h1>
+
+      <div class="inventory-section">
+        <div id="products-table-container">
+          <p class="loading-msg">جارٍ تحميل المنتجات...</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="edit-product-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close" id="modal-close-btn"
+          ><i class="fa-solid fa-xmark"></i
+        ></span>
+        <h2>تعديل المنتج: <span id="modal-product-name"></span></h2>
+        <form id="edit-product-form">
+          <input type="hidden" id="modal-product-id" />
+          <div class="form-group">
+            <label for="modal-price">السعر (شيكل)</label>
+            <input type="number" id="modal-price" name="price" required />
+          </div>
+          <div class="form-group">
+            <label for="modal-description">الوصف</label>
+            <textarea
+              id="modal-description"
+              name="description"
+              rows="4"
+              required
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="modal-specs">المواصفات (مثل خيارات الألوان)</label>
+            <input type="text" id="modal-specs" name="specs" />
+          </div>
+          <div class="form-group toggle-wrapper">
+            <label class="switch">
+              <input type="checkbox" id="modal-is-available-toggle" />
+              <span class="slider round"></span>
+            </label>
+            <span class="toggle-label-text">متوفر في المخزون</span>
+          </div>
+
+          <div class="btn-group">
+            <button type="submit" class="btn">حفظ التعديلات</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+        doc,
+        updateDoc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+      // ******* إعدادات Firebase (مأخوذة من ملفاتك) *******
+      const firebaseConfig = {
+        apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
+        authDomain: "ecomers-dd329.firebaseapp.com",
+        projectId: "ecomers-dd329",
+        storageBucket: "ecomers-dd329.firebasestorage.app",
+        messagingSenderId: "190646144215",
+        appId: "1:190646144215:web:d55f24091a920f92b6b492",
+        measurementId: "G-NVYK3DZR00",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      const productsTableContainer = document.getElementById(
+        "products-table-container"
+      );
+      const editProductModal = document.getElementById("edit-product-modal");
+      const editProductForm = document.getElementById("edit-product-form");
+      const modalCloseBtn = document.getElementById("modal-close-btn");
+
+      let allProducts = [];
+
+      // التحقق من حالة المصادقة والدور (Auth/Role Check)
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists() && userDoc.data().role === "admin") {
+            fetchAndRenderProducts();
+          } else {
+            // ليس مديراً: إعادة توجيه
+            alert("غير مصرح لك بالوصول إلى هذه الصفحة.");
+            window.location.href = "login.html";
+          }
+        } else {
+          // غير مسجل دخول: إعادة توجيه
+          window.location.href = "login.html";
+        }
+      });
+
+      // تسجيل الخروج
+      document
+        .getElementById("logout-btn")
+        .addEventListener("click", async (e) => {
+          e.preventDefault();
+          await signOut(auth);
+          window.location.href = "login.html";
+        });
+
+      // ====================================================================
+      // وظائف الواجهة (Rendering Functions)
+      // ====================================================================
+
+      function renderTable(productsToDisplay) {
+        if (productsToDisplay.length === 0) {
+          productsTableContainer.innerHTML =
+            '<p class="loading-msg">لا توجد منتجات مسجلة لعرضها.</p>';
+          return;
+        }
+
+        let tableHtml = `
+          <table class="products-table">
+            <thead>
+              <tr>
+                <th><i class="fa-solid fa-barcode"></i> ID</th>
+                <th><i class="fa-solid fa-chair"></i> اسم المنتج</th>
+                <th><i class="fa-solid fa-tag"></i> الفئة</th>
+                <th><i class="fa-solid fa-money-bill"></i> السعر (شيكل)</th>
+                <th><i class="fa-solid fa-info-circle"></i> حالة التوفر</th>
+                <th><i class="fa-solid fa-tools"></i> الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        productsToDisplay.forEach((product) => {
+          const isAvailable = product.is_available !== false; // الافتراضي هو true
+          const statusText = isAvailable ? "متوفر" : "غير متوفر";
+          const statusClass = isAvailable ? "متوفر" : "غير-متوفر";
+
+          tableHtml += `
+            <tr data-id="${product.id}">
+              <td>${product.id}</td>
+              <td>${product.name}</td>
+              <td>${product.category}</td>
+              <td>${parseFloat(product.price).toFixed(0)}</td>
+              <td><span class="status-badge ${statusClass}">${statusText}</span></td>
+              <td class="actions-buttons">
+                <button class="btn-toggle-status" data-action="toggle" data-id="${
+                  product.id
+                }" data-available="${isAvailable}">
+                  ${isAvailable ? "تعيين كـ غير متوفر" : "تعيين كـ متوفر"}
+                </button>
+                <button class="btn-edit" data-action="edit" data-id="${
+                  product.id
+                }">
+                  تعديل التفاصيل
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+        tableHtml += "</tbody></table>";
+        productsTableContainer.innerHTML = tableHtml;
+      }
+
+      // ====================================================================
+      // وظائف الاتصال بـ Firebase (Firebase Functions)
+      // ====================================================================
+
+      async function fetchAndRenderProducts() {
+        productsTableContainer.innerHTML =
+          '<p class="loading-msg">جارٍ تحميل المنتجات...</p>';
+        try {
+          const productsSnapshot = await getDocs(collection(db, "products"));
+
+          allProducts = productsSnapshot.docs.map((doc) => ({
+            id: parseInt(doc.id), // مهم: تحويل الـ ID إلى رقم
+            ...doc.data(),
+          }));
+
+          renderTable(allProducts);
+        } catch (e) {
+          console.error("Error fetching products: ", e);
+          productsTableContainer.innerHTML =
+            '<p class="loading-msg" style="color: red;">حدث خطأ في جلب المنتجات. الرجاء التحقق من اتصالك.</p>';
+        }
+      }
+
+      async function toggleProductAvailability(
+        productId,
+        isCurrentlyAvailable
+      ) {
+        const newAvailability = !isCurrentlyAvailable;
+        const statusText = newAvailability ? "متوفر" : "غير متوفر";
+        try {
+          const productRef = doc(db, "products", String(productId));
+          await updateDoc(productRef, {
+            is_available: newAvailability,
+            availability_status: statusText,
+            last_update: new Date().toISOString(),
+          });
+          alert(`تم تحديث حالة المنتج بنجاح إلى: ${statusText}`);
+          // إعادة جلب وعرض البيانات المحدثة
+          fetchAndRenderProducts();
+        } catch (e) {
+          console.error("Error updating product availability: ", e);
+          alert("حدث خطأ أثناء تحديث حالة المنتج.");
+        }
+      }
+
+      async function saveProductDetails(productId, updates) {
+        try {
+          const productRef = doc(db, "products", String(productId));
+          await updateDoc(productRef, {
+            ...updates,
+            last_update: new Date().toISOString(),
+          });
+          alert("تم حفظ تفاصيل المنتج بنجاح.");
+          closeModal("edit-product-modal");
+          fetchAndRenderProducts();
+        } catch (e) {
+          console.error("Error saving product details: ", e);
+          alert("حدث خطأ أثناء حفظ التفاصيل.");
+        }
+      }
+
+      // ====================================================================
+      // وظائف النماذج (Modal Functions)
+      // ====================================================================
+
+      function openModal(modalId) {
+        document.getElementById(modalId).classList.add("active");
+        document.body.classList.add("scroll-lock");
+      }
+      function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove("active");
+        document.body.classList.remove("scroll-lock");
+      }
+
+      function showEditModal(product) {
+        document.getElementById("modal-product-id").value = product.id;
+        document.getElementById("modal-product-name").textContent =
+          product.name;
+        document.getElementById("modal-price").value = parseFloat(
+          product.price
+        ).toFixed(0);
+        document.getElementById("modal-description").value =
+          product.description || "";
+        document.getElementById("modal-specs").value = product.specs || "";
+        document.getElementById("modal-is-available-toggle").checked =
+          product.is_available !== false;
+
+        openModal("edit-product-modal");
+      }
+
+      // ====================================================================
+      // معالجة الأحداث (Event Listeners)
+      // ====================================================================
+
+      // معالجة أحداث النقر داخل الجدول (تعديل/تغيير حالة)
+      productsTableContainer.addEventListener("click", (e) => {
+        const target = e.target;
+        const productId = parseInt(target.dataset.id);
+        const product = allProducts.find((p) => p.id === productId);
+
+        if (!product) return;
+
+        if (target.dataset.action === "toggle") {
+          const isAvailable = target.dataset.available === "true";
+          toggleProductAvailability(productId, isAvailable);
+        } else if (target.dataset.action === "edit") {
+          showEditModal(product);
+        }
+      });
+
+      // معالجة إرسال نموذج التعديل
+      editProductForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const productId = document.getElementById("modal-product-id").value;
+        const isAvailable = document.getElementById(
+          "modal-is-available-toggle"
+        ).checked;
+
+        const updates = {
+          price: parseFloat(document.getElementById("modal-price").value),
+          description: document.getElementById("modal-description").value,
+          specs: document.getElementById("modal-specs").value,
+          is_available: isAvailable,
+          availability_status: isAvailable ? "متوفر" : "غير متوفر",
+        };
+
+        if (isNaN(updates.price) || updates.price <= 0) {
+          alert("الرجاء إدخال سعر صحيح.");
+          return;
+        }
+
+        saveProductDetails(productId, updates);
+      });
+
+      // إغلاق المودال
+      modalCloseBtn.addEventListener("click", () =>
+        closeModal("edit-product-modal")
+      );
+      editProductModal.addEventListener("click", (e) => {
+        if (e.target === editProductModal) closeModal("edit-product-modal");
+      });
+    </script>
+  </body>
+</html>

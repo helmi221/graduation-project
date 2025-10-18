@@ -266,14 +266,42 @@
 
     <div id="toast-notification" class="toast"></div>
 
-    <script src="products.js"></script>
     <script type="module">
       import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        query,
+        where,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+
+      // ******* إعدادات Firebase *******
+      const firebaseConfig = {
+        apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
+        authDomain: "ecomers-dd329.firebaseapp.com",
+        projectId: "ecomers-dd329",
+        storageBucket: "ecomers-dd329.firebasestorage.app",
+        messagingSenderId: "190646144215",
+        appId: "1:190646144215:web:d55f24091a920f92b6b492",
+        measurementId: "G-NVYK3DZR00",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      // متغير لتخزين المنتجات المجلوبة من Firebase
+      let allProducts = [];
 
       document.addEventListener("DOMContentLoaded", () => {
+        // **********************************************
+        // ********** متغيرات Gemini/AI (حافظ على مفتاحك هنا) **********
+        // **********************************************
         const API_KEY = "AIzaSyBcFkJsomDYhm1uGqoq3-8mHr0LTu-mZ9s";
         const genAI = new GoogleGenerativeAI(API_KEY);
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+        // **********************************************
 
         const chatForm = document.getElementById("chat-form");
         const chatInput = document.getElementById("chat-input");
@@ -322,7 +350,13 @@
           if (sender === "ai") {
             const tempDiv = document.createElement("div");
             tempDiv.innerHTML = el.innerHTML;
-            allProducts.forEach((p) => {
+
+            // استخدام المنتجات المجلوبة ديناميكياً
+            const availableProducts = allProducts.filter(
+              (p) => p.is_available !== false
+            );
+
+            availableProducts.forEach((p) => {
               const regex = new RegExp(p.name, "g");
               const link = `<button class="product-link" data-id="${p.id}">
               ${p.name}
@@ -339,10 +373,19 @@
         const openProductModal = (product) => {
           currentProduct = product;
 
+          // إذا كان المنتج غير متوفر، لا تسمح بإضافته للسلة
+          const isAvailable = product.is_available !== false;
+          addToCartBtn.disabled = !isAvailable;
+          addToCartBtn.textContent = isAvailable
+            ? "إضافة إلى السلة"
+            : "غير متوفر حالياً";
+
           let priceToUse = product.price;
           if (discountSteps[product.id]) {
             const discountPercentage = discountSteps[product.id];
-            priceToUse = product.price * (1 - discountPercentage / 100);
+            // تأكد أن السعر رقم
+            priceToUse =
+              parseFloat(product.price) * (1 - discountPercentage / 100);
             currentDiscountPrice = priceToUse;
           } else {
             currentDiscountPrice = null;
@@ -363,10 +406,14 @@
             modalNewPrice.textContent = `${parseFloat(
               currentDiscountPrice
             ).toFixed(0)} شيكل`;
-            modalOldPrice.textContent = `${product.price} شيكل`;
+            modalOldPrice.textContent = `${parseFloat(product.price).toFixed(
+              0
+            )} شيكل`;
             modalOldPrice.style.display = "inline";
           } else {
-            modalNewPrice.textContent = `${product.price} شيكل`;
+            modalNewPrice.textContent = `${parseFloat(product.price).toFixed(
+              0
+            )} شيكل`;
             modalOldPrice.style.display = "none";
           }
 
@@ -384,7 +431,8 @@
         });
 
         addToCartBtn.addEventListener("click", () => {
-          if (!currentProduct) return;
+          if (!currentProduct || currentProduct.is_available === false) return;
+
           const priceToUse = currentDiscountPrice || currentProduct.price;
           const existing = cart.find((i) => i.id === currentProduct.id);
           if (existing) {
@@ -421,21 +469,66 @@
           chatHistory.push({ role: "model", parts: [{ text: msg }] });
         };
 
+        // ====== الوظيفة الجديدة لجلب المنتجات من Firebase ======
+        async function fetchProductsAndStartChat() {
+          try {
+            // جلب جميع المنتجات (بما في ذلك غير المتوفرة)
+            const productsSnapshot = await getDocs(collection(db, "products"));
+
+            allProducts = productsSnapshot.docs.map((doc) => ({
+              id: parseInt(doc.id),
+              ...doc.data(),
+              price: parseFloat(doc.data().price), // تأكيد تحويل السعر لرقم
+            }));
+
+            // تصفية المنتجات المتوفرة فقط لإرسالها لـ Gemini
+            const availableProducts = allProducts.filter(
+              (p) => p.is_available !== false
+            );
+
+            const productsString = availableProducts
+              .map(
+                (p) =>
+                  `${p.name} (الفئة: ${p.category}, السعر: ${p.price}, الوصف: ${p.description}, المواد: ${p.materials}, ساعات التصنيع: ${p.manufacturing_time_hours}, المكونات: ${p.components})`
+              )
+              .join(", ");
+
+            // بدء المحادثة بعد تحميل المنتجات
+            initializeChat(productsString);
+          } catch (e) {
+            console.error("Error fetching products from Firebase: ", e);
+            // رسالة خطأ إذا فشل جلب المنتجات
+            const msg =
+              "عذراً، لم نتمكن من جلب بيانات المنتجات حالياً. لا يمكن بدء المحادثة.";
+            appendMessage("ai", msg);
+            chatInput.disabled = true;
+            return;
+          }
+        }
+
+        // ********** دالة إرسال المحادثة **********
         chatForm.addEventListener("submit", async (e) => {
           e.preventDefault();
+
+          // تأكد من أن allProducts محملة
+          if (allProducts.length === 0) return;
+
+          const availableProducts = allProducts.filter(
+            (p) => p.is_available !== false
+          );
+          const productsString = availableProducts
+            .map(
+              (p) =>
+                `${p.name} (الفئة: ${p.category}, السعر: ${p.price}, الوصف: ${p.description}, المواد: ${p.materials}, ساعات التصنيع: ${p.manufacturing_time_hours}, المكونات: ${p.components})`
+            )
+            .join(", ");
+
           const userMsg = chatInput.value.trim();
           if (!userMsg) return;
           appendMessage("user", userMsg);
           chatInput.value = "";
           typingIndicator.style.display = "flex";
           chatHistory.push({ role: "user", parts: [{ text: userMsg }] });
-
-          const productsString = allProducts
-            .map(
-              (p) =>
-                `${p.name} (الفئة: ${p.category}, السعر: ${p.price}, الوصف: ${p.description}, المواد: ${p.materials}, ساعات التصنيع: ${p.manufacturing_time_hours}, المكونات: ${p.components})`
-            )
-            .join(", ");
 
           const discountPrompts = [
             {
@@ -468,7 +561,8 @@
                     h.parts[0].text.includes("يسعدني أن أقدم لك")
                 );
               if (lastProductMessage) {
-                const lastProductName = allProducts.find((p) =>
+                // استخدم المنتجات المتاحة فقط
+                const lastProductName = availableProducts.find((p) =>
                   lastProductMessage.parts[0].text.includes(p.name)
                 );
                 if (
@@ -526,6 +620,7 @@
           if (offerMatch && offerMatch[1] && offerMatch[2]) {
             const productName = offerMatch[1].trim();
             const newPrice = parseFloat(offerMatch[2]);
+            // استخدم allProducts المجلوبة من Firebase
             const product = allProducts.find((p) => p.name === productName);
 
             if (product && !isNaN(newPrice)) {
@@ -554,7 +649,8 @@
           typingIndicator.style.display = "none";
         });
 
-        initializeChat();
+        // تشغيل وظيفة الجلب وبدء المحادثة
+        fetchProductsAndStartChat();
       });
     </script>
   </body>
