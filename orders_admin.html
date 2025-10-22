@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>منجرة | إدارة الطلبات</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="admin.css" />
+    <style>
+      /* إضافة ستايلات الحالة التي كانت مفقودة في admin.css */
+      .status-badge {
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-weight: bold;
+        display: inline-block;
+      }
+      .status-badge.قيد-المراجعة {
+        background-color: #ffeb3b;
+        color: #795548;
+      }
+      .status-badge.مقبول {
+        background-color: #5bc0de;
+        color: white;
+      }
+      .status-badge.قيد-التصنيع {
+        background-color: #34495e;
+        color: white;
+      }
+      .status-badge.قيد-الطلاء {
+        background-color: #f39c12;
+        color: white;
+      }
+      .status-badge.قيد-التغليف {
+        background-color: #c0392b;
+        color: white;
+      }
+      .status-badge.قيد-الشحن {
+        background-color: #3498db;
+        color: white;
+      }
+      .status-badge.مكتمل {
+        background-color: var(--success-color);
+        color: white;
+      }
+      .status-badge.تم-الرفض {
+        background-color: var(--danger-color);
+        color: white;
+      }
+      .status-badge.مؤرشف {
+        background-color: #95a5a6;
+        color: white;
+      }
+      .status-badge.مقبول-العميل {
+        background-color: #27ae60;
+        color: white;
+      }
+      .status-badge.مرفوض-العميل {
+        background-color: #c0392b;
+        color: white;
+      }
+
+      .orders-section .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+      .filters-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .filter-btn {
+        background-color: #f0f0f0;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: background-color 0.3s;
+        font-family: "Cairo", sans-serif;
+      }
+      .filter-btn.active,
+      .filter-btn:hover {
+        background-color: var(--primary-color);
+        color: var(--white-color);
+      }
+      .bulk-action-btn {
+        font-family: "Cairo", sans-serif;
+        display: none;
+      }
+      .bulk-action-btn.show {
+        font-family: "Cairo", sans-serif;
+        display: inline-block;
+      }
+      /* تعديل خاص لزر القائمة المنسدلة */
+      .actions-buttons {
+        position: relative;
+        text-align: center;
+      }
+      .actions-buttons .dropdown-menu {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%) translateY(10px);
+        background-color: var(--white-color);
+        box-shadow: var(--shadow);
+        border-radius: 8px;
+        list-style: none;
+        padding: 5px;
+        z-index: 10;
+        min-width: 150px;
+        display: none;
+      }
+      .actions-buttons .dropdown-menu.show {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="main-header">
+      <div class="logo">منجرة</div>
+      <nav>
+        <ul>
+          <li><a href="admin.html">لوحة التحكم</a></li>
+          <li><a href="orders_admin.html" class="active">إدارة الطلبات</a></li>
+          <li><a href="inventory.html">إدارة المنتجات</a></li>
+          <li><a href="raw_materials_admin.html">إدارة المواد الخام</a></li>
+          <li><a href="#" id="logout-btn">تسجيل الخروج</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <div class="main-content container-fluid">
+      <h1>إدارة الطلبات</h1>
+
+      <div class="orders-section admin-panel">
+        <div class="section-header">
+          <div class="filters-container" id="filters-container">
+            <button class="filter-btn active" data-filter="all">الكل</button>
+            <button class="filter-btn" data-filter="ready">جاهزة</button>
+            <button class="filter-btn" data-filter="custom">مخصصة</button>
+            <button class="filter-btn" data-filter="pending">
+              قيد المراجعة
+            </button>
+            <button class="filter-btn" data-filter="in-progress">
+              قيد التنفيذ
+            </button>
+            <button class="filter-btn" data-filter="completed">مكتملة</button>
+            <button class="filter-btn" data-filter="archived">مؤرشفة</button>
+          </div>
+          <div class="actions-bulk">
+            <button
+              id="bulk-archive-btn"
+              class="btn btn-secondary bulk-action-btn"
+            >
+              أرشفة محدد
+            </button>
+            <button id="bulk-delete-btn" class="btn btn-danger bulk-action-btn">
+              حذف محدد
+            </button>
+          </div>
+        </div>
+        <div id="orders-table-container">
+          <p class="loading-msg">جارٍ تحميل الطلبات...</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="order-details-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
+        <h2>تفاصيل الطلب</h2>
+        <div id="modal-order-details"></div>
+        <hr style="margin: 20px 0; border-color: #f0f0f0" />
+        <div class="form-group">
+          <label for="modal-status">تغيير حالة الطلب</label>
+          <select id="modal-status" name="modal-status"></select>
+        </div>
+        <div id="custom-price-field" class="form-group" style="display: none">
+          <label for="modal-price">السعر النهائي (شيكل)</label>
+          <input type="number" id="modal-price" name="modal-price" />
+        </div>
+        <div
+          id="rejection-reason-field"
+          class="form-group"
+          style="display: none"
+        >
+          <label for="rejection-reason">سبب الرفض</label>
+          <textarea id="rejection-reason" rows="3"></textarea>
+        </div>
+        <div class="btn-group">
+          <button id="save-status-btn" class="btn">حفظ</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="confirmation-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
+        <h2 id="confirm-title"></h2>
+        <p
+          id="confirm-message"
+          style="text-align: center; margin-bottom: 2rem"
+        ></p>
+        <div class="btn-group">
+          <button id="confirm-action-btn" class="btn btn-danger">تأكيد</button>
+          <button class="btn btn-secondary modal-close">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+        orderBy,
+        query,
+        doc,
+        updateDoc,
+        deleteDoc,
+        writeBatch,
+        where,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
+        authDomain: "ecomers-dd329.firebaseapp.com",
+        projectId: "ecomers-dd329",
+        storageBucket: "ecomers-dd329.firebasestorage.app",
+        messagingSenderId: "190646144215",
+        appId: "1:190646144215:web:d55f24091a920f92b6b492",
+        measurementId: "G-NVYK3DZR00",
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      // عناصر الواجهة
+      const ordersTableContainer = document.getElementById(
+        "orders-table-container"
+      );
+      const filtersContainer = document.getElementById("filters-container");
+
+      const orderDetailsModal = document.getElementById("order-details-modal");
+      const modalOrderDetails = document.getElementById("modal-order-details");
+      const modalStatusSelect = document.getElementById("modal-status");
+      const customPriceField = document.getElementById("custom-price-field");
+      const modalPriceInput = document.getElementById("modal-price");
+      const rejectionReasonField = document.getElementById(
+        "rejection-reason-field"
+      );
+      const rejectionReasonTextarea =
+        document.getElementById("rejection-reason");
+      const saveStatusBtn = document.getElementById("save-status-btn");
+
+      const confirmationModal = document.getElementById("confirmation-modal");
+      const confirmTitle = document.getElementById("confirm-title");
+      const confirmMessage = document.getElementById("confirm-message");
+      const confirmActionBtn = document.getElementById("confirm-action-btn");
+      const bulkArchiveBtn = document.getElementById("bulk-archive-btn");
+      const bulkDeleteBtn = document.getElementById("bulk-delete-btn");
+
+      const orderStatuses = [
+        "قيد المراجعة",
+        "مقبول",
+        "مقبول-العميل", // حالة جديدة
+        "قيد التصنيع",
+        "قيد الطلاء",
+        "قيد التغليف",
+        "قيد الشحن",
+        "مكتمل",
+        "تم الرفض",
+        "مرفوض-العميل", // حالة جديدة
+        "مؤرشف",
+      ];
+
+      let allOrders = [];
+      let currentFilter = "all";
+      let currentOrderId = null;
+      let currentOrderCollection = null;
+      let currentOrderData = null;
+
+      // الدوال المساعدة لفتح وإغلاق المودال مع تحسينات التمرير
+      function openModal(modalId) {
+        document.getElementById(modalId).classList.add("active");
+        document.body.classList.add("scroll-lock");
+      }
+      function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove("active");
+        document.body.classList.remove("scroll-lock");
+      }
+
+      // إغلاق المودال بالنقر خارجها أو بـ Esc
+      document.querySelectorAll(".modal-overlay").forEach((modal) => {
+        modal.addEventListener("click", (e) => {
+          if (e.target.classList.contains("modal-overlay")) {
+            closeModal(modal.id);
+          }
+        });
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          document
+            .querySelectorAll(".modal-overlay.active")
+            .forEach((modal) => {
+              closeModal(modal.id);
+            });
+        }
+      });
+
+      // التحقق من صلاحيات المدير
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists() && userDoc.data().role === "admin") {
+            fetchAndRenderOrders();
+          } else {
+            alert("غير مصرح لك بالوصول إلى هذه الصفحة.");
+            window.location.href = "login.html";
+          }
+        } else {
+          window.location.href = "login.html";
+        }
+      });
+
+      document
+        .getElementById("logout-btn")
+        .addEventListener("click", async (e) => {
+          e.preventDefault();
+          await signOut(auth);
+          window.location.href = "login.html";
+        });
+
+      function renderTable(ordersToDisplay) {
+        if (ordersToDisplay.length === 0) {
+          ordersTableContainer.innerHTML =
+            '<p class="loading-msg">لا توجد طلبات لعرضها.</p>';
+          return;
+        }
+
+        let tableHtml = `
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="select-all-checkbox" class="table-checkbox"></th>
+                <th><i class="fa-solid fa-user"></i> العميل</th>
+                <th><i class="fa-solid fa-tag"></i> النوع</th>
+                <th><i class="fa-solid fa-calendar-alt"></i> التاريخ</th>
+                <th><i class="fa-solid fa-money-bill"></i> الإجمالي</th>
+                <th><i class="fa-solid fa-info-circle"></i> الحالة</th>
+                <th><i class="fa-solid fa-tools"></i> الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        ordersToDisplay.forEach((order) => {
+          const statusClass = order.status.replace(/\s+/g, "-");
+          const orderType = order.type === "ready" ? "جاهز" : "مخصص";
+          const totalAmount =
+            order.type === "ready"
+              ? (order.total || 0).toFixed(0)
+              : order.final_price
+              ? order.final_price.toFixed(0)
+              : "---";
+
+          tableHtml += `
+            <tr data-id="${order.id}" data-collection="${
+            order.type === "ready" ? "orders" : "custom_designs"
+          }">
+              <td><input type="checkbox" class="table-checkbox order-checkbox"></td>
+              <td>${order.name || "---"}</td>
+              <td><span class="status-badge" style="background-color: ${
+                order.type === "ready" ? "#5bc0de" : "#3e2723"
+              }; color: white;">${orderType}</span></td>
+              <td>${new Date(order.order_date).toLocaleDateString("en-US")}</td>
+              <td>${totalAmount} شيكل</td>
+              <td><span class="status-badge ${statusClass}">${
+            order.status
+          }</span></td>
+              <td class="actions-buttons">
+                <button class="dropdown-btn"><i class="fa-solid fa-ellipsis-v"></i></button>
+                <ul class="dropdown-menu">
+                  <li><button class="view-btn">عرض التفاصيل</button></li>
+                  <li><button class="edit-status-btn">تغيير الحالة</button></li>
+                  <li><button class="archive-btn">أرشفة</button></li>
+                  <li><button class="delete-btn text-danger">حذف</button></li>
+                </ul>
+              </td>
+            </tr>
+          `;
+        });
+        tableHtml += "</tbody></table>";
+        ordersTableContainer.innerHTML = tableHtml;
+        setupCheckboxes();
+      }
+
+      // وظائف إحصائيات الطلبات (تم نقلها من admin.html)
+      function updateStats() {
+        // لا نحتاج الإحصائيات هنا، ولكن نبقي الدالة فارغة أو نزيلها إذا لم تكن تستخدم لأي غرض آخر
+      }
+
+      async function fetchAndRenderOrders() {
+        ordersTableContainer.innerHTML =
+          '<p class="loading-msg">جارٍ تحميل الطلبات...</p>';
+        try {
+          const ordersCollection = collection(db, "orders");
+          const customDesignsCollection = collection(db, "custom_designs");
+
+          const ordersQuery = query(
+            ordersCollection,
+            orderBy("order_date", "desc")
+          );
+          const customDesignsQuery = query(
+            customDesignsCollection,
+            orderBy("order_date", "desc")
+          );
+
+          const [ordersSnapshot, customDesignsSnapshot] = await Promise.all([
+            getDocs(ordersQuery),
+            getDocs(customDesignsQuery),
+          ]);
+
+          const readyOrders = ordersSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+            type: "ready",
+          }));
+          const customOrders = customDesignsSnapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+            type: "custom",
+          }));
+
+          allOrders = [...readyOrders, ...customOrders].sort(
+            (a, b) => new Date(b.order_date) - new Date(a.order_date)
+          );
+
+          updateStats(); // تبقى هنا احتياطًا
+          filterOrders(currentFilter);
+        } catch (e) {
+          console.error("Error fetching documents: ", e);
+          ordersTableContainer.innerHTML =
+            '<p class="loading-msg" style="color: red;">حدث خطأ في جلب الطلبات. الرجاء التحقق من اتصالك بالشبكة.</p>';
+        }
+      }
+
+      function filterOrders(filter) {
+        currentFilter = filter;
+        document
+          .querySelectorAll(".filter-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        document
+          .querySelector(`.filter-btn[data-filter="${filter}"]`)
+          .classList.add("active");
+
+        let filtered = allOrders;
+
+        if (filter === "ready") {
+          filtered = allOrders.filter((o) => o.type === "ready");
+        } else if (filter === "custom") {
+          filtered = allOrders.filter((o) => o.type === "custom");
+        } else if (filter === "pending") {
+          filtered = allOrders.filter(
+            (o) => o.status === "قيد المراجعة" || o.status === "مقبول"
+          );
+        } else if (filter === "in-progress") {
+          filtered = allOrders.filter((o) =>
+            [
+              "مقبول-العميل",
+              "قيد التصنيع",
+              "قيد الطلاء",
+              "قيد التغليف",
+              "قيد الشحن",
+            ].includes(o.status)
+          );
+        } else if (filter === "completed") {
+          filtered = allOrders.filter((o) => o.status === "مكتمل");
+        } else if (filter === "archived") {
+          filtered = allOrders.filter((o) => o.status === "مؤرشف");
+        }
+        renderTable(filtered);
+      }
+
+      function getSelectedOrders() {
+        const selectedIds = Array.from(
+          document.querySelectorAll(".order-checkbox:checked")
+        ).map((checkbox) => checkbox.closest("tr").dataset.id);
+        return allOrders.filter((order) => selectedIds.includes(order.id));
+      }
+
+      function updateBulkActionsVisibility() {
+        const selectedCount = getSelectedOrders().length;
+        if (selectedCount > 0) {
+          bulkArchiveBtn.classList.add("show");
+          bulkDeleteBtn.classList.add("show");
+        } else {
+          bulkArchiveBtn.classList.remove("show");
+          bulkDeleteBtn.classList.remove("show");
+        }
+      }
+
+      function setupCheckboxes() {
+        const selectAllCheckbox = document.getElementById(
+          "select-all-checkbox"
+        );
+        const orderCheckboxes = document.querySelectorAll(".order-checkbox");
+
+        selectAllCheckbox.addEventListener("change", (e) => {
+          orderCheckboxes.forEach(
+            (checkbox) => (checkbox.checked = e.target.checked)
+          );
+          updateBulkActionsVisibility();
+        });
+
+        orderCheckboxes.forEach((checkbox) => {
+          checkbox.addEventListener("change", () => {
+            selectAllCheckbox.checked = Array.from(orderCheckboxes).every(
+              (cb) => cb.checked
+            );
+            updateBulkActionsVisibility();
+          });
+        });
+        updateBulkActionsVisibility(); // لتحديث الأزرار عند التحميل
+      }
+
+      filtersContainer.addEventListener("click", (e) => {
+        if (e.target.closest(".filter-btn")) {
+          filterOrders(e.target.closest(".filter-btn").dataset.filter);
+        }
+      });
+
+      ordersTableContainer.addEventListener("click", (e) => {
+        const row = e.target.closest("tr");
+        if (!row) return;
+
+        const orderId = row.dataset.id;
+        const collectionName = row.dataset.collection;
+        currentOrderId = orderId;
+        currentOrderCollection = collectionName;
+        currentOrderData = allOrders.find(
+          (o) =>
+            o.id === orderId &&
+            o.type === (collectionName === "orders" ? "ready" : "custom")
+        );
+
+        if (e.target.closest(".dropdown-btn")) {
+          const dropdownMenu = e.target
+            .closest(".actions-buttons")
+            .querySelector(".dropdown-menu");
+          document.querySelectorAll(".dropdown-menu.show").forEach((menu) => {
+            if (menu !== dropdownMenu) {
+              menu.classList.remove("show");
+            }
+          });
+          dropdownMenu.classList.toggle("show");
+        } else if (e.target.closest(".view-btn")) {
+          showDetailsModal();
+        } else if (e.target.closest(".edit-status-btn")) {
+          showEditStatusModal();
+        } else if (e.target.closest(".archive-btn")) {
+          showConfirmationModal(
+            "أرشفة",
+            "هل أنت متأكد من أرشفة هذا الطلب؟",
+            () => {
+              updateOrderStatus(
+                currentOrderId,
+                "مؤرشف",
+                currentOrderCollection
+              );
+            }
+          );
+        } else if (e.target.closest(".delete-btn")) {
+          showConfirmationModal(
+            "حذف",
+            "هل أنت متأكد من حذف هذا الطلب نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.",
+            () => {
+              deleteOrder(orderId, collectionName);
+            }
+          );
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest(".actions-buttons")) {
+          document.querySelectorAll(".dropdown-menu.show").forEach((menu) => {
+            menu.classList.remove("show");
+          });
+        }
+      });
+
+      bulkArchiveBtn.addEventListener("click", () => {
+        const selectedOrders = getSelectedOrders();
+        if (selectedOrders.length === 0) return;
+        showConfirmationModal(
+          "أرشفة جماعية",
+          `هل أنت متأكد من أرشفة ${selectedOrders.length} طلب؟`,
+          async () => {
+            const batch = writeBatch(db);
+            selectedOrders.forEach((order) => {
+              const docRef = doc(
+                db,
+                order.type === "ready" ? "orders" : "custom_designs",
+                order.id
+              );
+              batch.update(docRef, { status: "مؤرشف" });
+            });
+            await batch.commit();
+            fetchAndRenderOrders();
+            updateBulkActionsVisibility();
+          }
+        );
+      });
+
+      bulkDeleteBtn.addEventListener("click", () => {
+        const selectedOrders = getSelectedOrders();
+        if (selectedOrders.length === 0) return;
+        showConfirmationModal(
+          "حذف جماعي",
+          `هل أنت متأكد من حذف ${selectedOrders.length} طلب نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.`,
+          async () => {
+            const batch = writeBatch(db);
+            selectedOrders.forEach((order) => {
+              const docRef = doc(
+                db,
+                order.type === "ready" ? "orders" : "custom_designs",
+                order.id
+              );
+              batch.delete(docRef);
+            });
+            await batch.commit();
+            fetchAndRenderOrders();
+            updateBulkActionsVisibility();
+          }
+        );
+      });
+
+      function showConfirmationModal(title, message, callback) {
+        confirmTitle.textContent = title;
+        confirmMessage.textContent = message;
+        confirmActionBtn.onclick = () => {
+          callback();
+          closeModal("confirmation-modal");
+        };
+        closeModal("order-details-modal");
+        openModal("confirmation-modal");
+      }
+
+      function showDetailsModal() {
+        if (!currentOrderData) return;
+        let detailsHtml = `
+          <div class="order-details-group">
+            <p><strong>العميل:</strong> ${currentOrderData.name || "---"}</p>
+            <p><strong>الهاتف:</strong> ${currentOrderData.phone || "---"}</p>
+            <p><strong>العنوان:</strong> ${
+              currentOrderData.address || "---"
+            }</p>
+            <p><strong>التاريخ:</strong> ${new Date(
+              currentOrderData.order_date
+            ).toLocaleDateString("en-US")}</p>
+            <p><strong>الحالة:</strong> <span class="status-badge ${currentOrderData.status.replace(
+              /\s+/g,
+              "-"
+            )}">${currentOrderData.status}</span></p>
+          </div>
+        `;
+        if (currentOrderData.type === "ready") {
+          detailsHtml += `
+            <div class="order-details-group">
+              <p><strong>قائمة المنتجات:</strong></p>
+              <ul class="order-items-list">
+                ${currentOrderData.items
+                  .map((item) => {
+                    return `<li>${item.name} (الكمية: ${
+                      item.quantity
+                    }) - السعر: <span>${item.price.toFixed(
+                      0
+                    )} شيكل</span></li>`;
+                  })
+                  .join("")}
+              </ul>
+              <p style="margin-top: 15px;"><strong>الإجمالي:</strong> ${currentOrderData.total.toFixed(
+                0
+              )} شيكل</p>
+            </div>
+          `;
+        } else {
+          detailsHtml += `
+            <div class="order-details-group">
+              <p><strong>وصف التصميم:</strong> ${
+                currentOrderData.notes || "لا يوجد"
+              }</p>
+              <p><strong>النوع:</strong> ${
+                currentOrderData.type_of_product || "---"
+              }</p>
+              <p><strong>الأبعاد:</strong> ${
+                currentOrderData.dimensions || "---"
+              }</p>
+              <p><strong>المادة:</strong> ${
+                currentOrderData.material || "---"
+              }</p>
+              <p><strong>اللون:</strong> ${currentOrderData.color || "---"}</p>
+              <p><strong>الميزات الإضافية:</strong> ${
+                currentOrderData.features || "---"
+              }</p>
+              <p><strong>السعر المقترح:</strong> ${currentOrderData.price}</p>
+              ${
+                currentOrderData.rejection_reason
+                  ? `<p style="color:red;"><strong>سبب الرفض:</strong> ${currentOrderData.rejection_reason}</p>`
+                  : ""
+              }
+              ${
+                currentOrderData.final_price
+                  ? `<p style="color:green;"><strong>السعر النهائي:</strong> ${currentOrderData.final_price} شيكل</p>`
+                  : ""
+              }
+            </div>
+          `;
+        }
+        modalOrderDetails.innerHTML = detailsHtml;
+        openModal("order-details-modal");
+      }
+
+      function showEditStatusModal() {
+        if (!currentOrderData) return;
+        modalOrderDetails.innerHTML = `
+          <div class="order-details-group">
+            <p><strong>العميل:</strong> ${currentOrderData.name || "---"}</p>
+            <p><strong>الحالة الحالية:</strong> <span class="status-badge ${currentOrderData.status.replace(
+              /\s+/g,
+              "-"
+            )}">${currentOrderData.status}</span></p>
+          </div>
+        `;
+        modalStatusSelect.innerHTML = "";
+        orderStatuses.forEach((status) => {
+          const option = document.createElement("option");
+          option.value = status;
+          option.textContent = status;
+          modalStatusSelect.appendChild(option);
+        });
+        modalStatusSelect.value = currentOrderData.status;
+        const isCustom = currentOrderData.type === "custom";
+        const isRejected =
+          modalStatusSelect.value === "تم الرفض" ||
+          modalStatusSelect.value === "مرفوض-العميل";
+
+        if (isCustom) {
+          customPriceField.style.display =
+            !isRejected && modalStatusSelect.value !== "مقبول-العميل"
+              ? "block"
+              : "none";
+          modalPriceInput.value = currentOrderData.final_price || "";
+        } else {
+          customPriceField.style.display = "none";
+        }
+        rejectionReasonField.style.display = isRejected ? "block" : "none";
+        rejectionReasonTextarea.value = currentOrderData.rejection_reason || "";
+        openModal("order-details-modal");
+      }
+
+      modalStatusSelect.addEventListener("change", () => {
+        const isRejected =
+          modalStatusSelect.value === "تم الرفض" ||
+          modalStatusSelect.value === "مرفوض-العميل";
+        const isCustom = currentOrderData.type === "custom";
+        rejectionReasonField.style.display = isRejected ? "block" : "none";
+        customPriceField.style.display =
+          isCustom && !isRejected && modalStatusSelect.value !== "مقبول-العميل"
+            ? "block"
+            : "none";
+      });
+
+      saveStatusBtn.addEventListener("click", async () => {
+        const newStatus = modalStatusSelect.value;
+        const finalPrice = modalPriceInput.value
+          ? parseFloat(modalPriceInput.value)
+          : null;
+        const rejectionReason = rejectionReasonTextarea.value;
+
+        if (
+          (newStatus === "تم الرفض" || newStatus === "مرفوض-العميل") &&
+          rejectionReason.trim() === ""
+        ) {
+          alert("الرجاء إدخال سبب الرفض عند رفض الطلب.");
+          return;
+        }
+        if (
+          currentOrderData.type === "custom" &&
+          newStatus === "مقبول" &&
+          (!finalPrice || finalPrice <= 0)
+        ) {
+          alert("الرجاء إدخال سعر نهائي صحيح للطلب المخصص عند القبول.");
+          return;
+        }
+
+        try {
+          const orderRef = doc(db, currentOrderCollection, currentOrderId);
+          const updateData = { status: newStatus };
+          if (currentOrderData.type === "custom") {
+            if (newStatus === "مقبول") {
+              updateData.final_price = finalPrice;
+              updateData.rejection_reason = null;
+            } else if (
+              newStatus === "تم الرفض" ||
+              newStatus === "مرفوض-العميل"
+            ) {
+              updateData.rejection_reason = rejectionReason;
+              updateData.final_price = currentOrderData.final_price || null;
+            } else {
+              updateData.final_price = currentOrderData.final_price;
+              updateData.rejection_reason = null;
+            }
+          } else if (newStatus === "تم الرفض" || newStatus === "مرفوض-العميل") {
+            updateData.rejection_reason = rejectionReason;
+          }
+
+          await updateDoc(orderRef, updateData);
+          closeModal("order-details-modal");
+          fetchAndRenderOrders();
+        } catch (e) {
+          console.error("Error updating document:", e);
+          alert("حدث خطأ أثناء تحديث حالة الطلب.");
+        }
+      });
+      async function updateOrderStatus(orderId, newStatus, collectionName) {
+        try {
+          const orderRef = doc(db, collectionName, orderId);
+          await updateDoc(orderRef, { status: newStatus });
+          fetchAndRenderOrders();
+        } catch (e) {
+          console.error("Error updating document: ", e);
+          alert("حدث خطأ في تحديث حالة الطلب.");
+        }
+      }
+      async function deleteOrder(orderId, collectionName) {
+        try {
+          await deleteDoc(doc(db, collectionName, orderId));
+          fetchAndRenderOrders();
+        } catch (e) {
+          console.error("Error deleting document: ", e);
+          alert("حدث خطأ أثناء حذف الطلب.");
+        }
+      }
+    </script>
+  </body>
+</html>

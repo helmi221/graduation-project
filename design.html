@@ -16,9 +16,9 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <style>
-      /* New styles for the design page */
+      /* New styles for the design page (Single Step Focus) */
       .design-page-section {
-        max-width: 900px;
+        max-width: 800px; /* تصغير العرض للتركيز */
         margin: 5rem auto;
         padding: 40px;
         background-color: var(--white-color);
@@ -61,87 +61,10 @@
         width: 100%;
         margin-top: 2rem;
       }
-      /* --- Multi-Step Form Styles --- */
-      .form-step {
-        display: none;
-        animation: fadeIn 0.5s;
-      }
-      .form-step.active {
-        display: block;
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-      .form-navigation {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 2rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid var(--border-color);
-      }
-      .form-navigation .btn-secondary {
-        background-color: var(--accent-color);
-        padding: 10px 25px;
-        border-radius: 50px;
-        color: var(--white-color);
-      }
-      .form-navigation .btn-secondary:hover {
-        background-color: var(--dark-color);
-      }
-      .progress-bar {
-        height: 10px;
-        background-color: #f0f0f0;
-        border-radius: 5px;
-        margin-bottom: 25px;
-        overflow: hidden;
-      }
-      .progress-bar-fill {
-        height: 100%;
-        width: 0%;
-        background-color: var(--primary-color);
-        transition: width 0.4s ease-in-out;
-      }
-      /* Resource Input Section Styles */
-      #resources-container {
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 15px;
-        margin-top: 15px;
-        background-color: #fcfcfc;
-      }
-      .resource-input-row {
-        display: grid;
-        grid-template-columns: 2fr 1fr 1fr 40px;
-        gap: 10px;
-        margin-bottom: 10px;
-        align-items: center;
-      }
-      .resource-input-row input,
-      .resource-input-row select {
-        padding: 8px;
-      }
-      .btn-add-resource,
-      .btn-remove-resource {
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-size: 1.2rem;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--primary-color);
-      }
-      .btn-remove-resource {
+      /* General styles */
+      .required-field {
         color: var(--danger-color);
+        margin-right: 5px;
       }
       .loading-msg {
         text-align: center;
@@ -149,21 +72,15 @@
         color: #888;
         padding: 20px 0;
       }
-      .low-stock-warning {
-        color: var(--danger-color);
-        font-size: 0.8rem;
-        display: block;
-        margin-top: 5px;
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
       }
-      .resource-summary {
-        font-weight: 600;
-        text-align: left;
-        padding: 10px 0;
-        color: var(--dark-color);
-      }
-      .required-field {
-        color: var(--danger-color);
-        margin-right: 5px;
+      @media (max-width: 600px) {
+        .form-row {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
@@ -229,18 +146,11 @@
           <h2>صمم منتجك الخاص</h2>
         </div>
         <p style="text-align: center; color: #777">
-          املأ النموذج التالي على خطوات لتحديد مواصفات تصميمك الفريد.
+          صف لنا فكرتك في أربع خطوات بسيطة وسنقوم بتحويلها إلى تصميم مقترح.
         </p>
-
-        <div class="progress-bar">
-          <div class="progress-bar-fill" id="progress-bar-fill"></div>
-        </div>
 
         <form id="design-form" class="design-form">
           <div class="form-step active" data-step="1">
-            <h3 style="margin-bottom: 1.5rem">
-              <i class="fa-solid fa-lightbulb"></i> الخطوة 1: الفكرة العامة
-            </h3>
             <div class="form-group">
               <label for="product-type"
                 ><span class="required-field">*</span> نوع المنتج المطلوب</label
@@ -259,117 +169,72 @@
               </select>
             </div>
 
-            <div class="form-group">
-              <label for="design-style">نمط التصميم المفضّل</label>
-              <select id="design-style" name="design-style">
-                <option value="عصري (Modern)">عصري (Modern)</option>
-                <option value="كلاسيكي (Classic)">كلاسيكي (Classic)</option>
-                <option value="ريفي (Rustic)">ريفي (Rustic)</option>
-                <option value="بوهيمي">بوهيمي</option>
-                <option value="صناعي (Industrial)">صناعي (Industrial)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="material"
-                ><span class="required-field">*</span> المادة الرئيسية
-                المفضلة</label
-              >
-              <select id="material" name="material" required>
-                <option value="">-- جارٍ التحميل --</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-step" data-step="2">
-            <h3 style="margin-bottom: 1.5rem">
-              <i class="fa-solid fa-screwdriver-wrench"></i> الخطوة 2: الأبعاد
-              والموارد
-            </h3>
-
-            <div id="dynamic-fields"></div>
-
-            <div class="form-group">
-              <label>الموارد الخام المطلوبة لتقدير التكلفة</label>
-              <div id="resources-container">
-                <div class="loading-msg" id="resources-loading-msg">
-                  جارٍ تحميل قائمة المواد الخام...
-                </div>
-                <div id="resource-input-list"></div>
-                <div class="resource-summary" id="resource-total-cost">
-                  التكلفة التقديرية للمواد: 0.00 شيكل
-                </div>
-                <button
-                  type="button"
-                  class="btn-add-resource"
-                  id="add-resource-btn"
+            <div class="form-row">
+              <div class="form-group">
+                <label for="dimensions"
+                  ><span class="required-field">*</span> المقاسات
+                  التقريبية</label
                 >
-                  <i class="fa-solid fa-plus-circle"></i> إضافة مادة
-                </button>
+                <select id="dimensions" name="dimensions" required>
+                  <option value="">-- اختر نوع المنتج أولاً --</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="room-placement"
+                  ><span class="required-field">*</span> مكان وضع المنتج</label
+                >
+                <select id="room-placement" name="room-placement" required>
+                  <option value="">-- اختر المكان --</option>
+                  <option value="غرفة المعيشة">غرفة المعيشة</option>
+                  <option value="غرفة الطعام">غرفة الطعام</option>
+                  <option value="غرفة النوم">غرفة النوم</option>
+                  <option value="المطبخ">المطبخ</option>
+                  <option value="المكتب">المكتب</option>
+                  <option value="غرفة الأطفال">غرفة الأطفال</option>
+                  <option value="خارجي">خارجي</option>
+                </select>
               </div>
             </div>
-          </div>
 
-          <div class="form-step" data-step="3">
-            <h3 style="margin-bottom: 1.5rem">
-              <i class="fa-solid fa-wand-magic-sparkles"></i> الخطوة 3: اللمسات
-              الأخيرة
-            </h3>
-
-            <div class="form-group">
-              <label for="features">ميزات إضافية وتفاصيل التصميم</label>
-              <textarea
-                id="features"
-                name="features"
-                rows="3"
-                placeholder="مثال: أدراج مخفية، رفوف مفتوحة، زجاج مقاوم للحرارة..."
-              ></textarea>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="color"
+                  ><span class="required-field">*</span> اللون والتشطيب
+                  المفضّل</label
+                >
+                <select id="color" name="color" required>
+                  <option value="">-- جارٍ التحميل --</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="material"
+                  ><span class="required-field">*</span> المادة الرئيسية المفضلة
+                  (نوع الخشب)</label
+                >
+                <select id="material" name="material" required>
+                  <option value="">-- جارٍ التحميل --</option>
+                </select>
+              </div>
             </div>
 
             <div class="form-group" id="notes-group">
-              <label for="notes">ملاحظات إضافية (أشياء لم تذكرها)</label>
+              <label for="notes"
+                ><span class="required-field">*</span> وصف فكرتك وتفاصيل
+                التصميم</label
+              >
               <textarea
                 id="notes"
                 name="notes"
                 rows="4"
-                placeholder="اكتب أي ملاحظات أو تفاصيل أخرى هنا..."
+                required
+                placeholder="مثال: أحتاج طاولة طعام بنمط ريفي، تتسع لـ 6 أشخاص، الميزانية 2500 شيكل، أريد أدراجاً مخفية."
               ></textarea>
             </div>
-
-            <p
-              class="text-center"
-              style="
-                margin-top: 1rem;
-                font-weight: bold;
-                color: var(--primary-color);
-              "
-            >
-              مستعد؟ لنطلق العنان لإبداع الذكاء الاصطناعي!
-            </p>
           </div>
 
-          <div class="form-navigation">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              id="prev-step-btn"
-              style="display: none"
-            >
-              <i class="fa-solid fa-arrow-right"></i> السابق
-            </button>
-            <button type="button" class="btn" id="next-step-btn">
-              التالي <i class="fa-solid fa-arrow-left"></i>
-            </button>
-            <button
-              type="submit"
-              class="btn"
-              id="submit-form-btn"
-              style="display: none"
-              disabled
-            >
-              <i class="fa-solid fa-robot"></i> اقتراح تصميم
-            </button>
-          </div>
+          <button type="submit" class="btn" id="submit-form-btn">
+            <i class="fa-solid fa-robot"></i> اقتراح تصميم
+          </button>
         </form>
 
         <div id="processing-message" class="loading-bar-container">
@@ -379,7 +244,37 @@
           </p>
         </div>
 
-        <div id="design-result" class="design-result-section"></div>
+        <div id="design-result" class="design-result-section">
+          <h2 style="margin-bottom: 1.5rem">اقتراحنا لك</h2>
+          <div class="design-result-text" id="result-content"></div>
+          <div class="design-result-actions">
+            <button class="btn" id="submit-design-btn">
+              أعجبني، أرسل الطلب
+            </button>
+            <button
+              class="btn"
+              id="regenerate-design-btn"
+              style="background-color: var(--accent-color)"
+            >
+              اقتراح آخر
+            </button>
+          </div>
+          <div
+            style="
+              margin-top: 2rem;
+              text-align: center;
+              font-size: 0.9rem;
+              color: #888;
+            "
+          >
+            <p>
+              بعد إرسال طلبك، سيتواصل فريقنا معك لتقديم سعر نهائي. يمكنك متابعة
+              حالة طلبك وقبول أو رفض السعر من صفحة
+              <a href="order-status.html">حالة الطلب</a> باستخدام رمز التتبع
+              الخاص بك.
+            </p>
+          </div>
+        </div>
       </section>
     </main>
 
@@ -527,51 +422,46 @@
       let allProducts = [];
       let allRawMaterials = [];
       let currentUser = null;
-      let currentStep = 1;
+      let standardColors = [
+        "أبيض",
+        "أسود",
+        "رمادي فاتح",
+        "أزرق نيلي",
+        "أخضر زمردي",
+        "بيج مطفي",
+        "بني غامق",
+        "أحمر ساطع",
+      ];
 
       // عناصر الواجهة
-      const formSteps = document.querySelectorAll(".form-step");
       const productTypeSelect = document.getElementById("product-type");
+      const colorSelect = document.getElementById("color");
       const materialSelect = document.getElementById("material");
-      const dynamicFieldsContainer = document.getElementById("dynamic-fields");
-      const generateDesignBtn = document.getElementById("generate-design-btn");
-      const resourceInputList = document.getElementById("resource-input-list");
-      const addResourceBtn = document.getElementById("add-resource-btn");
-      const resourcesLoadingMsg = document.getElementById(
-        "resources-loading-msg"
-      );
-      const resourceTotalCostSpan = document.getElementById(
-        "resource-total-cost"
-      );
-      const nextStepBtn = document.getElementById("next-step-btn");
-      const prevStepBtn = document.getElementById("prev-step-btn");
-      const submitFormBtn = document.getElementById("submit-form-btn");
-      const progressBarFill = document.getElementById("progress-bar-fill");
+      const dimensionsSelect = document.getElementById("dimensions");
       const toast = document.getElementById("toast-notification");
 
       let currentDesign = null;
-      let suggestedProductId = null;
       let cart = [];
 
       // بيانات الأبعاد المقترحة (تبقى ثابتة)
       const productDimensions = {
-        "طاولة سفرة": ["180x90x75 سم", "160x80x75 سم", "120x120x75 سم"],
-        كرسي: ["45x50x90 سم", "40x40x85 سم", "60x65x90 سم"],
-        "طقم كنب": ["220x90x85 سم", "160x90x85 سم", "250x180x85 سم"],
-        "غرفة نوم": [
-          "200x160x100 سم (سرير مزدوج)",
-          "200x90x80 سم (سرير مفرد)",
-          "100x45x140 سم (تسريحة)",
+        "طاولة سفرة": [
+          "مقاس صغير (2-4 أشخاص)",
+          "مقاس متوسط (4-6 أشخاص)",
+          "مقاس كبير (6-8 أشخاص)",
         ],
-        مطبخ: [
-          "80x30x60 سم (خزانة علوية)",
-          "80x60x90 سم (خزانة سفلية)",
-          "120x80x90 سم (جزيرة مطبخ)",
+        كرسي: ["مقاس قياسي", "مقاس كبير ومريح"],
+        "طقم كنب": ["مقعدين", "ثلاثة مقاعد", "كنبة زاوية (حرف L)"],
+        "غرفة نوم": ["سرير مزدوج قياسي", "سرير مفرد", "مجموعة تسريحة وخزانة"],
+        مطبخ: ["وحدة علوية قياسية", "وحدة سفلية قياسية", "جزيرة مطبخ"],
+        "طاولة وسط": ["مقاس قياسي (صغيرة)", "مقاس كبير"],
+        خزانة: [
+          "صغيرة (بابين)",
+          "متوسطة (3-4 أبواب)",
+          "كبيرة (أكثر من 4 أبواب)",
         ],
-        "طاولة وسط": ["80x80x45 سم", "100x60x45 سم", "120x70x40 سم"],
-        خزانة: ["90x50x180 سم", "80x30x160 سم", "120x55x180 سم"],
-        "طاولة تلفاز": ["140x40x50 سم", "120x40x45 سم", "150x30x30 سم"],
-        آخر: [],
+        "طاولة تلفاز": ["صغيرة (أقل من 120 سم)", "كبيرة (أكثر من 150 سم)"],
+        آخر: ["مقاس صغير", "مقاس متوسط", "مقاس كبير"],
       };
 
       // ====================================================================
@@ -597,46 +487,10 @@
         cartCountBadge.classList.toggle("visible", totalItems > 0);
       }
 
-      function updateResourceCostSummary() {
-        const rows = Array.from(
-          resourceInputList.querySelectorAll(".resource-input-row")
-        );
-        let totalCost = 0;
-
-        rows.forEach((row) => {
-          const select = row.querySelector('select[name="resource_id"]');
-          const quantityInput = row.querySelector('input[name="quantity"]');
-
-          if (select.value && quantityInput.value) {
-            const selectedOption = select.options[select.selectedIndex];
-            const cost = parseFloat(selectedOption.dataset.cost);
-            const quantity = parseFloat(quantityInput.value);
-
-            if (!isNaN(cost) && !isNaN(quantity)) {
-              totalCost += cost * quantity;
-            }
-          }
-        });
-
-        resourceTotalCostSpan.textContent = `التكلفة التقديرية للمواد: ${totalCost.toFixed(
-          2
-        )} شيكل`;
-
-        // تفعيل زر الاقتراح إذا كان هناك نوع منتج ومواد مختارة
-        const isProductTypeSelected = productTypeSelect.value !== "";
-        const isMaterialSelected = materialSelect.value !== "";
-        const areResourcesAdded = rows.length > 0 && totalCost > 0;
-
-        if (
-          currentStep === 3 &&
-          isProductTypeSelected &&
-          isMaterialSelected &&
-          areResourcesAdded
-        ) {
-          submitFormBtn.disabled = false;
-        } else if (currentStep === 3) {
-          submitFormBtn.disabled = true;
-        }
+      function generateTrackingId(prefix = "DGN") {
+        return `${prefix}-${new Date().getTime().toString(36)}-${Math.random()
+          .toString(36)
+          .substr(2, 5)}`.toUpperCase();
       }
 
       // وظيفة جلب المنتجات والمواد الخام من Firebase
@@ -660,259 +514,236 @@
             reorder_point: parseFloat(doc.data().reorder_point) || 0,
           }));
 
-          resourcesLoadingMsg.style.display = "none";
-
-          // ملء قائمة المواد الرئيسية
+          // 1. ملء قائمة المواد الرئيسية (الأخشاب)
           const woodMaterials = allRawMaterials.filter((m) => m.type === "خشب");
-          materialSelect.innerHTML =
-            '<option value="">-- اختر مادة --</option>';
+          let materialOptions = '<option value="">-- اختر مادة --</option>';
           woodMaterials.forEach((m) => {
-            const option = document.createElement("option");
-            option.value = m.name_ar;
-            option.textContent = m.name_ar;
-            materialSelect.appendChild(option);
+            materialOptions += `<option value="${m.name_ar}">${m.name_ar}</option>`;
           });
+          materialSelect.innerHTML = materialOptions;
 
-          addResourceInputRow(true);
-          updateDynamicFields();
-          updateStepVisibility(); // لإخفاء رسالة التحميل
+          // 2. ملء قائمة الألوان
+          let colorOptions = `<option value="">-- اختر لون --</option>`;
+          colorOptions += `<option value="لون طبيعي (ورنيش)">لون طبيعي (ورنيش/حماية شفافة)</option>`;
+          standardColors.forEach((color) => {
+            colorOptions += `<option value="${color} (دهان)">${color} (دهان)</option>`;
+          });
+          colorSelect.innerHTML = colorOptions;
+
+          // تحديث قائمة الأبعاد عند تحميل البيانات
+          updateDimensionsOptions();
         } catch (e) {
           console.error("Error fetching Firebase data: ", e);
-          resourcesLoadingMsg.textContent =
-            "❌ فشل تحميل البيانات الضرورية من المخزون.";
-          showToast("❌ فشل تحميل البيانات الضرورية من المخزون.", true);
-        }
-      }
-
-      function updateDynamicFields() {
-        const selectedType = productTypeSelect.value;
-        dynamicFieldsContainer.innerHTML = "";
-
-        if (selectedType) {
-          // 1. الأبعاد
-          const dimensionsGroup = document.createElement("div");
-          dimensionsGroup.className = "form-group";
-          const dimOptions = productDimensions[selectedType] || ["أبعاد مخصصة"];
-
-          if (dimOptions.length > 1) {
-            dimensionsGroup.innerHTML = `
-                     <label for="dimensions"><span class="required-field">*</span> الأبعاد المقترحة</label>
-                     <select id="dimensions" name="dimensions" required>
-                         ${dimOptions
-                           .map(
-                             (dim) => `<option value="${dim}">${dim}</option>`
-                           )
-                           .join("")}
-                     </select>`;
-          } else {
-            dimensionsGroup.innerHTML = `
-                     <label for="dimensions"><span class="required-field">*</span> الأبعاد (مثال: 120x80x45 سم)</label>
-                     <input type="text" id="dimensions" name="dimensions" placeholder="أدخل الطولxالعرضxالارتفاع" required />`;
-          }
-          dynamicFieldsContainer.appendChild(dimensionsGroup);
-
-          // 2. اللون (اعتماداً على مواد التشطيب)
-          const colorsGroup = document.createElement("div");
-          colorsGroup.className = "form-group";
-
-          const paintMaterials = allRawMaterials.filter(
-            (m) => m.type === "تشطيب" && m.name_ar.includes("طلاء")
-          );
-
-          colorsGroup.innerHTML = `
-                 <label for="color">اللون المفضّل</label>
-                 <select id="color" name="color">
-                     <option value="بني طبيعي">بني طبيعي (بدون طلاء)</option>
-                     ${paintMaterials
-                       .map(
-                         (m) =>
-                           `<option value="${m.name_ar}">${
-                             m.name_ar
-                           } (متوفر: ${m.current_stock.toFixed(2)} ${
-                             m.unit
-                           })</option>`
-                       )
-                       .join("")}
-                 </select>`;
-          dynamicFieldsContainer.appendChild(colorsGroup);
-        }
-      }
-
-      // وظيفة إضافة صف لإدخال مادة خام
-      function addResourceInputRow(isDefault = false) {
-        if (!isDefault && allRawMaterials.length === 0) {
+          colorSelect.innerHTML = '<option value="">-- فشل التحميل --</option>';
+          document.getElementById("design-form").style.opacity = 0.5;
           showToast(
-            "يرجى الانتظار حتى يتم تحميل قائمة المواد الخام أولاً.",
+            "❌ فشل تحميل البيانات الضرورية. يرجى إعادة تحميل الصفحة.",
             true
           );
-          return;
+        }
+      }
+
+      // دالة تحديث قائمة الأبعاد حسب نوع المنتج
+      function updateDimensionsOptions() {
+        const selectedType = productTypeSelect.value;
+        const options =
+          productDimensions[selectedType] || productDimensions["آخر"];
+
+        let optionsHTML = `<option value="">-- اختر مقاساً تقريبياً --</option>`;
+        options.forEach((dim) => {
+          optionsHTML += `<option value="${dim}">${dim}</option>`;
+        });
+        dimensionsSelect.innerHTML = optionsHTML;
+      }
+
+      // ====================================================================
+      // منطق الإرسال (Submit Logic) - يستخدم التكلفة الداخلية
+      // ====================================================================
+
+      function calculateEstimatedCost(color, type) {
+        // دالة تحاكي حساب التكلفة التقديرية بناءً على المخزون (لإرسالها لـ Gemini)
+        // هذا يحافظ على منطق MIS في الخلفية
+        let baseCost = 0;
+
+        // 1. تكلفة الخشب الأساسي (افتراض صنوبر)
+        const woodMaterial = allRawMaterials.find((m) =>
+          m.name_ar.includes("صنوبر")
+        );
+        const woodCost =
+          (woodMaterial ? woodMaterial.cost_per_unit : 1500) * 1.5;
+        baseCost += woodCost;
+
+        // 2. تكلفة التشطيب
+        const finishType = color.includes("ورنيش") ? "ورنيش" : "طلاء";
+        if (finishType === "ورنيش") {
+          const varnishMaterial = allRawMaterials.find((m) =>
+            m.name_ar.includes("ورنيش")
+          );
+          baseCost += varnishMaterial ? varnishMaterial.cost_per_unit : 200;
+        } else {
+          const paintMaterial = allRawMaterials.find((m) =>
+            m.name_ar.includes("طلاء")
+          );
+          baseCost += paintMaterial ? paintMaterial.cost_per_unit : 500;
         }
 
-        const div = document.createElement("div");
-        div.className = "resource-input-row";
+        // 3. تكلفة ملحقات إضافية (افتراضية تختلف حسب نوع المنتج)
+        const multiplier = type.includes("طاولة")
+          ? 1
+          : type.includes("كنب")
+          ? 3
+          : 0.5;
+        baseCost += 300 * multiplier;
 
-        // بناء خيارات المواد الخام
-        const materialOptions = allRawMaterials
-          .map((m) => {
-            const isLow = m.current_stock <= m.reorder_point;
-            return `<option value="${m.id}" 
-                            data-unit="${m.unit}" 
-                            data-cost="${m.cost_per_unit}"
-                            data-stock="${m.current_stock}"
-                            ${isLow ? 'style="color: red;"' : ""}>
-                ${m.name_ar} (${m.unit}) [متوفر: ${m.current_stock.toFixed(2)}]
-            </option>`;
-          })
-          .join("");
+        return baseCost;
+      }
 
-        div.innerHTML = `
-            <select name="resource_id" required>
-                <option value="">-- اختر المادة الخام --</option>
-                ${materialOptions}
-            </select>
-            <input type="number" name="quantity" min="0.01" step="0.01" required placeholder="الكمية المطلوبة" />
-            <div>
-                <input type="text" name="unit_display" disabled placeholder="الوحدة" />
-                <span class="low-stock-warning" style="display: none;"></span>
-            </div>
-            <button type="button" class="btn-remove-resource"><i class="fa-solid fa-trash-alt"></i></button>
-        `;
+      document
+        .getElementById("design-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
 
-        resourceInputList.appendChild(div);
+          // التحقق من الحقول المطلوبة
+          const requiredInputs = document.querySelectorAll("[required]");
+          let formValid = true;
 
-        // تحديث الوحدة وتحذير المخزون ومجموع التكلفة
-        const select = div.querySelector('select[name="resource_id"]');
-        const quantityInput = div.querySelector('input[name="quantity"]');
-        const unitInput = div.querySelector('input[name="unit_display"]');
-        const stockWarning = div.querySelector(".low-stock-warning");
-
-        const updateRow = () => {
-          const selectedOption = select.options[select.selectedIndex];
-          const stock = parseFloat(selectedOption.dataset.stock) || 0;
-          const quantity = parseFloat(quantityInput.value) || 0;
-
-          unitInput.value = selectedOption.dataset.unit || "";
-
-          // تحديث تحذير المخزون
-          if (stock <= 10 && select.value) {
-            stockWarning.textContent = `⚠️ المخزون منخفض: ${stock.toFixed(2)} ${
-              selectedOption.dataset.unit
-            }`;
-            stockWarning.style.display = "block";
-          } else {
-            stockWarning.style.display = "none";
-          }
-
-          // التحقق من الكمية المدخلة مقابل المخزون
-          if (quantity > stock && select.value) {
-            showToast(
-              `الكمية المطلوبة (${quantity}) تتجاوز المخزون المتوفر!`,
-              true
-            );
-            quantityInput.style.borderColor = "red";
-          } else {
-            quantityInput.style.borderColor = ""; // استخدام CSS الافتراضي
-          }
-
-          updateResourceCostSummary();
-        };
-
-        select.addEventListener("change", updateRow);
-        quantityInput.addEventListener("input", updateRow);
-
-        // إزالة الصف
-        div
-          .querySelector(".btn-remove-resource")
-          .addEventListener("click", () => {
-            div.remove();
-            updateResourceCostSummary(); // تحديث التكلفة بعد الحذف
+          requiredInputs.forEach((input) => {
+            if (!input.value) {
+              input.style.borderColor = "red";
+              formValid = false;
+            } else {
+              input.style.borderColor = "";
+            }
           });
 
-        updateRow(); // تحديث أولي
-      }
+          if (!formValid) {
+            showToast("الرجاء ملء جميع الحقول المطلوبة.", true);
+            return;
+          }
 
-      // ====================================================================
-      // منطق النموذج متعدد المراحل
-      // ====================================================================
+          const productType = document.getElementById("product-type").value;
+          const dimensions = document.getElementById("dimensions")?.value;
+          const color = document.getElementById("color")?.value;
+          const material = document.getElementById("material")?.value;
+          const notes = document.getElementById("notes")?.value;
+          const roomPlacement =
+            document.getElementById("room-placement")?.value;
 
-      function validateStep(step) {
-        const currentStepElement = document.querySelector(
-          `[data-step="${step}"]`
-        );
-        const requiredInputs =
-          currentStepElement.querySelectorAll("[required]");
-        let isValid = true;
+          // 1. حساب التكلفة التقديرية الداخلية (لـ Gemini)
+          const estimatedCOGS = calculateEstimatedCost(color, productType);
 
-        requiredInputs.forEach((input) => {
-          if (!input.value) {
-            input.style.borderColor = "red";
-            isValid = false;
-          } else {
-            input.style.borderColor = "";
+          // إظهار المعالجة
+          document.getElementById("design-result").classList.remove("show");
+          document.getElementById("processing-message").style.display = "block";
+
+          // بناء قائمة المنتجات المتاحة للمقارنة
+          const filteredProducts = allProducts.filter(
+            (p) => p.category === productType && p.is_available !== false
+          );
+
+          const productOptionsForAI = filteredProducts
+            .map(
+              (p) =>
+                `- ${p.name} (ID: ${p.id}, Price: ${p.price} ISK, Description: ${p.description})`
+            )
+            .join("\n");
+
+          // 2. توليد تصميم مخصص وسعر
+
+          const promptText = `
+          أنت خبير في تصميم الأثاث الخشبي. قم بإنشاء اقتراح تصميم بناءً على طلب العميل المفصل والمباشر.
+          اقترح سعراً نهائياً يكون منطقياً، مع مراعاة التكلفة التقديرية الداخلية (COGS) وأسعار المنتجات الجاهزة المماثلة.
+          
+          بيانات التسعير الداخلية:
+          - التكلفة التقديرية للمواد (COGS): ${estimatedCOGS.toFixed(0)} شيكل.
+          - المنتجات المماثلة للتسعير: ${
+            filteredProducts.length > 0
+              ? productOptionsForAI
+              : "لا يوجد منتجات مماثلة متاحة."
+          }
+
+          طلب العميل المباشر:
+          - نوع المنتج: ${productType}
+          - المكان: ${roomPlacement}
+          - المقاسات: ${dimensions}
+          - المادة الرئيسية: ${material}
+          - اللون والتشطيب: ${color}
+          - التفاصيل الإضافية والاحتياجات: ${notes}
+          
+          أعطني إخراجاً بالتنسيق التالي بدقة:
+          العنوان: <عنوان المنتج الموجز>
+          الوصف: <وصف احترافي ومختصر للمنتج>
+          السعر المقترح: <قيمة نقدية (رقم) بالعملة شيكل>
+        `;
+
+          try {
+            const textResult = await textModel.generateContent(promptText);
+            const textResponse = textResult.response.text();
+
+            const titleMatch = textResponse.match(/العنوان:\s*(.*)/);
+            const descriptionMatch = textResponse.match(/الوصف:\s*(.*)/);
+            const priceMatch = textResponse.match(
+              /السعر المقترح:\s*([\d\.\,\s]+)\s*شيكل/
+            );
+
+            let title = titleMatch ? titleMatch[1].trim() : "تصميم مخصص فريد";
+            let description = descriptionMatch
+              ? descriptionMatch[1].trim()
+              : "وصف مقترح من المساعد الذكي.";
+            let priceLine = priceMatch
+              ? priceMatch[0].trim()
+              : "السعر المقترح: 0 شيكل (بحاجة لتقييم)";
+
+            // معالجة لو لم يلتزم AI بالتنسيق بشكل كامل
+            if (!titleMatch || !descriptionMatch) {
+              [title, description, priceLine] = textResponse
+                .split("\n")
+                .filter((line) => line.trim() !== "");
+              title = title || "تصميم مقترح";
+              description = description || "تصميم وفق المواصفات المطلوبة";
+              priceLine = priceLine || "السعر المقترح: 0 شيكل";
+            }
+
+            currentDesign = {
+              title: title.replace("العنوان:", "").trim(),
+              description: description.replace("الوصف:", "").trim(),
+              price: priceLine.trim(),
+              type: productType,
+              dimensions,
+              material,
+              color,
+              notes,
+              quantity: 1, // الكمية دائماً 1 في هذه الواجهة
+              estimatedCOGS: estimatedCOGS.toFixed(2),
+            };
+
+            document.getElementById("processing-message").style.display =
+              "none";
+
+            // عرض النتيجة
+            document.getElementById("result-content").innerHTML = `
+                <h3 id="result-title">${currentDesign.title}</h3>
+                <p id="result-description">${currentDesign.description}</p>
+                <p id="result-price" style="font-size: 1.4rem; font-weight: bold; color: var(--primary-color);">
+                    ${currentDesign.price}
+                </p>
+                <p style="font-size: 0.9rem; color: #888; margin-top: 10px">
+                    السعر المقترح ليس نهائياً، وسيتم تأكيده بعد مراجعة طلبك.
+                </p>`;
+            document.getElementById("design-result").classList.add("show");
+          } catch (error) {
+            console.error("Error generating design:", error);
+            document.getElementById("processing-message").style.display =
+              "none";
+            showToast("❌ حدث خطأ أثناء إنشاء التصميم. حاول مرة أخرى.", true);
           }
         });
-
-        // تحقق خاص للموارد (الخطوة 2)
-        if (step === 2) {
-          const resourceRows = resourceInputList.querySelectorAll(
-            ".resource-input-row"
-          );
-          if (resourceRows.length === 0) {
-            showToast("الرجاء إضافة مادة خام واحدة على الأقل.", true);
-            isValid = false;
-          }
-        }
-
-        return isValid;
-      }
-
-      function updateStepVisibility() {
-        formSteps.forEach((step) => step.classList.remove("active"));
-        document
-          .querySelector(`[data-step="${currentStep}"]`)
-          .classList.add("active");
-
-        const totalSteps = formSteps.length;
-        progressBarFill.style.width = `${(currentStep / totalSteps) * 100}%`;
-
-        // تحديث أزرار التنقل
-        prevStepBtn.style.display = currentStep > 1 ? "block" : "none";
-
-        if (currentStep < totalSteps) {
-          nextStepBtn.style.display = "block";
-          submitFormBtn.style.display = "none";
-        } else {
-          nextStepBtn.style.display = "none";
-          submitFormBtn.style.display = "block";
-          // تحقق من المتطلبات النهائية لتفعيل زر الإرسال
-          updateResourceCostSummary();
-        }
-      }
-
-      nextStepBtn.addEventListener("click", () => {
-        if (validateStep(currentStep)) {
-          currentStep++;
-          updateStepVisibility();
-        } else {
-          showToast("الرجاء ملء جميع الحقول المطلوبة في هذه الخطوة.", true);
-        }
-      });
-
-      prevStepBtn.addEventListener("click", () => {
-        currentStep--;
-        updateStepVisibility();
-      });
-
-      // ====================================================================
-      // منطق الإرسال (Submit) يبقى كما هو مع تعديل بسيط
-      // ====================================================================
-
-      // ... (بقية منطق الإرسال designForm.addEventListener و designCheckoutForm.addEventListener) ...
 
       // ====================================================================
       // بدء التنفيذ
       // ====================================================================
       document.addEventListener("DOMContentLoaded", () => {
+        // ... (منطق تحميل البيانات والبدء) ...
         loadCart();
         updateCartBadge();
 
@@ -922,22 +753,95 @@
           currentUser = user;
         });
 
-        // ربط الأحداث المتبقية
-        productTypeSelect.addEventListener("change", updateDynamicFields);
+        // ربط الأحداث
+        productTypeSelect.addEventListener("change", updateDimensionsOptions);
 
-        // ... (بقية الـ Event Listeners من الكود الأصلي) ...
-        // (تم دمج منطق submitFormBtn و nextStepBtn و prevStepBtn في الدوال أعلاه)
+        document
+          .getElementById("regenerate-design-btn")
+          .addEventListener("click", () => {
+            document
+              .getElementById("design-form")
+              .dispatchEvent(
+                new Event("submit", { cancelable: true, bubbles: true })
+              );
+          });
+
+        document
+          .getElementById("submit-design-btn")
+          .addEventListener("click", () => {
+            if (!currentDesign) return;
+
+            // فتح نموذج إرسال الطلب
+            document
+              .getElementById("design-checkout-modal")
+              .classList.add("active");
+            document.body.classList.add("scroll-lock");
+          });
+
+        document
+          .getElementById("design-checkout-form")
+          .addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            if (!currentUser) {
+              alert("يرجى تسجيل الدخول أولاً.");
+              window.location.href = "login.html";
+              return;
+            }
+
+            const trackingId = generateTrackingId();
+            const customerData = {
+              customer_uid: currentUser.uid,
+              name: document.getElementById("design-name").value,
+              phone: document.getElementById("design-phone").value,
+              email: document.getElementById("design-email").value,
+              address: document.getElementById("design-address").value,
+            };
+
+            const customOrder = {
+              ...currentDesign,
+              ...customerData,
+              tracking_id: trackingId,
+              order_date: new Date().toISOString(),
+              status: "قيد المراجعة",
+              type: "تصميم مخصص",
+              type_of_product: productTypeSelect.value,
+            };
+
+            try {
+              await addDoc(collection(db, "custom_designs"), customOrder);
+
+              closeModal("design-checkout-modal");
+              document.getElementById("design-tracking-id").textContent =
+                trackingId;
+              document
+                .getElementById("design-confirm-modal")
+                .classList.add("active");
+              document.body.classList.add("scroll-lock");
+
+              document.getElementById("design-form").reset();
+              updateDimensionsOptions();
+              document.getElementById("design-result").classList.remove("show");
+
+              showToast("✅ تم إرسال طلبك للتصميم المخصص بنجاح!");
+            } catch (error) {
+              console.error("Error submitting design order:", error);
+              showToast("❌ حدث خطأ أثناء إرسال طلبك. حاول مرة أخرى.", true);
+            }
+          });
+
+        function closeModal(modalId) {
+          document.getElementById(modalId).classList.remove("active");
+          document.body.classList.remove("scroll-lock");
+        }
+
+        document.querySelectorAll(".modal-close").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const modalId = btn.closest(".modal-overlay").id;
+            closeModal(modalId);
+          });
+        });
       });
-
-      // ... (يجب إضافة بقية الدوال المساعدة مثل showSuggestedProduct, closeDesignConfirmModal, openProductModal) ...
-      // نظرًا لكونها طويلة وغير متغيرة في هذا الطلب، سنفترض وجودها لتركيز على الـ Form.
-
-      // ********* مثال مبسط لدالة واحدة متبقية *********
-      function closeModal(modalId) {
-        document.getElementById(modalId).classList.remove("active");
-        document.body.classList.remove("scroll-lock");
-      }
-      // **********************************************
     </script>
   </body>
 </html>

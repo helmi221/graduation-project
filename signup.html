@@ -43,6 +43,10 @@
           <label for="password">كلمة المرور</label>
           <input type="password" id="password" required />
         </div>
+        <div class="form-group">
+          <label for="confirm-password">تأكيد كلمة المرور</label>
+          <input type="password" id="confirm-password" required />
+        </div>
         <button type="submit" class="btn btn-auth">إنشاء حساب</button>
       </form>
       <p style="margin-top: 15px">
@@ -73,11 +77,21 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
       const signupForm = document.getElementById("signup-form");
+
       signupForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const name = signupForm.name.value;
         const email = signupForm.email.value;
         const password = signupForm.password.value;
+        const confirmPassword =
+          document.getElementById("confirm-password").value; // جلب حقل التأكيد
+
+        // التحقق من تطابق كلمتي المرور
+        if (password !== confirmPassword) {
+          alert("كلمتا المرور غير متطابقتين. يرجى التحقق.");
+          return;
+        }
+
         try {
           const userCredential = await createUserWithEmailAndPassword(
             auth,

@@ -14,209 +14,14 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <link rel="stylesheet" href="admin.css" />
     <style>
-      /* ستايلات موحدة من admin.html */
-      :root {
-        --primary-color: #795548;
-        --dark-color: #3e2723;
-        --light-color: #f7f5f2;
-        --accent-color: #a1887f;
-        --white-color: #ffffff;
-        --border-color: #e0e0e0;
-        --border-radius: 12px;
-        --shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-        --success-color: #2ecc71;
-        --warning-color: #f39c12;
-        --danger-color: #e74c3c;
-        --info-color: #3498db;
-      }
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      body {
-        font-family: "Cairo", sans-serif;
-        background-color: var(--light-color);
-        color: var(--dark-color);
-        line-height: 1.6;
-        font-size: 16px;
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-      }
-      a {
-        text-decoration: none;
-        color: inherit;
-      }
-      .container-fluid {
-        padding: 0 30px;
-        width: 100%;
-        max-width: 1400px;
-        margin: 0 auto;
-        direction: rtl;
-      }
-      /* Header Styling (from admin.html) */
-      .main-header {
-        background-color: var(--dark-color);
-        color: var(--white-color);
-        padding: 20px 30px;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-      }
-      .main-header .logo {
-        font-size: 1.8rem;
-        font-weight: 800;
-        color: var(--primary-color);
-      }
-      .main-header nav ul {
-        display: flex;
-        gap: 20px;
-        list-style: none;
-      }
-      .main-header nav a {
-        color: #ccc;
-        font-weight: 600;
-        padding: 8px 12px;
-        border-radius: 8px;
-        transition: background-color 0.3s;
-      }
-      .main-header nav a:hover,
-      .main-header nav a.active {
-        background-color: var(--primary-color);
-        color: var(--white-color);
-      }
-      .main-content {
-        flex-grow: 1;
-        padding: 30px 0;
-        direction: rtl;
-      }
-      h1 {
-        font-size: 2.5rem;
-        color: var(--dark-color);
-        margin-bottom: 2rem;
-        text-align: center;
-      }
-      .admin-section {
-        background-color: var(--white-color);
-        padding: 30px;
-        border-radius: var(--border-radius);
-        box-shadow: var(--shadow);
-        margin-top: 20px;
-      }
-      /* Table Styling (Unified) */
-      .materials-table-wrapper {
-        overflow-x: auto;
-      }
-      .materials-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-      }
+      /* تصميم خاص للجدول ليتناسب مع المواد الخام */
       .materials-table th,
       .materials-table td {
-        padding: 12px 15px;
-        border-bottom: 1px solid var(--border-color);
-        text-align: center;
+        white-space: nowrap;
       }
-      .materials-table th {
-        background-color: var(--light-color);
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-      .materials-table tr:hover {
-        background-color: #fdfdfd;
-      }
-      .editable-input {
-        width: 80px;
-        padding: 8px;
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        text-align: center;
-        font-family: "Cairo", sans-serif;
-        transition: border-color 0.2s;
-      }
-      .editable-input:focus {
-        border-color: var(--accent-color);
-        outline: none;
-      }
-      .material-type {
-        font-size: 0.85rem;
-        color: #777;
-      }
-      .btn-save {
-        background-color: var(--success-color);
-        color: white;
-        border: none;
-        padding: 8px 12px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: opacity 0.3s;
-        opacity: 0.5;
-      }
-      .btn-save:hover:not(:disabled) {
-        opacity: 1;
-      }
-      .btn-save:disabled {
-        cursor: not-allowed;
-      }
-      .alert-low-stock {
-        color: var(--danger-color);
-        font-weight: bold;
-      }
-      .loading-msg {
-        text-align: center;
-        font-size: 1.2rem;
-        color: #888;
-        padding: 50px;
-      }
-      /* Add Material Form Styles (Unified) */
-      #add-material-section {
-        background-color: var(--light-color);
-        border: 1px solid var(--border-color);
-        padding: 20px;
-        border-radius: var(--border-radius);
-        margin-bottom: 30px;
-      }
-      #add-material-form {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        align-items: flex-end;
-      }
-      #add-material-form .form-group label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: 600;
-        font-size: 0.95rem;
-      }
-      #add-material-form .form-group input,
-      #add-material-form .form-group select {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-        font-family: "Cairo", sans-serif;
-      }
-      #add-material-form button {
-        background-color: var(--dark-color);
-        padding: 12px;
-        width: 100%;
-        color: var(--white-color);
-        border: none;
-        border-radius: 6px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.3s;
-      }
-      #add-material-form button:hover {
-        background-color: var(--primary-color);
-      }
+      /* (باقي الستايلات الخاصة بالجدول موجودة في admin.css الآن) */
     </style>
   </head>
   <body>
@@ -225,6 +30,7 @@
       <nav>
         <ul>
           <li><a href="admin.html">لوحة التحكم</a></li>
+          <li><a href="orders_admin.html">إدارة الطلبات</a></li>
           <li><a href="inventory.html">إدارة المنتجات</a></li>
           <li>
             <a href="raw_materials_admin.html" class="active"
@@ -237,96 +43,121 @@
     </header>
 
     <div class="main-content container-fluid">
-      <h1>إدارة مخزون المواد الخام</h1>
+      <h1>إدارة المواد الخام</h1>
 
-      <div id="add-material-section" class="admin-section">
-        <h3 style="margin-bottom: 15px; color: var(--dark-color)">
-          <i class="fa-solid fa-plus-circle"></i> إضافة مادة خام جديدة
-        </h3>
-        <form id="add-material-form">
-          <div class="form-group">
-            <label for="new-name">اسم المادة</label>
-            <input
-              type="text"
-              id="new-name"
-              required
-              placeholder="مثال: خشب الماهوجني"
-            />
-          </div>
-          <div class="form-group">
-            <label for="new-unit">وحدة القياس</label>
-            <select id="new-unit" required>
-              <option value="متر مكعب">متر مكعب</option>
-              <option value="لتر">لتر</option>
-              <option value="ملليلتر">ملليلتر</option>
-              <option value="قطعة">قطعة</option>
-              <option value="متر">متر (قماش)</option>
-              <option value="طقم">طقم (آلية)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="new-cost">التكلفة/الوحدة</label>
-            <input
-              type="number"
-              id="new-cost"
-              min="0"
-              step="0.01"
-              value="0"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="new-stock">المخزون الأولي</label>
-            <input
-              type="number"
-              id="new-stock"
-              min="0"
-              step="0.01"
-              value="0"
-              required
-            />
-          </div>
-          <button type="submit">إضافة المادة</button>
-        </form>
-      </div>
-
-      <div class="admin-section">
-        <h2
-          style="
-            text-align: center;
-            margin-bottom: 1.5rem;
-            color: var(--dark-color);
-          "
-        >
-          المخزون الحالي
-        </h2>
-
-        <div id="materials-list">
-          <p class="loading-msg">جارٍ تحميل بيانات المواد...</p>
+      <div class="inventory-section admin-panel">
+        <div class="section-header">
+          <button class="btn" id="add-material-btn">
+            <i class="fa-solid fa-plus"></i> إضافة مادة خام جديدة
+          </button>
+        </div>
+        <div id="materials-table-container">
+          <p class="loading-msg">جارٍ تحميل المواد الخام...</p>
         </div>
       </div>
     </div>
 
-    <div id="toast-notification" class="toast"></div>
+    <div id="material-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
+        <h2 id="modal-title"></h2>
+        <form id="material-form">
+          <input type="hidden" id="material-id" />
+          <div class="form-group">
+            <label for="material-name">اسم المادة (عربي)</label>
+            <input type="text" id="material-name" required />
+          </div>
+          <div class="form-group">
+            <label for="material-type">النوع</label>
+            <select id="material-type" required>
+              <option value="خشب">خشب</option>
+              <option value="طلاء">طلاء / ورنيش</option>
+              <option value="قماش">قماش / تنجيد</option>
+              <option value="معدن">معدن / فولاذ</option>
+              <option value="مادة ربط">مادة ربط (براغي، غراء)</option>
+              <option value="أخرى">أخرى</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="material-unit"
+              >وحدة القياس (مثل: متر مكعب، قطعة، لتر، متر)</label
+            >
+            <input type="text" id="material-unit" required />
+          </div>
+          <div class="form-group">
+            <label for="material-cost">تكلفة الوحدة (شيكل)</label>
+            <input
+              type="number"
+              id="material-cost"
+              min="0.01"
+              step="0.01"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="material-stock">الكمية المتوفرة حالياً</label>
+            <input
+              type="number"
+              id="material-stock"
+              min="0"
+              step="any"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="material-reorder"
+              >نقطة إعادة الطلب (تنبيه عند الوصول لهذا الرقم)</label
+            >
+            <input
+              type="number"
+              id="material-reorder"
+              min="0"
+              step="any"
+              required
+            />
+          </div>
+          <div class="btn-group">
+            <button type="submit" class="btn" id="save-material-btn">
+              حفظ
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="confirmation-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
+        <h2 id="confirm-title"></h2>
+        <p
+          id="confirm-message"
+          style="text-align: center; margin-bottom: 2rem"
+        ></p>
+        <div class="btn-group">
+          <button id="confirm-action-btn" class="btn btn-danger">تأكيد</button>
+          <button class="btn btn-secondary modal-close">x</button>
+        </div>
+      </div>
+    </div>
 
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
       import {
         getFirestore,
         collection,
         getDocs,
         doc,
-        updateDoc,
-        getDoc,
         setDoc,
-      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+        deleteDoc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
       import {
         getAuth,
         onAuthStateChanged,
         signOut,
-      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-      // ******* إعدادات Firebase (مأخوذة من ملفاتك) *******
+      // تهيئة Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
         authDomain: "ecomers-dd329.firebaseapp.com",
@@ -336,34 +167,54 @@
         appId: "1:190646144215:web:d55f24091a920f92b6b492",
         measurementId: "G-NVYK3DZR00",
       };
-
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
       const auth = getAuth(app);
 
-      // عناصر الواجهة
-      const materialsListDiv = document.getElementById("materials-list");
-      const addMaterialForm = document.getElementById("add-material-form");
-      const toast = document.getElementById("toast-notification");
-
-      let allMaterials = [];
-      let initialValues = {};
-
-      function showToast(message, isError = false) {
-        toast.textContent = message;
-        toast.className = `toast show ${isError ? "error" : "success"}`;
-        setTimeout(() => toast.classList.remove("show"), 3000);
+      // الدوال المساعدة لفتح وإغلاق المودال مع تحسينات التمرير
+      function openModal(modalId) {
+        document.getElementById(modalId).classList.add("active");
+        document.body.classList.add("scroll-lock");
       }
+      function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove("active");
+        document.body.classList.remove("scroll-lock");
+      }
+      // إغلاق المودال بالنقر خارجها
+      document.querySelectorAll(".modal-overlay").forEach((modal) => {
+        modal.addEventListener("click", (e) => {
+          if (e.target.classList.contains("modal-overlay")) {
+            closeModal(modal.id);
+          }
+        });
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          document
+            .querySelectorAll(".modal-overlay.active")
+            .forEach((modal) => {
+              closeModal(modal.id);
+            });
+        }
+      });
 
-      // ====================================================================
-      // 1. التحكم الإداري والتحقق من الصلاحيات (Admin Control)
-      // ====================================================================
+      // عناصر الواجهة
+      const materialsTableContainer = document.getElementById(
+        "materials-table-container"
+      );
+      const materialForm = document.getElementById("material-form");
+      const materialIdInput = document.getElementById("material-id");
+      const confirmActionBtn = document.getElementById("confirm-action-btn");
+      const modalTitleEl = document.getElementById("modal-title");
 
+      let allRawMaterials = [];
+
+      // التحقق من صلاحيات المدير
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           const userDoc = await getDoc(doc(db, "users", user.uid));
           if (userDoc.exists() && userDoc.data().role === "admin") {
-            fetchAndRenderMaterials();
+            fetchAndRenderRawMaterials();
           } else {
             alert("غير مصرح لك بالوصول إلى هذه الصفحة.");
             window.location.href = "login.html";
@@ -381,301 +232,181 @@
           window.location.href = "login.html";
         });
 
-      // ====================================================================
-      // 2. رفع وإضافة مادة جديدة
-      // ====================================================================
+      async function fetchAndRenderRawMaterials() {
+        materialsTableContainer.innerHTML =
+          '<p class="loading-msg">جارٍ تحميل المواد الخام...</p>';
+        try {
+          const snapshot = await getDocs(collection(db, "raw_materials"));
+          allRawMaterials = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+            cost_per_unit: parseFloat(doc.data().cost_per_unit || 0),
+            current_stock: parseFloat(doc.data().current_stock || 0),
+            reorder_point: parseFloat(doc.data().reorder_point || 0),
+          }));
 
-      function generateMaterialId(name, unit) {
-        // دالة لتوليد ID فريد بناءً على الاسم والوحدة
-        const uniquePart = `${name.substring(0, 5)}_${unit.substring(
-          0,
-          3
-        )}_${Date.now()}`
-          .toUpperCase()
-          .replace(/\s/g, "_");
-        return uniquePart.replace(/[^A-Z0-9_]/g, "");
+          renderMaterialsTable(allRawMaterials);
+        } catch (e) {
+          console.error("Error fetching raw materials: ", e);
+          materialsTableContainer.innerHTML =
+            '<p class="loading-msg" style="color: red;">حدث خطأ في جلب المواد الخام.</p>';
+        }
       }
 
-      addMaterialForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        const name = document.getElementById("new-name").value;
-        const unit = document.getElementById("new-unit").value;
-        const cost = parseFloat(document.getElementById("new-cost").value);
-        const stock = parseFloat(document.getElementById("new-stock").value);
-
-        if (isNaN(cost) || isNaN(stock) || cost < 0 || stock < 0) {
-          showToast("الرجاء إدخال قيم رقمية صحيحة للمخزون والتكلفة.", true);
-          return;
-        }
-
-        const newMaterialId = generateMaterialId(name, unit);
-
-        const newMaterialData = {
-          id: newMaterialId,
-          name_ar: name,
-          unit: unit,
-          cost_per_unit: cost,
-          current_stock: stock,
-          reorder_point: 10,
-          type: "مضاف حديثاً",
-          last_update: new Date().toISOString(),
-        };
-
-        try {
-          await setDoc(
-            doc(db, "raw_materials", newMaterialId),
-            newMaterialData
-          );
-          showToast(`✅ تم إضافة المادة ${name} بنجاح.`);
-          addMaterialForm.reset();
-          fetchAndRenderMaterials();
-        } catch (error) {
-          console.error("Error adding new material:", error);
-          showToast("❌ فشل إضافة المادة الجديدة.", true);
-        }
-      });
-
-      // ====================================================================
-      // 3. جلب وعرض البيانات والتعديل المباشر
-      // ====================================================================
-
-      function renderTable(productsToDisplay) {
-        if (productsToDisplay.length === 0) {
-          materialsListDiv.innerHTML =
-            '<p class="loading-msg">لا توجد مواد خام مسجلة لعرضها.</p>';
+      function renderMaterialsTable(materials) {
+        if (materials.length === 0) {
+          materialsTableContainer.innerHTML =
+            '<p class="loading-msg">لا توجد مواد خام مسجلة.</p>';
           return;
         }
 
         let tableHtml = `
-          <div class="materials-table-wrapper">
-            <table class="materials-table">
-              <thead>
-                <tr>
-                  <th>المادة الخام</th>
-                  <th>الوحدة</th>
-                  <th>التكلفة/الوحدة (شيكل)</th>
-                  <th>المخزون الحالي</th>
-                  <th>نقطة إعادة الطلب</th>
-                  <th>الحالة</th>
-                  <th>حفظ التعديلات</th>
-                </tr>
-              </thead>
-              <tbody id="materials-tbody-content">
-              </tbody>
-            </table>
-          </div>`;
+          <table class="orders-table materials-table">
+            <thead>
+              <tr>
+                <th>اسم المادة</th>
+                <th>النوع</th>
+                <th>وحدة القياس</th>
+                <th>التكلفة (شيكل)</th>
+                <th>الكمية المتوفرة</th>
+                <th>إعادة الطلب</th>
+                <th>الحالة</th>
+                <th>الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        materials.forEach((material) => {
+          const stock = material.current_stock;
+          const reorder = material.reorder_point;
+          let statusHtml = "";
 
-        materialsListDiv.innerHTML = tableHtml;
-        const tbodyContent = document.getElementById("materials-tbody-content");
-
-        productsToDisplay.forEach((material) => {
-          const isLowStock = material.current_stock <= material.reorder_point;
-          const statusClass = isLowStock ? "alert-low-stock" : "";
-          const statusText = isLowStock ? "⚠️ بحاجة لطلب" : "متوفر";
-
-          const row = document.createElement("tr");
-          row.innerHTML = `
-              <td>${material.name_ar} <span class="material-type">(${
-            material.type || "عام"
-          })</span></td>
-              <td>${material.unit}</td>
-              <td>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value="${material.cost_per_unit.toFixed(2)}"
-                  data-field="cost_per_unit"
-                  data-id="${material.id}"
-                  class="editable-input"
-                />
-              </td>
-              <td>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value="${material.current_stock.toFixed(2)}"
-                  data-field="current_stock"
-                  data-id="${material.id}"
-                  class="editable-input ${statusClass}"
-                />
-              </td>
-              <td>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value="${material.reorder_point.toFixed(2)}"
-                  data-field="reorder_point"
-                  data-id="${material.id}"
-                  class="editable-input"
-                />
-              </td>
-              <td><span class="${statusClass}">${statusText}</span></td>
-              <td>
-                <button class="btn-save" data-id="${material.id}" disabled>
-                  حفظ
-                </button>
-              </td>
-            `;
-          tbodyContent.appendChild(row);
-        });
-
-        addEventListeners();
-      }
-
-      async function fetchAndRenderMaterials() {
-        materialsListDiv.innerHTML =
-          "<p class='loading-msg'>جارٍ تحميل بيانات المواد...</p>";
-
-        try {
-          const snapshot = await getDocs(collection(db, "raw_materials"));
-
-          allMaterials = snapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-            cost_per_unit: parseFloat(doc.data().cost_per_unit),
-            current_stock: parseFloat(doc.data().current_stock),
-            reorder_point: parseFloat(doc.data().reorder_point),
-          }));
-
-          initialValues = {};
-          allMaterials.forEach((material) => {
-            initialValues[material.id] = {
-              cost_per_unit: material.cost_per_unit,
-              current_stock: material.current_stock,
-              reorder_point: material.reorder_point,
-            };
-          });
-
-          renderTable(allMaterials);
-        } catch (e) {
-          console.error("Error fetching raw materials:", e);
-          materialsListDiv.innerHTML = `<p class="alert-low-stock" style="text-align: center; margin-top: 30px">
-            ❌ فشل تحميل المواد الخام: ${e.message}.
-          </p>`;
-        }
-      }
-
-      // ====================================================================
-      // 4. دالة حفظ التعديل المباشر
-      // ====================================================================
-
-      function addEventListeners() {
-        document.querySelectorAll(".editable-input").forEach((input) => {
-          input.addEventListener("input", (e) => {
-            const materialId = e.target.dataset.id;
-            const saveButton = document.querySelector(
-              `.btn-save[data-id="${materialId}"]`
-            );
-
-            let hasChanged = false;
-            ["cost_per_unit", "current_stock", "reorder_point"].forEach(
-              (field) => {
-                const inputElement = document.querySelector(
-                  `.editable-input[data-id="${materialId}"][data-field="${field}"]`
-                );
-                // استخدام initialValues للمقارنة
-                if (
-                  inputElement &&
-                  parseFloat(inputElement.value) !==
-                    initialValues[materialId][field]
-                ) {
-                  hasChanged = true;
-                }
-              }
-            );
-
-            saveButton.disabled = !hasChanged;
-            saveButton.style.opacity = hasChanged ? 1 : 0.5;
-
-            const currentStockInput = document.querySelector(
-              `.editable-input[data-id="${materialId}"][data-field="current_stock"]`
-            );
-            const reorderPointInput = document.querySelector(
-              `.editable-input[data-id="${materialId}"][data-field="reorder_point"]`
-            );
-            if (currentStockInput && reorderPointInput) {
-              const isLowStock =
-                parseFloat(currentStockInput.value) <=
-                parseFloat(reorderPointInput.value);
-              const statusCell = currentStockInput
-                .closest("tr")
-                .querySelector("td:nth-last-child(2) span");
-              if (statusCell) {
-                statusCell.className = isLowStock ? "alert-low-stock" : "";
-                statusCell.textContent = isLowStock ? "⚠️ بحاجة لطلب" : "متوفر";
-              }
-            }
-          });
-        });
-
-        document.querySelectorAll(".btn-save").forEach((button) => {
-          button.addEventListener("click", updateMaterial);
-        });
-      }
-
-      async function updateMaterial(e) {
-        const materialId = e.target.dataset.id;
-        const saveButton = e.target;
-        saveButton.disabled = true;
-        saveButton.textContent = "جاري الحفظ...";
-
-        try {
-          const row = saveButton.closest("tr");
-          const newCost = parseFloat(
-            row.querySelector('[data-field="cost_per_unit"]').value
-          );
-          const newStock = parseFloat(
-            row.querySelector('[data-field="current_stock"]').value
-          );
-          const newReorderPoint = parseFloat(
-            row.querySelector('[data-field="reorder_point"]').value
-          );
-
-          if (
-            isNaN(newCost) ||
-            isNaN(newStock) ||
-            isNaN(newReorderPoint) ||
-            newCost < 0 ||
-            newStock < 0 ||
-            newReorderPoint < 0
-          ) {
-            throw new Error("القيم المدخلة غير صحيحة.");
+          if (stock <= reorder) {
+            statusHtml = `<span class="inventory-alert"> يجب إعادة الطلب</span>`;
+          } else if (stock < reorder * 2) {
+            statusHtml = `<span class="inventory-warning"> مخزون منخفض</span>`;
+          } else {
+            statusHtml = `<span class="inventory-ok"> متوفر</span>`;
           }
 
-          const updates = {
-            cost_per_unit: newCost,
-            current_stock: newStock,
-            reorder_point: newReorderPoint,
-            last_update: new Date().toISOString(),
-          };
+          tableHtml += `
+            <tr data-id="${material.id}">
+              <td>${material.name_ar}</td>
+              <td>${material.type}</td>
+              <td>${material.unit || "---"}</td>
+              <td>${material.cost_per_unit.toFixed(2)}</td>
+              <td>${stock.toFixed(2)}</td>
+              <td>${reorder.toFixed(2)}</td>
+              <td>${statusHtml}</td>
+              <td class="actions-buttons">
+                <button class="btn btn-secondary btn-sm edit-material-btn" data-id="${
+                  material.id
+                }">تعديل</button>
+                <button class="btn btn-danger btn-sm delete-material-btn" data-id="${
+                  material.id
+                }">حذف</button>
+              </td>
+            </tr>
+          `;
+        });
+        tableHtml += "</tbody></table>";
+        materialsTableContainer.innerHTML = tableHtml;
+      }
 
-          const materialRef = doc(db, "raw_materials", materialId);
-          await updateDoc(materialRef, updates);
+      document
+        .getElementById("add-material-btn")
+        .addEventListener("click", () => {
+          modalTitleEl.textContent = "إضافة مادة خام جديدة";
+          materialIdInput.value = "";
+          materialForm.reset();
+          openModal("material-modal");
+        });
 
-          initialValues[materialId] = {
-            cost_per_unit: newCost,
-            current_stock: newStock,
-            reorder_point: newReorderPoint,
-          };
+      materialsTableContainer.addEventListener("click", (e) => {
+        if (e.target.classList.contains("edit-material-btn")) {
+          const id = e.target.dataset.id;
+          const material = allRawMaterials.find((m) => m.id === id);
+          if (material) {
+            modalTitleEl.textContent = "تعديل مادة خام";
+            materialIdInput.value = id;
+            document.getElementById("material-name").value = material.name_ar;
+            document.getElementById("material-type").value = material.type;
+            document.getElementById("material-unit").value =
+              material.unit || "";
+            document.getElementById("material-cost").value =
+              material.cost_per_unit;
+            document.getElementById("material-stock").value =
+              material.current_stock;
+            document.getElementById("material-reorder").value =
+              material.reorder_point;
+            openModal("material-modal");
+          }
+        } else if (e.target.classList.contains("delete-material-btn")) {
+          const id = e.target.dataset.id;
+          showConfirmationModal(
+            "حذف مادة خام",
+            "هل أنت متأكد من حذف هذه المادة الخام نهائياً؟",
+            () => deleteRawMaterial(id)
+          );
+        }
+      });
 
-          showToast(`✅ تم حفظ تعديلات المادة بنجاح.`);
-          saveButton.textContent = "حفظ";
-          saveButton.style.opacity = 0.5;
+      materialForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-          addEventListeners();
+        const isNew = !materialIdInput.value;
+        const id = isNew
+          ? doc(collection(db, "raw_materials")).id
+          : materialIdInput.value;
+
+        const materialData = {
+          name_ar: document.getElementById("material-name").value,
+          type: document.getElementById("material-type").value,
+          unit: document.getElementById("material-unit").value,
+          cost_per_unit: parseFloat(
+            document.getElementById("material-cost").value
+          ),
+          current_stock: parseFloat(
+            document.getElementById("material-stock").value
+          ),
+          reorder_point: parseFloat(
+            document.getElementById("material-reorder").value
+          ),
+          last_update: new Date().toISOString(),
+        };
+
+        try {
+          await setDoc(doc(db, "raw_materials", id), materialData);
+          closeModal("material-modal");
+          fetchAndRenderRawMaterials();
+          alert(`تم ${isNew ? "إضافة" : "تحديث"} المادة الخام بنجاح.`);
         } catch (error) {
-          console.error("Error updating material:", error);
-          showToast(`❌ فشل حفظ التعديلات: ${error.message}`, true);
-          saveButton.textContent = "حفظ";
-          saveButton.disabled = false;
+          console.error("Error saving material: ", error);
+          alert("حدث خطأ أثناء حفظ المادة الخام.");
+        }
+      });
+
+      async function deleteRawMaterial(id) {
+        try {
+          await deleteDoc(doc(db, "raw_materials", id));
+          closeModal("confirmation-modal");
+          fetchAndRenderRawMaterials();
+          alert("تم حذف المادة الخام بنجاح.");
+        } catch (e) {
+          console.error("Error deleting material: ", e);
+          alert("حدث خطأ أثناء حذف المادة الخام.");
         }
       }
 
-      document.addEventListener("DOMContentLoaded", fetchAndRenderMaterials);
+      function showConfirmationModal(title, message, callback) {
+        document.getElementById("confirm-title").textContent = title;
+        document.getElementById("confirm-message").textContent = message;
+        confirmActionBtn.onclick = () => {
+          callback();
+          closeModal("confirmation-modal");
+        };
+        openModal("confirmation-modal");
+      }
     </script>
   </body>
 </html>

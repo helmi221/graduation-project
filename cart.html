@@ -44,19 +44,9 @@
         margin-bottom: 1.5rem;
         line-height: 1.6;
       }
+      /* إخفاء عرض رمز التتبع لعدم الحاجة إليه */
       #order-confirm-modal .tracking-id-display {
-        background-color: var(--light-color);
-        border: 1px dashed var(--accent-color);
-        padding: 15px 25px;
-        border-radius: 10px;
-        font-family: monospace;
-        font-size: 1.3rem;
-        font-weight: bold;
-        color: var(--dark-color);
-        display: inline-block;
-        direction: ltr;
-        user-select: all;
-        margin-bottom: 1.5rem;
+        display: none;
       }
       #order-confirm-modal .modal-close {
         color: #aaa;
@@ -151,26 +141,40 @@
                 ><input type="text" id="name" name="name" required />
               </div>
               <div class="form-group">
-                <label for="phone">رقم الهاتف</label
-                ><input type="tel" id="phone" name="phone" required />
+                <label for="phone">رقم الهاتف</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  pattern="^(05[69][0-9]{7})$"
+                  title="يجب أن يبدأ بـ 056 أو 059 ويحتوي على 10 أرقام (صيغة الهاتف الفلسطيني)."
+                  required
+                />
               </div>
               <div class="form-group">
                 <label for="email">البريد الإلكتروني (اختياري)</label
                 ><input type="email" id="email" name="email" />
               </div>
+
               <div class="form-group">
-                <label for="address">العنوان</label
-                ><textarea
-                  id="address"
-                  name="address"
-                  rows="3"
-                  required
-                ></textarea>
+                <label for="city"
+                  >المدينة
+                  <span style="font-weight: normal"
+                    >(يتم إدخال العنوان التفصيلي في الملاحظات)</span
+                  ></label
+                >
+                <select id="city" name="city" required>
+                  <option value="">-- اختر المدينة --</option>
+                </select>
               </div>
+
               <div class="form-group">
-                <label for="notes">ملاحظات إضافية</label
-                ><textarea id="notes" name="notes" rows="3"></textarea>
+                <label for="notes"
+                  >ملاحظات إضافية (اسم الحي، الشارع، القرب من معلم معين)</label
+                >
+                <textarea id="notes" name="notes" rows="3"></textarea>
               </div>
+
               <button
                 type="submit"
                 class="btn checkout-btn"
@@ -189,10 +193,10 @@
         <span class="modal-close" data-modal="order-confirm">&times;</span>
         <h2>شكراً لك!</h2>
         <p>تم استلام طلبك بنجاح. سنقوم بمعالجته في أقرب وقت ممكن.</p>
-        <p>رمز التتبع الخاص بطلبك هو:</p>
-        <span id="order-tracking-id" class="tracking-id-display"></span>
         <p style="margin-top: 1rem; font-size: 0.9rem; color: #888">
-          الرجاء حفظ هذا الرمز لتتمكن من تتبع حالة طلبك.
+          تم إرسال ملخص الطلب إلى بريدك الإلكتروني (إذا تم إدخاله). يمكنك متابعة
+          حالة طلبك من خلال صفحة
+          <a href="order-status.html">حالة الطلب</a> في أي وقت.
         </p>
       </div>
     </div>
@@ -212,6 +216,9 @@
         getAuth,
         onAuthStateChanged,
       } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+
+      const FORMSPREE_ENDPOINT = "https://formspree.io/f/movkowpy";
+
       const firebaseConfig = {
         apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
         authDomain: "ecomers-dd329.firebaseapp.com",
@@ -225,6 +232,31 @@
       const db = getFirestore(app);
       const auth = getAuth(app);
       let cart = [];
+
+      // قائمة المدن الفلسطينية (الضفة الغربية)
+      const palestinianCities = [
+        "القدس",
+        "رام الله والبيرة",
+        "الخليل",
+        "نابلس",
+        "جنين",
+        "طولكرم",
+        "قلقيلية",
+        "أريحا",
+        "بيت لحم",
+        "طوباس",
+      ];
+
+      function fillCityDropdown() {
+        const citySelect = document.getElementById("city");
+        palestinianCities.forEach((city) => {
+          const option = document.createElement("option");
+          option.value = city;
+          option.textContent = city;
+          citySelect.appendChild(option);
+        });
+      }
+
       function saveCart() {
         localStorage.setItem("shoppingCart", JSON.stringify(cart));
       }
@@ -269,17 +301,24 @@
         cartItemsList.innerHTML = "";
         let subtotal = 0;
         cart.forEach((item, index) => {
-          subtotal += item.price * item.quantity;
+          // تأكد من أن السعر رقم قبل الحساب
+          const itemPrice = parseFloat(item.price);
+          subtotal += itemPrice * item.quantity;
+
           const itemEl = document.createElement("div");
           itemEl.className = "cart-item";
 
           let itemImage = `https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80`;
           let itemDetails = `<h4>${item.name}</h4>`;
-          let priceDisplay = `<p class="cart-item-price">${item.price} شيكل</p>`;
+          let priceDisplay = `<p class="cart-item-price">${itemPrice.toFixed(
+            0
+          )} شيكل</p>`;
 
           if (item.isCustom) {
             itemImage = `https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80`;
-            priceDisplay = `<p class="cart-item-price">السعر المقترح: ${item.price} شيكل</p>`;
+            priceDisplay = `<p class="cart-item-price">السعر المقترح: ${itemPrice.toFixed(
+              0
+            )} شيكل</p>`;
             itemDetails += `<p class="cart-item-color">النوع: ${item.details.type}</p>`;
             itemDetails += `<p class="cart-item-color">الملاحظات: ${
               item.details.notes || "لا توجد"
@@ -290,8 +329,12 @@
               ? `<p class="cart-item-color">اللون: ${item.color}</p>`
               : "";
             priceDisplay = item.originalPrice
-              ? `<div><p class="cart-item-price old-price">${item.originalPrice} شيكل</p><p class="cart-item-price new-price">${item.price} شيكل</p></div>`
-              : `<p class="cart-item-price">${item.price} شيكل</p>`;
+              ? `<div><p class="cart-item-price old-price">${
+                  item.originalPrice
+                } شيكل</p><p class="cart-item-price new-price">${itemPrice.toFixed(
+                  0
+                )} شيكل</p></div>`
+              : `<p class="cart-item-price">${itemPrice.toFixed(0)} شيكل</p>`;
             itemDetails += colorInfo;
           }
 
@@ -314,9 +357,109 @@
         summarySubtotal.textContent = subtotal.toFixed(0) + " شيكل";
         summaryTotal.textContent = subtotal.toFixed(0) + " شيكل";
       }
+
+      function closeModal(modalId) {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+          modal.classList.remove("active");
+          document.body.classList.remove("scroll-lock");
+        }
+      }
+
+      // ------------------------------------------------
+      // 💡 دالة إرسال تأكيد الطلب باستخدام Formspree (تنسيق نصي محسن)
+      // ------------------------------------------------
+      async function sendOrderConfirmationEmail(
+        customerData,
+        readyItems,
+        customItems
+      ) {
+        // Formspree يتطلب حقل _replyto أو أن يتم إرسال الإيميل
+        if (!customerData.email) return;
+
+        const totalReady = readyItems
+          .reduce(
+            (sum, item) => sum + parseFloat(item.price) * item.quantity,
+            0
+          )
+          .toFixed(0);
+
+        let itemsList = "";
+
+        // تجميع تفاصيل المنتجات الجاهزة
+        if (readyItems.length > 0) {
+          itemsList += "### المنتجات الجاهزة:\n";
+          readyItems.forEach((item) => {
+            const price = item.originalPrice
+              ? `${item.originalPrice} -> ${parseFloat(item.price).toFixed(0)}`
+              : parseFloat(item.price).toFixed(0);
+            itemsList += `- المنتج: ${item.name} | العدد: ${
+              item.quantity
+            } | السعر: ${price} شيكل ${
+              item.color ? `| اللون: ${item.color}` : ""
+            }\n`;
+          });
+        }
+
+        // تجميع تفاصيل الطلبات المخصصة
+        if (customItems.length > 0) {
+          itemsList += "\n### طلبات التصميم المخصص:\n";
+          itemsList +=
+            "يرجى مراجعة هذه الطلبات وتحديد السعر النهائي في لوحة التحكم.\n";
+          customItems.forEach((item) => {
+            itemsList += `- النوع: ${item.details.type || "---"} | الملاحظات: ${
+              item.details.notes || "لا توجد"
+            }\n`;
+          });
+        }
+
+        const finalTotalDisplay =
+          customItems.length > 0
+            ? "سيتم تحديده لاحقاً (بانتظار تسعيرة المخصص)"
+            : `${totalReady} شيكل`;
+
+        const emailData = {
+          _replyto: customerData.email,
+          _subject: `🆕 طلب جديد من العميل ${customerData.name} - إجمالي ${finalTotalDisplay}`, // تحديد موضوع واضح
+
+          العميل: customerData.name,
+          الهاتف: customerData.phone,
+          البريد_الإلكتروني: customerData.email,
+          العنوان_الكامل: customerData.address,
+          الملاحظات:
+            document.getElementById("notes").value || "لا توجد ملاحظات",
+          __الإجمالي_النهائي__: finalTotalDisplay,
+
+          // إرسال تفاصيل المنتجات كسلسلة نصية طويلة
+          __تفاصيل_الطلبات__: itemsList,
+        };
+
+        try {
+          const response = await fetch(FORMSPREE_ENDPOINT, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(emailData),
+          });
+
+          if (response.ok) {
+            console.log("Order confirmation sent via Formspree successfully.");
+          } else {
+            console.error(
+              "Formspree submission failed (Check Formspree dashboard for errors)."
+            );
+          }
+        } catch (error) {
+          console.error("Fetch error (Formspree):", error);
+        }
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         loadCart();
         updateCartUI();
+        fillCityDropdown();
+
         const checkoutBtn = document.querySelector(".checkout-btn");
         const checkoutModal = document.getElementById("checkout-modal");
         const orderConfirmModal = document.getElementById(
@@ -325,6 +468,7 @@
         const checkoutForm = document.getElementById("checkout-form");
         const modalCloseBtns = document.querySelectorAll(".modal-close");
         const cartItemsList = document.getElementById("cart-items-list");
+
         if (cartItemsList) {
           cartItemsList.addEventListener("click", (event) => {
             const target = event.target;
@@ -338,13 +482,7 @@
             }
           });
         }
-        function closeModal(modalId) {
-          const modal = document.getElementById(modalId);
-          if (modal) {
-            modal.classList.remove("active");
-            document.body.classList.remove("scroll-lock");
-          }
-        }
+
         if (checkoutBtn) {
           checkoutBtn.addEventListener("click", () => {
             if (cart.length === 0) {
@@ -360,8 +498,22 @@
                   document.getElementById("name").value = userData.name || "";
                   document.getElementById("phone").value = userData.phone || "";
                   document.getElementById("email").value = userData.email || "";
-                  document.getElementById("address").value =
-                    userData.address || "";
+
+                  // محاولة تعبئة المدينة من بيانات العنوان المخزنة
+                  const userAddress = userData.address || "";
+                  const cityMatch = palestinianCities.find((c) =>
+                    userAddress.includes(c)
+                  );
+                  if (cityMatch) {
+                    document.getElementById("city").value = cityMatch;
+                    // وضع بقية العنوان في الملاحظات
+                    document.getElementById("notes").value = userAddress
+                      .replace(cityMatch, "")
+                      .replace(",", "")
+                      .trim();
+                  } else {
+                    document.getElementById("notes").value = userAddress;
+                  }
                 }
                 checkoutModal.classList.add("active");
                 document.body.classList.add("scroll-lock");
@@ -372,42 +524,56 @@
             });
           });
         }
+
         modalCloseBtns.forEach((btn) => {
           btn.addEventListener("click", () =>
-            closeModal(btn.getAttribute("data-modal"))
+            closeModal(btn.closest(".modal-overlay").id)
           );
         });
-        [checkoutModal, orderConfirmModal].forEach((modal) => {
-          if (modal) {
-            modal.addEventListener("click", (e) => {
-              if (e.target === modal) {
-                modal.classList.remove("active");
-                document.body.classList.remove("scroll-lock");
-              }
-            });
-          }
-        });
+
         checkoutForm.addEventListener("submit", async (e) => {
           e.preventDefault();
+
+          const phoneInput = document.getElementById("phone");
+          // التحقق النهائي من نمط رقم الهاتف الفلسطيني
+          const phonePattern = /^(05[69][0-9]{7})$/;
+          if (!phonePattern.test(phoneInput.value)) {
+            alert(
+              "صيغة رقم الهاتف غير صحيحة. يجب أن يبدأ بـ 056 أو 059 ويحتوي على 10 أرقام."
+            );
+            return;
+          }
+
           onAuthStateChanged(auth, async (user) => {
             if (user) {
+              const selectedCity = document.getElementById("city").value;
+              const notes = document.getElementById("notes").value;
+              const fullAddress = `${selectedCity}, ${notes}`
+                .replace(", ,", ",")
+                .trim();
+
               const customerData = {
                 customer_uid: user.uid,
                 name: document.getElementById("name").value,
-                phone: document.getElementById("phone").value,
+                phone: phoneInput.value,
                 email: document.getElementById("email").value,
-                address: document.getElementById("address").value,
-                notes: document.getElementById("notes").value,
+                address: fullAddress,
+                city: selectedCity,
+                notes: notes,
                 order_date: new Date().toISOString(),
                 status: "قيد المراجعة",
               };
+
               try {
+                // 1. تحديث بيانات المستخدم في Firestore
                 const userDocRef = doc(db, "users", user.uid);
                 await updateDoc(userDocRef, {
                   name: customerData.name,
                   phone: customerData.phone,
                   address: customerData.address,
+                  city: customerData.city,
                 });
+
                 const batch = writeBatch(db);
                 const ordersCollection = collection(db, "orders");
                 const customDesignsCollection = collection(
@@ -416,17 +582,20 @@
                 );
                 const readyItems = cart.filter((item) => !item.isCustom);
                 const customItems = cart.filter((item) => item.isCustom);
+
                 if (readyItems.length > 0) {
                   const readyOrder = {
                     ...customerData,
                     items: readyItems,
                     total: readyItems.reduce(
-                      (sum, item) => sum + item.price * item.quantity,
+                      (sum, item) =>
+                        sum + parseFloat(item.price) * item.quantity,
                       0
                     ),
                   };
                   batch.set(doc(ordersCollection), readyOrder);
                 }
+
                 if (customItems.length > 0) {
                   customItems.forEach((item) => {
                     const customOrder = {
@@ -438,20 +607,32 @@
                     batch.set(doc(customDesignsCollection), customOrder);
                   });
                 }
+
+                // 2. تنفيذ الحفظ
                 await batch.commit();
+
+                // 3. 💡 إرسال الإيميل عبر Formspree
+                sendOrderConfirmationEmail(
+                  customerData,
+                  readyItems,
+                  customItems
+                );
+
                 closeModal("checkout-modal");
-                alert("تم إرسال طلبك بنجاح!");
+
+                // 4. عرض المودال النهائي وتفريغ السلة
+                orderConfirmModal.classList.add("active");
+                document.body.classList.add("scroll-lock");
+
                 cart = [];
                 saveCart();
                 updateCartUI();
-                window.location.href = "order-status.html";
               } catch (e) {
                 console.error("Error adding document: ", e);
                 alert("حدث خطأ أثناء إرسال الطلب.");
               }
             } else {
               alert("يرجى تسجيل الدخول قبل إرسال الطلب.");
-              window.location.href = "login.html";
             }
           });
         });
