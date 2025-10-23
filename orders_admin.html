@@ -16,7 +16,6 @@
     />
     <link rel="stylesheet" href="admin.css" />
     <style>
-      /* إضافة ستايلات الحالة التي كانت مفقودة في admin.css */
       .status-badge {
         padding: 5px 10px;
         border-radius: 5px;
@@ -104,7 +103,6 @@
         font-family: "Cairo", sans-serif;
         display: inline-block;
       }
-      /* تعديل خاص لزر القائمة المنسدلة */
       .actions-buttons {
         position: relative;
         text-align: center;
@@ -133,11 +131,31 @@
       <div class="logo">منجرة</div>
       <nav>
         <ul>
-          <li><a href="admin.html">لوحة التحكم</a></li>
-          <li><a href="orders_admin.html" class="active">إدارة الطلبات</a></li>
-          <li><a href="inventory.html">إدارة المنتجات</a></li>
-          <li><a href="raw_materials_admin.html">إدارة المواد الخام</a></li>
-          <li><a href="#" id="logout-btn">تسجيل الخروج</a></li>
+          <li>
+            <a href="admin.html"
+              ><i class="fa-solid fa-gauge-high"></i> لوحة التحكم</a
+            >
+          </li>
+          <li>
+            <a href="orders_admin.html" class="active"
+              ><i class="fa-solid fa-box-open"></i> إدارة الطلبات</a
+            >
+          </li>
+          <li>
+            <a href="inventory.html"
+              ><i class="fa-solid fa-warehouse"></i> إدارة المنتجات</a
+            >
+          </li>
+          <li>
+            <a href="raw_materials_admin.html"
+              ><i class="fa-solid fa-hammer"></i> إدارة المواد الخام</a
+            >
+          </li>
+          <li>
+            <a href="#" id="logout-btn"
+              ><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</a
+            >
+          </li>
         </ul>
       </nav>
     </header>
@@ -184,14 +202,18 @@
         <h2>تفاصيل الطلب</h2>
         <div id="modal-order-details"></div>
         <hr style="margin: 20px 0; border-color: #f0f0f0" />
-        <div class="form-group">
-          <label for="modal-status">تغيير حالة الطلب</label>
-          <select id="modal-status" name="modal-status"></select>
+
+        <div class="modal-form-grid">
+          <div class="form-group">
+            <label for="modal-status">تغيير حالة الطلب</label>
+            <select id="modal-status" name="modal-status"></select>
+          </div>
+          <div id="custom-price-field" class="form-group" style="display: none">
+            <label for="modal-price">السعر النهائي (شيكل)</label>
+            <input type="number" id="modal-price" name="modal-price" />
+          </div>
         </div>
-        <div id="custom-price-field" class="form-group" style="display: none">
-          <label for="modal-price">السعر النهائي (شيكل)</label>
-          <input type="number" id="modal-price" name="modal-price" />
-        </div>
+
         <div
           id="rejection-reason-field"
           class="form-group"
@@ -201,7 +223,9 @@
           <textarea id="rejection-reason" rows="3"></textarea>
         </div>
         <div class="btn-group">
-          <button id="save-status-btn" class="btn">حفظ</button>
+          <button id="save-status-btn" class="btn">
+            <i class="fa-solid fa-save"></i> حفظ
+          </button>
         </div>
       </div>
     </div>
@@ -215,8 +239,12 @@
           style="text-align: center; margin-bottom: 2rem"
         ></p>
         <div class="btn-group">
-          <button id="confirm-action-btn" class="btn btn-danger">تأكيد</button>
-          <button class="btn btn-secondary modal-close">إلغاء</button>
+          <button id="confirm-action-btn" class="btn btn-danger">
+            <i class="fa-solid fa-check"></i> تأكيد
+          </button>
+          <button class="btn btn-secondary modal-close">
+            <i class="fa-solid fa-times"></i> إلغاء
+          </button>
         </div>
       </div>
     </div>
@@ -412,7 +440,7 @@
         });
         tableHtml += "</tbody></table>";
         ordersTableContainer.innerHTML = tableHtml;
-        setupCheckboxes();
+        // setupCheckboxes();
       }
 
       // وظائف إحصائيات الطلبات (تم نقلها من admin.html)
@@ -586,7 +614,8 @@
               updateOrderStatus(
                 currentOrderId,
                 "مؤرشف",
-                currentOrderCollection
+                currentOrderCollection,
+                currentOrderData
               );
             }
           );
@@ -670,15 +699,19 @@
         if (!currentOrderData) return;
         let detailsHtml = `
           <div class="order-details-group">
-            <p><strong>العميل:</strong> ${currentOrderData.name || "---"}</p>
-            <p><strong>الهاتف:</strong> ${currentOrderData.phone || "---"}</p>
-            <p><strong>العنوان:</strong> ${
+            <p><strong><i class="fa-solid fa-user"></i> العميل:</strong> ${
+              currentOrderData.name || "---"
+            }</p>
+            <p><strong><i class="fa-solid fa-phone"></i> الهاتف:</strong> ${
+              currentOrderData.phone || "---"
+            }</p>
+            <p><strong><i class="fa-solid fa-location-dot"></i> العنوان:</strong> ${
               currentOrderData.address || "---"
             }</p>
-            <p><strong>التاريخ:</strong> ${new Date(
+            <p><strong><i class="fa-solid fa-calendar-alt"></i> التاريخ:</strong> ${new Date(
               currentOrderData.order_date
             ).toLocaleDateString("en-US")}</p>
-            <p><strong>الحالة:</strong> <span class="status-badge ${currentOrderData.status.replace(
+            <p><strong><i class="fa-solid fa-info-circle"></i> الحالة:</strong> <span class="status-badge ${currentOrderData.status.replace(
               /\s+/g,
               "-"
             )}">${currentOrderData.status}</span></p>
@@ -687,7 +720,7 @@
         if (currentOrderData.type === "ready") {
           detailsHtml += `
             <div class="order-details-group">
-              <p><strong>قائمة المنتجات:</strong></p>
+              <p><strong><i class="fa-solid fa-boxes-stacked"></i> قائمة المنتجات:</strong></p>
               <ul class="order-items-list">
                 ${currentOrderData.items
                   .map((item) => {
@@ -707,32 +740,30 @@
         } else {
           detailsHtml += `
             <div class="order-details-group">
-              <p><strong>وصف التصميم:</strong> ${
+              <p><strong><i class="fa-solid fa-file-lines"></i> وصف التصميم:</strong> ${
                 currentOrderData.notes || "لا يوجد"
               }</p>
-              <p><strong>النوع:</strong> ${
+              <p><strong><i class="fa-solid fa-chair"></i> النوع:</strong> ${
                 currentOrderData.type_of_product || "---"
               }</p>
-              <p><strong>الأبعاد:</strong> ${
+              <p><strong><i class="fa-solid fa-ruler-combined"></i> الأبعاد:</strong> ${
                 currentOrderData.dimensions || "---"
               }</p>
-              <p><strong>المادة:</strong> ${
+              <p><strong><i class="fa-solid fa-tree"></i> المادة:</strong> ${
                 currentOrderData.material || "---"
               }</p>
-              <p><strong>اللون:</strong> ${currentOrderData.color || "---"}</p>
-              <p><strong>الميزات الإضافية:</strong> ${
-                currentOrderData.features || "---"
+              <p><strong><i class="fa-solid fa-palette"></i> اللون:</strong> ${
+                currentOrderData.color || "---"
               }</p>
-              <p><strong>السعر المقترح:</strong> ${currentOrderData.price}</p>
               ${
                 currentOrderData.rejection_reason
-                  ? `<p style="color:red;"><strong>سبب الرفض:</strong> ${currentOrderData.rejection_reason}</p>`
+                  ? `<p style="color:red;"><strong><i class="fa-solid fa-ban"></i> سبب الرفض:</strong> ${currentOrderData.rejection_reason}</p>`
                   : ""
               }
               ${
                 currentOrderData.final_price
-                  ? `<p style="color:green;"><strong>السعر النهائي:</strong> ${currentOrderData.final_price} شيكل</p>`
-                  : ""
+                  ? `<p style="color:green;"><strong><i class="fa-solid fa-hand-holding-dollar"></i> السعر النهائي:</strong> ${currentOrderData.final_price} شيكل</p>`
+                  : `<p><strong><i class="fa-solid fa-tag"></i> السعر المقترح:</strong> ${currentOrderData.price}</p>`
               }
             </div>
           `;
@@ -791,6 +822,25 @@
             : "none";
       });
 
+      // ... (دالة updateOrderStatus و saveStatusBtn.addEventListener) ...
+
+      async function updateOrderStatus(
+        orderId,
+        newStatus,
+        collectionName,
+        orderData
+      ) {
+        try {
+          const orderRef = doc(db, collectionName, orderId);
+          await updateDoc(orderRef, { status: newStatus });
+          // sendUpdateEmail(orderData, newStatus); // إذا كنت قد أضفت دالة الإيميل
+          fetchAndRenderOrders();
+        } catch (e) {
+          console.error("Error updating document: ", e);
+          alert("حدث خطأ في تحديث حالة الطلب.");
+        }
+      }
+
       saveStatusBtn.addEventListener("click", async () => {
         const newStatus = modalStatusSelect.value;
         const finalPrice = modalPriceInput.value
@@ -814,28 +864,26 @@
           return;
         }
 
-        try {
-          const orderRef = doc(db, currentOrderCollection, currentOrderId);
-          const updateData = { status: newStatus };
-          if (currentOrderData.type === "custom") {
-            if (newStatus === "مقبول") {
-              updateData.final_price = finalPrice;
-              updateData.rejection_reason = null;
-            } else if (
-              newStatus === "تم الرفض" ||
-              newStatus === "مرفوض-العميل"
-            ) {
-              updateData.rejection_reason = rejectionReason;
-              updateData.final_price = currentOrderData.final_price || null;
-            } else {
-              updateData.final_price = currentOrderData.final_price;
-              updateData.rejection_reason = null;
-            }
+        let updateData = { status: newStatus };
+        if (currentOrderData.type === "custom") {
+          if (newStatus === "مقبول") {
+            updateData.final_price = finalPrice;
+            updateData.rejection_reason = null;
           } else if (newStatus === "تم الرفض" || newStatus === "مرفوض-العميل") {
             updateData.rejection_reason = rejectionReason;
+            updateData.final_price = currentOrderData.final_price || null;
+          } else {
+            updateData.final_price = currentOrderData.final_price;
+            updateData.rejection_reason = null;
           }
+        } else if (newStatus === "تم الرفض" || newStatus === "مرفوض-العميل") {
+          updateData.rejection_reason = rejectionReason;
+        }
 
+        try {
+          const orderRef = doc(db, currentOrderCollection, currentOrderId);
           await updateDoc(orderRef, updateData);
+
           closeModal("order-details-modal");
           fetchAndRenderOrders();
         } catch (e) {
@@ -843,25 +891,7 @@
           alert("حدث خطأ أثناء تحديث حالة الطلب.");
         }
       });
-      async function updateOrderStatus(orderId, newStatus, collectionName) {
-        try {
-          const orderRef = doc(db, collectionName, orderId);
-          await updateDoc(orderRef, { status: newStatus });
-          fetchAndRenderOrders();
-        } catch (e) {
-          console.error("Error updating document: ", e);
-          alert("حدث خطأ في تحديث حالة الطلب.");
-        }
-      }
-      async function deleteOrder(orderId, collectionName) {
-        try {
-          await deleteDoc(doc(db, collectionName, orderId));
-          fetchAndRenderOrders();
-        } catch (e) {
-          console.error("Error deleting document: ", e);
-          alert("حدث خطأ أثناء حذف الطلب.");
-        }
-      }
+      // ... (بقية الدوال) ...
     </script>
   </body>
 </html>

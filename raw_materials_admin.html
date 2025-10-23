@@ -16,12 +16,66 @@
     />
     <link rel="stylesheet" href="admin.css" />
     <style>
-      /* تصميم خاص للجدول ليتناسب مع المواد الخام */
       .materials-table th,
       .materials-table td {
         white-space: nowrap;
       }
-      /* (باقي الستايلات الخاصة بالجدول موجودة في admin.css الآن) */
+      .inventory-alert {
+        color: var(--danger-color);
+        font-weight: 700;
+      }
+      .inventory-ok {
+        color: var(--success-color);
+        font-weight: 700;
+      }
+      .inventory-warning {
+        color: var(--warning-color);
+        font-weight: 700;
+      }
+      .purchase-controls {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-start;
+        margin-bottom: 20px;
+      }
+      .purchase-controls .btn {
+        padding: 10px 15px;
+        font-size: 0.9rem;
+      }
+      /* تحسينات التصميم في مودال الشراء */
+      .stock-form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      .cost-review-box {
+        background-color: var(--light-color);
+        border: 1px solid var(--border-color);
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 15px;
+        grid-column: 1 / -1;
+      }
+      .cost-review-box p {
+        margin-bottom: 5px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--dark-color);
+      }
+      .cost-review-box p span {
+        color: var(--primary-color);
+        font-size: 1rem;
+        margin-left: 10px;
+      }
+      .correction-note {
+        color: var(--warning-color);
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+      }
+      .operation-select {
+        font-weight: 600;
+        border: 1px solid var(--primary-color);
+      }
     </style>
   </head>
   <body>
@@ -29,26 +83,45 @@
       <div class="logo">منجرة</div>
       <nav>
         <ul>
-          <li><a href="admin.html">لوحة التحكم</a></li>
-          <li><a href="orders_admin.html">إدارة الطلبات</a></li>
-          <li><a href="inventory.html">إدارة المنتجات</a></li>
           <li>
-            <a href="raw_materials_admin.html" class="active"
-              >إدارة المواد الخام</a
+            <a href="admin.html"
+              ><i class="fa-solid fa-gauge-high"></i> لوحة التحكم</a
             >
           </li>
-          <li><a href="#" id="logout-btn">تسجيل الخروج</a></li>
+          <li>
+            <a href="orders_admin.html"
+              ><i class="fa-solid fa-box-open"></i> إدارة الطلبات</a
+            >
+          </li>
+          <li>
+            <a href="inventory.html"
+              ><i class="fa-solid fa-warehouse"></i> إدارة المنتجات</a
+            >
+          </li>
+          <li>
+            <a href="raw_materials_admin.html" class="active"
+              ><i class="fa-solid fa-hammer"></i> إدارة المواد الخام</a
+            >
+          </li>
+          <li>
+            <a href="#" id="logout-btn"
+              ><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</a
+            >
+          </li>
         </ul>
       </nav>
     </header>
 
     <div class="main-content container-fluid">
-      <h1>إدارة المواد الخام</h1>
+      <h1>إدارة المواد الخام والمخزون</h1>
 
       <div class="inventory-section admin-panel">
-        <div class="section-header">
+        <div class="purchase-controls">
           <button class="btn" id="add-material-btn">
-            <i class="fa-solid fa-plus"></i> إضافة مادة خام جديدة
+            <i class="fa-solid fa-plus"></i> تعريف مادة جديدة
+          </button>
+          <button class="btn btn-secondary" id="add-stock-btn">
+            <i class="fa-solid fa-cubes-stacked"></i> إدارة كمية / تكلفة
           </button>
         </div>
         <div id="materials-table-container">
@@ -60,65 +133,110 @@
     <div id="material-modal" class="modal-overlay">
       <div class="modal-content">
         <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
-        <h2 id="modal-title"></h2>
+        <h2 id="modal-title">تعريف مادة خام جديدة</h2>
         <form id="material-form">
           <input type="hidden" id="material-id" />
+
           <div class="form-group">
             <label for="material-name">اسم المادة (عربي)</label>
             <input type="text" id="material-name" required />
           </div>
-          <div class="form-group">
-            <label for="material-type">النوع</label>
-            <select id="material-type" required>
-              <option value="خشب">خشب</option>
-              <option value="طلاء">طلاء / ورنيش</option>
-              <option value="قماش">قماش / تنجيد</option>
-              <option value="معدن">معدن / فولاذ</option>
-              <option value="مادة ربط">مادة ربط (براغي، غراء)</option>
-              <option value="أخرى">أخرى</option>
-            </select>
+
+          <div class="modal-form-grid">
+            <div class="form-group">
+              <label for="material-type">النوع</label>
+              <select id="material-type" required>
+                <option value="خشب">خشب</option>
+                <option value="طلاء">طلاء / ورنيش</option>
+                <option value="قماش">قماش / تنجيد</option>
+                <option value="معدن">معدن / فولاذ</option>
+                <option value="مادة ربط">مادة ربط (براغي، غراء)</option>
+                <option value="أخرى">أخرى</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="material-unit">وحدة القياس</label>
+              <input type="text" id="material-unit" required />
+            </div>
           </div>
+
           <div class="form-group">
-            <label for="material-unit"
-              >وحدة القياس (مثل: متر مكعب، قطعة، لتر، متر)</label
-            >
-            <input type="text" id="material-unit" required />
-          </div>
-          <div class="form-group">
-            <label for="material-cost">تكلفة الوحدة (شيكل)</label>
-            <input
-              type="number"
-              id="material-cost"
-              min="0.01"
-              step="0.01"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="material-stock">الكمية المتوفرة حالياً</label>
-            <input
-              type="number"
-              id="material-stock"
-              min="0"
-              step="any"
-              required
-            />
-          </div>
-          <div class="form-group">
-            <label for="material-reorder"
-              >نقطة إعادة الطلب (تنبيه عند الوصول لهذا الرقم)</label
-            >
+            <label for="material-reorder">نقطة إعادة الطلب</label>
             <input
               type="number"
               id="material-reorder"
               min="0"
               step="any"
+              value="0"
               required
             />
           </div>
+
           <div class="btn-group">
             <button type="submit" class="btn" id="save-material-btn">
-              حفظ
+              <i class="fa-solid fa-save"></i> حفظ تعريف المادة
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="stock-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
+        <h2>تسجيل عملية شراء/تصحيح للمخزون</h2>
+        <form id="stock-form">
+          <div class="form-group">
+            <label for="stock-material-select">اختر المادة الخام</label>
+            <select id="stock-material-select" required>
+              <option value="">-- اختر مادة --</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="stock-operation">نوع العملية</label>
+            <select id="stock-operation" class="operation-select" required>
+              <option value="purchase">شراء جديد / إضافة</option>
+              <option value="correction">تصحيح (إضافة أو طرح كمية/قيمة)</option>
+            </select>
+          </div>
+          <p class="correction-note" id="correction-tip">
+            * عند اختيار "تصحيح"، يمكنك إدخال قيم سالبة لتخفيض الكمية أو
+            التكلفة.
+          </p>
+
+          <div class="stock-form-grid">
+            <div class="form-group">
+              <label for="stock-quantity"
+                ><span id="qty-label">الكمية المشتراة</span></label
+              >
+              <input type="number" id="stock-quantity" step="any" required />
+            </div>
+            <div class="form-group">
+              <label for="stock-total-cost"
+                ><span id="cost-label"
+                  >التكلفة الإجمالية للشراء (شيكل)</span
+                ></label
+              >
+              <input type="number" id="stock-total-cost" step="0.01" required />
+            </div>
+          </div>
+
+          <div class="cost-review-box">
+            <p>المخزون الحالي: <span id="current-stock-value">---</span></p>
+            <p>
+              متوسط التكلفة الحالي للوحدة:
+              <span id="current-unit-cost">---</span>
+            </p>
+            <p>
+              القيمة الإجمالية للمخزون:
+              <span id="current-total-value">---</span>
+            </p>
+          </div>
+
+          <div class="btn-group">
+            <button type="submit" class="btn">
+              <i class="fa-solid fa-check"></i> تأكيد العملية
             </button>
           </div>
         </form>
@@ -135,7 +253,7 @@
         ></p>
         <div class="btn-group">
           <button id="confirm-action-btn" class="btn btn-danger">تأكيد</button>
-          <button class="btn btn-secondary modal-close">x</button>
+          <button class="btn btn-secondary modal-close">إلغاء</button>
         </div>
       </div>
     </div>
@@ -150,6 +268,7 @@
         setDoc,
         deleteDoc,
         getDoc,
+        updateDoc,
       } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
       import {
         getAuth,
@@ -171,7 +290,40 @@
       const db = getFirestore(app);
       const auth = getAuth(app);
 
-      // الدوال المساعدة لفتح وإغلاق المودال مع تحسينات التمرير
+      // عناصر الواجهة
+      const materialsTableContainer = document.getElementById(
+        "materials-table-container"
+      );
+      const materialModal = document.getElementById("material-modal");
+      const stockModal = document.getElementById("stock-modal");
+      const materialForm = document.getElementById("material-form");
+      const stockForm = document.getElementById("stock-form");
+      const materialIdInput = document.getElementById("material-id");
+      const stockMaterialSelect = document.getElementById(
+        "stock-material-select"
+      );
+      const stockOperationSelect = document.getElementById("stock-operation");
+      const currentUnitCostDisplay =
+        document.getElementById("current-unit-cost");
+      const currentTotalValueDisplay = document.getElementById(
+        "current-total-value"
+      );
+      const currentStockValueDisplay = document.getElementById(
+        "current-stock-value"
+      );
+      const stockQuantityInput = document.getElementById("stock-quantity");
+      const stockTotalCostInput = document.getElementById("stock-total-cost");
+      const qtyLabel = document.getElementById("qty-label");
+      const costLabel = document.getElementById("cost-label");
+      const correctionTip = document.getElementById("correction-tip");
+      const confirmActionBtn = document.getElementById("confirm-action-btn");
+      const logoutBtn = document.getElementById("logout-btn");
+
+      let allRawMaterials = [];
+
+      // ------------------------------------
+      // دوال مساعدة للمودال
+      // ------------------------------------
       function openModal(modalId) {
         document.getElementById(modalId).classList.add("active");
         document.body.classList.add("scroll-lock");
@@ -180,7 +332,6 @@
         document.getElementById(modalId).classList.remove("active");
         document.body.classList.remove("scroll-lock");
       }
-      // إغلاق المودال بالنقر خارجها
       document.querySelectorAll(".modal-overlay").forEach((modal) => {
         modal.addEventListener("click", (e) => {
           if (e.target.classList.contains("modal-overlay")) {
@@ -198,17 +349,6 @@
         }
       });
 
-      // عناصر الواجهة
-      const materialsTableContainer = document.getElementById(
-        "materials-table-container"
-      );
-      const materialForm = document.getElementById("material-form");
-      const materialIdInput = document.getElementById("material-id");
-      const confirmActionBtn = document.getElementById("confirm-action-btn");
-      const modalTitleEl = document.getElementById("modal-title");
-
-      let allRawMaterials = [];
-
       // التحقق من صلاحيات المدير
       onAuthStateChanged(auth, async (user) => {
         if (user) {
@@ -224,14 +364,15 @@
         }
       });
 
-      document
-        .getElementById("logout-btn")
-        .addEventListener("click", async (e) => {
-          e.preventDefault();
-          await signOut(auth);
-          window.location.href = "login.html";
-        });
+      logoutBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        await signOut(auth);
+        window.location.href = "login.html";
+      });
 
+      // ------------------------------------
+      // وظائف جلب وعرض البيانات
+      // ------------------------------------
       async function fetchAndRenderRawMaterials() {
         materialsTableContainer.innerHTML =
           '<p class="loading-msg">جارٍ تحميل المواد الخام...</p>';
@@ -240,12 +381,15 @@
           allRawMaterials = snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
+            // تعيين قيم افتراضية لضمان أن تكون الأرقام جاهزة للحساب
             cost_per_unit: parseFloat(doc.data().cost_per_unit || 0),
             current_stock: parseFloat(doc.data().current_stock || 0),
+            total_cost_value: parseFloat(doc.data().total_cost_value || 0), // القيمة الإجمالية للمخزون
             reorder_point: parseFloat(doc.data().reorder_point || 0),
           }));
 
           renderMaterialsTable(allRawMaterials);
+          fillStockSelect(allRawMaterials);
         } catch (e) {
           console.error("Error fetching raw materials: ", e);
           materialsTableContainer.innerHTML =
@@ -267,10 +411,11 @@
                 <th>اسم المادة</th>
                 <th>النوع</th>
                 <th>وحدة القياس</th>
-                <th>التكلفة (شيكل)</th>
+                <th>متوسط تكلفة الوحدة (شيكل)</th>
                 <th>الكمية المتوفرة</th>
-                <th>إعادة الطلب</th>
+                <th>نقطة إعادة الطلب</th>
                 <th>الحالة</th>
+                <th>تاريخ آخر تحديث</th>
                 <th>الإجراءات</th>
               </tr>
             </thead>
@@ -280,13 +425,18 @@
           const stock = material.current_stock;
           const reorder = material.reorder_point;
           let statusHtml = "";
+          let lastUpdate = material.last_update
+            ? new Date(material.last_update).toLocaleDateString()
+            : "---";
 
-          if (stock <= reorder) {
-            statusHtml = `<span class="inventory-alert"> يجب إعادة الطلب</span>`;
+          if (stock <= 0 && reorder > 0) {
+            statusHtml = `<span class="inventory-alert">🔴 نفذ المخزون</span>`;
+          } else if (stock <= reorder) {
+            statusHtml = `<span class="inventory-alert">🔴 يجب إعادة الطلب</span>`;
           } else if (stock < reorder * 2) {
-            statusHtml = `<span class="inventory-warning"> مخزون منخفض</span>`;
+            statusHtml = `<span class="inventory-warning">🟠 مخزون منخفض</span>`;
           } else {
-            statusHtml = `<span class="inventory-ok"> متوفر</span>`;
+            statusHtml = `<span class="inventory-ok">🟢 متوفر</span>`;
           }
 
           tableHtml += `
@@ -298,13 +448,14 @@
               <td>${stock.toFixed(2)}</td>
               <td>${reorder.toFixed(2)}</td>
               <td>${statusHtml}</td>
+              <td>${lastUpdate}</td>
               <td class="actions-buttons">
                 <button class="btn btn-secondary btn-sm edit-material-btn" data-id="${
                   material.id
-                }">تعديل</button>
+                }"><i class="fa-solid fa-pencil"></i> تعديل الوصف</button>
                 <button class="btn btn-danger btn-sm delete-material-btn" data-id="${
                   material.id
-                }">حذف</button>
+                }"><i class="fa-solid fa-trash"></i> حذف</button>
               </td>
             </tr>
           `;
@@ -313,36 +464,108 @@
         materialsTableContainer.innerHTML = tableHtml;
       }
 
+      function fillStockSelect(materials) {
+        stockMaterialSelect.innerHTML =
+          '<option value="">-- اختر مادة --</option>';
+        materials.forEach((m) => {
+          const option = document.createElement("option");
+          option.value = m.id;
+          option.textContent = `${m.name_ar} (الوحدة: ${m.unit || "---"})`;
+          stockMaterialSelect.appendChild(option);
+        });
+      }
+
+      // ------------------------------------
+      // معالجات أحداث المودالات
+      // ------------------------------------
+
+      // فتح مودال تعريف مادة جديدة
       document
         .getElementById("add-material-btn")
         .addEventListener("click", () => {
-          modalTitleEl.textContent = "إضافة مادة خام جديدة";
+          document.getElementById("modal-title").textContent =
+            "تعريف مادة خام جديدة";
           materialIdInput.value = "";
           materialForm.reset();
           openModal("material-modal");
         });
 
+      // فتح مودال إدارة كمية الشراء
+      document.getElementById("add-stock-btn").addEventListener("click", () => {
+        stockForm.reset();
+        stockOperationSelect.value = "purchase";
+        stockOperationSelect.dispatchEvent(new Event("change"));
+        openModal("stock-modal");
+      });
+
+      // تحديث واجهة مودال الشراء عند تغيير العملية
+      stockOperationSelect.addEventListener("change", () => {
+        const isCorrection = stockOperationSelect.value === "correction";
+
+        // تحديث النصائح والحدود الدنيا
+        correctionTip.style.display = isCorrection ? "block" : "none";
+        stockQuantityInput.type = isCorrection ? "number" : "number"; // للحفاظ على النوع
+        stockTotalCostInput.type = isCorrection ? "number" : "number";
+        stockQuantityInput.min = isCorrection ? "" : "0.01";
+        stockTotalCostInput.min = isCorrection ? "" : "0.01";
+        stockQuantityInput.required = true;
+        stockTotalCostInput.required = true;
+
+        // تحديث التسميات
+        qtyLabel.textContent = isCorrection
+          ? "الكمية المراد إضافتها/طرحها"
+          : "الكمية المشتراة";
+        costLabel.textContent = isCorrection
+          ? "القيمة المراد إضافتها/طرحها (شيكل)"
+          : "التكلفة الإجمالية للشراء (شيكل)";
+
+        // تحديث معلومات المراجعة
+        stockMaterialSelect.dispatchEvent(new Event("change"));
+      });
+
+      // عرض سعر الوحدة الحالي في مودال الشراء
+      stockMaterialSelect.addEventListener("change", () => {
+        const selectedId = stockMaterialSelect.value;
+
+        if (selectedId) {
+          const material = allRawMaterials.find((m) => m.id === selectedId);
+          if (material) {
+            currentStockValueDisplay.textContent = `${material.current_stock.toFixed(
+              2
+            )} ${material.unit}`;
+            currentUnitCostDisplay.textContent = `${material.cost_per_unit.toFixed(
+              2
+            )} شيكل/${material.unit}`;
+            currentTotalValueDisplay.textContent = `${material.total_cost_value.toFixed(
+              2
+            )} شيكل`;
+          }
+        } else {
+          currentStockValueDisplay.textContent = "---";
+          currentUnitCostDisplay.textContent = "---";
+          currentTotalValueDisplay.textContent = "---";
+        }
+      });
+
+      // تعديل الوصف / حذف مادة
       materialsTableContainer.addEventListener("click", (e) => {
-        if (e.target.classList.contains("edit-material-btn")) {
-          const id = e.target.dataset.id;
+        if (e.target.closest(".edit-material-btn")) {
+          const id = e.target.closest(".edit-material-btn").dataset.id;
           const material = allRawMaterials.find((m) => m.id === id);
           if (material) {
-            modalTitleEl.textContent = "تعديل مادة خام";
+            document.getElementById("modal-title").textContent =
+              "تعديل وصف المادة";
             materialIdInput.value = id;
             document.getElementById("material-name").value = material.name_ar;
             document.getElementById("material-type").value = material.type;
             document.getElementById("material-unit").value =
               material.unit || "";
-            document.getElementById("material-cost").value =
-              material.cost_per_unit;
-            document.getElementById("material-stock").value =
-              material.current_stock;
             document.getElementById("material-reorder").value =
               material.reorder_point;
             openModal("material-modal");
           }
-        } else if (e.target.classList.contains("delete-material-btn")) {
-          const id = e.target.dataset.id;
+        } else if (e.target.closest(".delete-material-btn")) {
+          const id = e.target.closest(".delete-material-btn").dataset.id;
           showConfirmationModal(
             "حذف مادة خام",
             "هل أنت متأكد من حذف هذه المادة الخام نهائياً؟",
@@ -351,38 +574,134 @@
         }
       });
 
+      // ------------------------------------
+      // وظائف حفظ البيانات
+      // ------------------------------------
+
+      // حفظ (تعريف/تعديل) مادة خام
       materialForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const isNew = !materialIdInput.value;
-        const id = isNew
-          ? doc(collection(db, "raw_materials")).id
-          : materialIdInput.value;
+        const id =
+          materialIdInput.value || doc(collection(db, "raw_materials")).id;
+        const isUpdate = !!materialIdInput.value;
 
-        const materialData = {
+        let materialData = {
           name_ar: document.getElementById("material-name").value,
           type: document.getElementById("material-type").value,
           unit: document.getElementById("material-unit").value,
-          cost_per_unit: parseFloat(
-            document.getElementById("material-cost").value
-          ),
-          current_stock: parseFloat(
-            document.getElementById("material-stock").value
-          ),
           reorder_point: parseFloat(
             document.getElementById("material-reorder").value
           ),
           last_update: new Date().toISOString(),
         };
 
+        if (isUpdate) {
+          const existingMaterial = allRawMaterials.find((m) => m.id === id);
+          if (existingMaterial) {
+            materialData.current_stock = existingMaterial.current_stock;
+            materialData.cost_per_unit = existingMaterial.cost_per_unit;
+            materialData.total_cost_value = existingMaterial.total_cost_value;
+          }
+        } else {
+          materialData.current_stock = 0;
+          materialData.cost_per_unit = 0;
+          materialData.total_cost_value = 0;
+        }
+
         try {
-          await setDoc(doc(db, "raw_materials", id), materialData);
+          await setDoc(doc(db, "raw_materials", id), materialData, {
+            merge: true,
+          });
           closeModal("material-modal");
           fetchAndRenderRawMaterials();
-          alert(`تم ${isNew ? "إضافة" : "تحديث"} المادة الخام بنجاح.`);
+          alert(`تم ${isUpdate ? "تعديل وصف" : "تعريف"} المادة الخام بنجاح.`);
         } catch (error) {
           console.error("Error saving material: ", error);
           alert("حدث خطأ أثناء حفظ المادة الخام.");
+        }
+      });
+
+      // حفظ إدارة كمية شراء جديدة (Stock Purchase/Correction)
+      stockForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const materialId = stockMaterialSelect.value;
+        const inputQuantity = parseFloat(stockQuantityInput.value);
+        const inputTotalCost = parseFloat(stockTotalCostInput.value);
+        const operationType = stockOperationSelect.value;
+
+        const material = allRawMaterials.find((m) => m.id === materialId);
+
+        if (!material || (inputQuantity === 0 && inputTotalCost === 0)) {
+          alert("الرجاء إدخال قيمة في حقل الكمية أو التكلفة (أو كليهما).");
+          return;
+        }
+
+        let currentStock = material.current_stock;
+        let currentTotalCostValue = material.total_cost_value;
+        let newTotalStock, newTotalCostValue, newAverageCostPerUnit;
+
+        if (operationType === "purchase") {
+          if (inputQuantity <= 0 || inputTotalCost <= 0) {
+            alert(
+              "في عملية 'الشراء الجديد'، يجب أن تكون الكمية والتكلفة موجبة وأكبر من الصفر."
+            );
+            return;
+          }
+
+          newTotalCostValue = currentTotalCostValue + inputTotalCost;
+          newTotalStock = currentStock + inputQuantity;
+        } else if (operationType === "correction") {
+          // التصحيح: نضيف القيمة المُدخلة (قد تكون سالبة)
+          newTotalStock = currentStock + inputQuantity;
+          newTotalCostValue = currentTotalCostValue + inputTotalCost;
+
+          if (newTotalStock < 0) {
+            alert(
+              "❌ فشل: الكمية النهائية للمخزون لا يمكن أن تكون سالبة. (المخزون الحالي: " +
+                currentStock.toFixed(2) +
+                ")"
+            );
+            return;
+          }
+          if (newTotalCostValue < 0 && newTotalStock > 0) {
+            alert(
+              "❌ فشل: القيمة الإجمالية للمخزون لا يمكن أن تكون سالبة عندما يكون هناك مخزون فعلي."
+            );
+            return;
+          }
+        }
+
+        // إعادة حساب متوسط التكلفة (Average Costing Method)
+        if (newTotalStock > 0) {
+          newAverageCostPerUnit = newTotalCostValue / newTotalStock;
+        } else {
+          // إذا أصبح المخزون 0، فمتوسط التكلفة يصبح 0
+          newAverageCostPerUnit = 0;
+          newTotalCostValue = 0; // لضمان دقة النظام
+        }
+
+        try {
+          await updateDoc(doc(db, "raw_materials", materialId), {
+            current_stock: newTotalStock,
+            total_cost_value: newTotalCostValue,
+            cost_per_unit: newAverageCostPerUnit,
+            last_update: new Date().toISOString(),
+          });
+
+          closeModal("stock-modal");
+          fetchAndRenderRawMaterials();
+          alert(
+            `✅ تم تسجيل العملية بنجاح. الكمية الجديدة: ${newTotalStock.toFixed(
+              2
+            )}. متوسط التكلفة الجديدة: ${newAverageCostPerUnit.toFixed(
+              2
+            )} شيكل.`
+          );
+        } catch (error) {
+          console.error("Error updating stock:", error);
+          alert("حدث خطأ أثناء تحديث المخزون.");
         }
       });
 

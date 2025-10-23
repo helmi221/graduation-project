@@ -18,30 +18,12 @@
     <style>
       .product-status-available {
         color: var(--success-color);
-        font-weight: bold;
+        font-weight: 700;
       }
       .product-status-unavailable {
         color: var(--danger-color);
-        font-weight: bold;
+        font-weight: 700;
       }
-
-      /* تنسيق خاص لربط المواد */
-      #add-material-controls {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-        margin-bottom: 15px;
-      }
-
-      #materials-select-simple {
-        flex-grow: 1;
-        padding: 10px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        font-family: "Cairo", sans-serif;
-      }
-
-      /* Required Materials Table - (ستايلاتها مدمجة في admin.css) */
     </style>
   </head>
   <body>
@@ -49,15 +31,31 @@
       <div class="logo">منجرة</div>
       <nav>
         <ul>
-          <li><a href="admin.html">لوحة التحكم</a></li>
-          <li><a href="orders_admin.html">إدارة الطلبات</a></li>
           <li>
-            <a href="inventory.html" class="active">إدارة المنتجات</a>
+            <a href="admin.html"
+              ><i class="fa-solid fa-gauge-high"></i> لوحة التحكم</a
+            >
           </li>
           <li>
-            <a href="raw_materials_admin.html">إدارة المواد الخام</a>
+            <a href="orders_admin.html"
+              ><i class="fa-solid fa-box-open"></i> إدارة الطلبات</a
+            >
           </li>
-          <li><a href="#" id="logout-btn">تسجيل الخروج</a></li>
+          <li>
+            <a href="inventory.html" class="active"
+              ><i class="fa-solid fa-warehouse"></i> إدارة المنتجات</a
+            >
+          </li>
+          <li>
+            <a href="raw_materials_admin.html"
+              ><i class="fa-solid fa-hammer"></i> إدارة المواد الخام</a
+            >
+          </li>
+          <li>
+            <a href="#" id="logout-btn"
+              ><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</a
+            >
+          </li>
         </ul>
       </nav>
     </header>
@@ -83,47 +81,56 @@
         <h2 id="product-modal-title"></h2>
         <form id="product-form">
           <input type="hidden" id="product-id" />
+
           <div class="form-group">
             <label for="product-name">اسم المنتج</label>
             <input type="text" id="product-name" required />
           </div>
-          <div class="form-group">
-            <label for="product-category">الفئة</label>
-            <select id="product-category" required></select>
+
+          <div class="modal-form-grid">
+            <div class="form-group">
+              <label for="product-category">الفئة</label>
+              <select id="product-category" required></select>
+            </div>
+            <div class="form-group">
+              <label for="product-price">السعر (شيكل)</label>
+              <input
+                type="number"
+                id="product-price"
+                min="1"
+                step="0.01"
+                required
+              />
+            </div>
           </div>
-          <div class="form-group">
-            <label for="product-price">السعر (شيكل)</label>
-            <input
-              type="number"
-              id="product-price"
-              min="1"
-              step="0.01"
-              required
-            />
-          </div>
+
           <div class="form-group">
             <label for="product-description">الوصف</label>
             <textarea id="product-description" rows="3"></textarea>
           </div>
-          <div class="form-group">
-            <label for="product-specs">المواصفات وخيارات الألوان</label>
-            <input
-              type="text"
-              id="product-specs"
-              placeholder="مثال: خيارات الألوان: بني غامق، أبيض"
-            />
-          </div>
-          <div class="form-group">
-            <label for="product-is-available">الحالة</label>
-            <select id="product-is-available" required>
-              <option value="true">متوفر</option>
-              <option value="false">غير متوفر</option>
-            </select>
+
+          <div class="modal-form-grid">
+            <div class="form-group">
+              <label for="product-is-available">الحالة</label>
+              <select id="product-is-available" required>
+                <option value="true">متوفر</option>
+                <option value="false">غير متوفر</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="product-specs">المواصفات وخيارات الألوان</label>
+              <input
+                type="text"
+                id="product-specs"
+                placeholder="مثال: بني غامق، أبيض"
+              />
+            </div>
           </div>
 
-          <h3>ربط المواد الخام اللازمة</h3>
+          <h3><i class="fa-solid fa-gears"></i> ربط المواد الخام اللازمة</h3>
           <p style="font-size: 0.9rem; color: #777; margin-bottom: 15px">
-            اختر المادة ثم اضغط "إضافة" لتعيين الكمية المطلوبة.
+            اختر المادة ثم اضغط "إضافة" لتعيين الكمية المطلوبة لتصنيع قطعة
+            واحدة.
           </p>
 
           <div id="add-material-controls">
@@ -159,7 +166,7 @@
 
           <div class="btn-group">
             <button type="submit" class="btn" id="save-product-btn">
-              حفظ المنتج
+              <i class="fa-solid fa-save"></i> حفظ المنتج
             </button>
           </div>
         </form>
@@ -214,7 +221,7 @@
       const db = getFirestore(app);
       const auth = getAuth(app);
 
-      // الدوال المساعدة لفتح وإغلاق المودال مع تحسينات التمرير
+      // الدوال المساعدة لفتح وإغلاق المودال
       function openModal(modalId) {
         document.getElementById(modalId).classList.add("active");
         document.body.classList.add("scroll-lock");
@@ -223,7 +230,6 @@
         document.getElementById(modalId).classList.remove("active");
         document.body.classList.remove("scroll-lock");
       }
-      // إغلاق المودال بالنقر خارجها
       document.querySelectorAll(".modal-overlay").forEach((modal) => {
         modal.addEventListener("click", (e) => {
           if (e.target.classList.contains("modal-overlay")) {
@@ -312,31 +318,18 @@
             ...doc.data(),
             unit: doc.data().unit || "---",
           }));
-
-          // ملء قائمة المواد الخام البسيطة
-          materialsSelectSimple.innerHTML =
-            '<option value="">-- اختر مادة خام --</option>' +
-            allRawMaterials
-              .map(
-                (m) =>
-                  `<option value="${m.id}" data-unit="${m.unit}">${m.name_ar} (${m.unit})</option>`
-              )
-              .join("");
         } catch (e) {
           console.error("Error fetching raw materials: ", e);
         }
       }
 
       // --------------------------------------------------------
-      // *** المنطق الجديد لإدارة المواد الخام داخل المودال ***
+      // المنطق الجديد لإدارة المواد الخام داخل المودال
       // --------------------------------------------------------
-
-      // تفعيل زر الإضافة عند اختيار مادة
       materialsSelectSimple.addEventListener("change", () => {
         addMaterialRowBtn.disabled = !materialsSelectSimple.value;
       });
 
-      // إضافة صف جديد عند النقر على زر "إضافة"
       addMaterialRowBtn.addEventListener("click", () => {
         const materialId = materialsSelectSimple.value;
         if (!materialId) return;
@@ -344,17 +337,15 @@
         const material = allRawMaterials.find((m) => m.id === materialId);
         if (material) {
           addMaterialRow(material, 1);
-          // إخفاء المادة المضافة من القائمة
           materialsSelectSimple.querySelector(
             `option[value="${materialId}"]`
           ).style.display = "none";
-          materialsSelectSimple.value = ""; // إعادة تعيين القائمة
+          materialsSelectSimple.value = "";
           addMaterialRowBtn.disabled = true;
         }
       });
 
       function addMaterialRow(material, quantity = 1) {
-        // التحقق للتأكد من عدم تكرار المادة في الجدول
         if (
           requiredMaterialsTableBody.querySelector(
             `tr[data-id="${material.id}"]`
@@ -372,19 +363,21 @@
                 <input type="number" class="required-quantity" min="0.001" step="any" value="${quantity}" required />
             </td>
             <td>
-                <button type="button" class="btn btn-danger btn-sm remove-material-btn" data-id="${material.id}">حذف</button>
+                <button type="button" class="btn btn-danger btn-sm remove-material-btn" data-id="${material.id}"><i class="fa-solid fa-trash"></i></button>
             </td>
         `;
         requiredMaterialsTableBody.appendChild(row);
       }
 
-      // تفعيل زر الحذف في الجدول وإعادة المادة للقائمة
       requiredMaterialsTableBody.addEventListener("click", (e) => {
-        if (e.target.classList.contains("remove-material-btn")) {
-          const row = e.target.closest("tr");
+        if (
+          e.target.classList.contains("remove-material-btn") ||
+          e.target.closest(".remove-material-btn")
+        ) {
+          const button = e.target.closest(".remove-material-btn");
+          const row = button.closest("tr");
           const materialId = row.dataset.id;
 
-          // إعادة إظهار المادة في القائمة المنسدلة
           const option = materialsSelectSimple.querySelector(
             `option[value="${materialId}"]`
           );
@@ -394,8 +387,6 @@
           row.remove();
         }
       });
-      // --------------------------------------------------------
-      // *** نهاية المنطق الجديد ***
       // --------------------------------------------------------
 
       async function fetchAndRenderProducts() {
@@ -429,12 +420,12 @@
           <table class="orders-table">
             <thead>
               <tr>
-                <th>الـ ID</th>
-                <th>اسم المنتج</th>
-                <th>الفئة</th>
-                <th>السعر (شيكل)</th>
-                <th>الحالة</th>
-                <th>الإجراءات</th>
+                <th><i class="fa-solid fa-tag"></i> الـ ID</th>
+                <th><i class="fa-solid fa-chair"></i> اسم المنتج</th>
+                <th><i class="fa-solid fa-list-ul"></i> الفئة</th>
+                <th><i class="fa-solid fa-money-bill"></i> السعر (شيكل)</th>
+                <th><i class="fa-solid fa-info-circle"></i> الحالة</th>
+                <th><i class="fa-solid fa-tools"></i> الإجراءات</th>
               </tr>
             </thead>
             <tbody>
@@ -455,10 +446,10 @@
               <td class="actions-buttons">
                 <button class="btn btn-secondary btn-sm edit-product-btn" data-id="${
                   product.id
-                }">تعديل</button>
+                }"><i class="fa-solid fa-pencil"></i> تعديل</button>
                 <button class="btn btn-danger btn-sm delete-product-btn" data-id="${
                   product.id
-                }">حذف</button>
+                }"><i class="fa-solid fa-trash"></i> حذف</button>
               </td>
             </tr>
           `;
@@ -475,7 +466,6 @@
           productIdInput.value = "";
           requiredMaterialsTableBody.innerHTML = "";
 
-          // إعادة تهيئة قائمة المواد وعرض كل الخيارات
           Array.from(materialsSelectSimple.options).forEach((option) => {
             option.style.display = "block";
           });
@@ -487,8 +477,8 @@
         });
 
       productsTableContainer.addEventListener("click", (e) => {
-        if (e.target.classList.contains("edit-product-btn")) {
-          const id = e.target.dataset.id;
+        if (e.target.closest(".edit-product-btn")) {
+          const id = e.target.closest(".edit-product-btn").dataset.id;
           const product = allProducts.find((p) => p.id == id);
           if (product) {
             productModalTitleEl.textContent = `تعديل المنتج: ${product.name}`;
@@ -505,14 +495,12 @@
 
             requiredMaterialsTableBody.innerHTML = "";
 
-            // 1. إعادة عرض كل المواد في القائمة أولاً
             Array.from(materialsSelectSimple.options).forEach((option) => {
               option.style.display = "block";
             });
             materialsSelectSimple.value = "";
             addMaterialRowBtn.disabled = true;
 
-            // 2. تعبئة المواد المطلوبة في الجدول وإخفاءها من القائمة
             if (
               product.required_materials &&
               Array.isArray(product.required_materials)
@@ -521,7 +509,6 @@
                 const material = allRawMaterials.find((m) => m.id === req.id);
                 if (material) {
                   addMaterialRow(material, req.quantity);
-                  // إخفاء المادة من القائمة المنسدلة
                   const option = materialsSelectSimple.querySelector(
                     `option[value="${req.id}"]`
                   );
@@ -534,8 +521,8 @@
 
             openModal("product-modal");
           }
-        } else if (e.target.classList.contains("delete-product-btn")) {
-          const id = e.target.dataset.id;
+        } else if (e.target.closest(".delete-product-btn")) {
+          const id = e.target.closest(".delete-product-btn").dataset.id;
           showConfirmationModal(
             "حذف المنتج",
             "هل أنت متأكد من حذف هذا المنتج نهائياً؟",
@@ -555,7 +542,6 @@
           : parseInt(productIdInput.value);
         const id = newIdNumber.toString();
 
-        // جمع المواد المطلوبة من الجدول (المصدر الموثوق للكميات)
         const requiredMaterials = Array.from(
           requiredMaterialsTableBody.querySelectorAll("tr")
         )
