@@ -135,7 +135,7 @@
 
           <div id="add-material-controls">
             <select id="materials-select-simple" style="width: 100%">
-              <option value="">-- اختر مادة خام --</option>
+              <option value="">-- جارٍ التحميل --</option>
             </select>
             <button
               type="button"
@@ -318,8 +318,20 @@
             ...doc.data(),
             unit: doc.data().unit || "---",
           }));
+
+          // ⚠️ [الإصلاح هنا]: ملء القائمة المنسدلة بالمواد الخام بعد جلبها ⚠️
+          materialsSelectSimple.innerHTML =
+            '<option value="">-- اختر مادة خام --</option>' +
+            allRawMaterials
+              .map(
+                (m) =>
+                  `<option value="${m.id}" data-unit="${m.unit}">${m.name_ar} (${m.unit})</option>`
+              )
+              .join("");
         } catch (e) {
           console.error("Error fetching raw materials: ", e);
+          materialsSelectSimple.innerHTML =
+            '<option value="">-- فشل تحميل المواد الخام --</option>';
         }
       }
 
@@ -370,10 +382,7 @@
       }
 
       requiredMaterialsTableBody.addEventListener("click", (e) => {
-        if (
-          e.target.classList.contains("remove-material-btn") ||
-          e.target.closest(".remove-material-btn")
-        ) {
+        if (e.target.closest(".remove-material-btn")) {
           const button = e.target.closest(".remove-material-btn");
           const row = button.closest("tr");
           const materialId = row.dataset.id;

@@ -430,13 +430,13 @@
             : "---";
 
           if (stock <= 0 && reorder > 0) {
-            statusHtml = `<span class="inventory-alert">🔴 نفذ المخزون</span>`;
+            statusHtml = `<span class="inventory-alert">نفذ المخزون</span>`;
           } else if (stock <= reorder) {
-            statusHtml = `<span class="inventory-alert">🔴 يجب إعادة الطلب</span>`;
+            statusHtml = `<span class="inventory-alert">يجب إعادة الطلب</span>`;
           } else if (stock < reorder * 2) {
-            statusHtml = `<span class="inventory-warning">🟠 مخزون منخفض</span>`;
+            statusHtml = `<span class="inventory-warning">مخزون منخفض</span>`;
           } else {
-            statusHtml = `<span class="inventory-ok">🟢 متوفر</span>`;
+            statusHtml = `<span class="inventory-ok">متوفر</span>`;
           }
 
           tableHtml += `
@@ -659,7 +659,7 @@
 
           if (newTotalStock < 0) {
             alert(
-              "❌ فشل: الكمية النهائية للمخزون لا يمكن أن تكون سالبة. (المخزون الحالي: " +
+              " فشل: الكمية النهائية للمخزون لا يمكن أن تكون سالبة. (المخزون الحالي: " +
                 currentStock.toFixed(2) +
                 ")"
             );
@@ -667,7 +667,7 @@
           }
           if (newTotalCostValue < 0 && newTotalStock > 0) {
             alert(
-              "❌ فشل: القيمة الإجمالية للمخزون لا يمكن أن تكون سالبة عندما يكون هناك مخزون فعلي."
+              " فشل: القيمة الإجمالية للمخزون لا يمكن أن تكون سالبة عندما يكون هناك مخزون فعلي."
             );
             return;
           }
@@ -693,7 +693,7 @@
           closeModal("stock-modal");
           fetchAndRenderRawMaterials();
           alert(
-            `✅ تم تسجيل العملية بنجاح. الكمية الجديدة: ${newTotalStock.toFixed(
+            ` تم تسجيل العملية بنجاح. الكمية الجديدة: ${newTotalStock.toFixed(
               2
             )}. متوسط التكلفة الجديدة: ${newAverageCostPerUnit.toFixed(
               2
