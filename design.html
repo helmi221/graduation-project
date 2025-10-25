@@ -16,9 +16,8 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <style>
-      /* New styles for the design page (Single Step Focus) */
       .design-page-section {
-        max-width: 800px; /* تصغير العرض للتركيز */
+        max-width: 800px;
         margin: 5rem auto;
         padding: 40px;
         background-color: var(--white-color);
@@ -66,11 +65,11 @@
         color: var(--danger-color);
         margin-right: 5px;
       }
-      .loading-msg {
+      .loading-bar-container {
+        display: none;
         text-align: center;
-        font-size: 1rem;
-        color: #888;
-        padding: 20px 0;
+        padding: 20px;
+        color: var(--primary-color);
       }
       .form-row {
         display: grid;
@@ -81,6 +80,9 @@
         .form-row {
           grid-template-columns: 1fr;
         }
+      }
+      .design-result-section.show {
+        display: block;
       }
     </style>
   </head>
@@ -244,12 +246,16 @@
           </p>
         </div>
 
-        <div id="design-result" class="design-result-section">
+        <div
+          id="design-result"
+          class="design-result-section"
+          style="display: none"
+        >
           <h2 style="margin-bottom: 1.5rem">اقتراحنا لك</h2>
           <div class="design-result-text" id="result-content"></div>
           <div class="design-result-actions">
             <button class="btn" id="submit-design-btn">
-              أعجبني، أرسل الطلب
+              <i class="fa-solid fa-cart-plus"></i> أضف إلى السلة للمراجعة
             </button>
             <button
               class="btn"
@@ -268,10 +274,8 @@
             "
           >
             <p>
-              بعد إرسال طلبك، سيتواصل فريقنا معك لتقديم سعر نهائي. يمكنك متابعة
-              حالة طلبك وقبول أو رفض السعر من صفحة
-              <a href="order-status.html">حالة الطلب</a> باستخدام رمز التتبع
-              الخاص بك.
+              السعر المعروض هو سعر أولي مقترح. سيتم تأكيده بعد مراجعة الفريق.
+              يمكنك الآن إضافته إلى السلة وإكمال طلبك.
             </p>
           </div>
         </div>
@@ -295,54 +299,6 @@
       </div>
     </div>
     <div id="toast-notification" class="toast"></div>
-
-    <div id="product-modal" class="modal-overlay">
-      <div class="modal-content">
-        <span class="modal-close">&times;</span>
-        <div class="modal-body">
-          <div class="modal-image-container">
-            <img id="modal-img" src="" alt="صورة المنتج" />
-          </div>
-          <div class="modal-details-container">
-            <h2 id="modal-title"></h2>
-            <p id="modal-price" class="product-price"></p>
-            <p id="modal-description"></p>
-            <hr class="modal-options-separator" />
-            <div class="modal-options">
-              <div id="color-section">
-                <label for="modal-color-select">اختر اللون</label>
-                <select id="modal-color-select"></select>
-              </div>
-              <div>
-                <label for="modal-quantity">الكمية</label>
-                <div id="modal-quantity-selector" class="quantity-selector">
-                  <button
-                    class="quantity-btn quantity-btn-plus"
-                    data-change="1"
-                  >
-                    +
-                  </button>
-                  <input
-                    type="number"
-                    id="modal-quantity"
-                    value="1"
-                    min="1"
-                    readonly
-                  />
-                  <button
-                    class="quantity-btn quantity-btn-minus"
-                    data-change="-1"
-                  >
-                    -
-                  </button>
-                </div>
-              </div>
-            </div>
-            <button class="btn" id="add-to-cart-btn">إضافة إلى السلة</button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <div id="design-checkout-modal" class="modal-overlay">
       <div class="modal-content">
@@ -393,6 +349,8 @@
         addDoc,
         getDocs,
         query,
+        doc,
+        getDoc,
       } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
       import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
       import {
@@ -418,11 +376,13 @@
       const genAI = new GoogleGenerativeAI(API_KEY);
       const textModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-      // متغيرات تخزين البيانات من Firebase
+      // متغيرات تخزين البيانات
       let allProducts = [];
       let allRawMaterials = [];
       let currentUser = null;
-      let standardColors = [
+      let currentDesign = null;
+
+      const standardColors = [
         "أبيض",
         "أسود",
         "رمادي فاتح",
@@ -432,18 +392,6 @@
         "بني غامق",
         "أحمر ساطع",
       ];
-
-      // عناصر الواجهة
-      const productTypeSelect = document.getElementById("product-type");
-      const colorSelect = document.getElementById("color");
-      const materialSelect = document.getElementById("material");
-      const dimensionsSelect = document.getElementById("dimensions");
-      const toast = document.getElementById("toast-notification");
-
-      let currentDesign = null;
-      let cart = [];
-
-      // بيانات الأبعاد المقترحة (تبقى ثابتة)
       const productDimensions = {
         "طاولة سفرة": [
           "مقاس صغير (2-4 أشخاص)",
@@ -464,8 +412,21 @@
         آخر: ["مقاس صغير", "مقاس متوسط", "مقاس كبير"],
       };
 
+      // عناصر الواجهة
+      const productTypeSelect = document.getElementById("product-type");
+      const colorSelect = document.getElementById("color");
+      const materialSelect = document.getElementById("material");
+      const dimensionsSelect = document.getElementById("dimensions");
+      const toast = document.getElementById("toast-notification");
+      const designCheckoutForm = document.getElementById(
+        "design-checkout-form"
+      );
+      const processMessage = document.getElementById("processing-message");
+      const designResultSection = document.getElementById("design-result");
+      const designForm = document.getElementById("design-form");
+
       // ====================================================================
-      // وظائف الأدوات المساعدة والمخزون
+      // 1. وظائف المساعدة العامة وتهيئة البيانات
       // ====================================================================
 
       function showToast(message, isError = false) {
@@ -474,17 +435,32 @@
         setTimeout(() => toast.classList.remove("show"), 3000);
       }
 
-      function loadCart() {
-        const storedCart = localStorage.getItem("shoppingCart");
-        cart = storedCart ? JSON.parse(storedCart) : [];
+      function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove("active");
+        document.body.classList.remove("scroll-lock");
+      }
+      document.querySelectorAll(".modal-close").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const modalId = btn.closest(".modal-overlay").id;
+          closeModal(modalId);
+        });
+      });
+
+      function loadCartAndUpdateBadge() {
+        const storedCart = localStorage.getItem("shoppingCart") || "[]";
+        const cart = JSON.parse(storedCart);
+        const cartCountBadge = document.getElementById("cart-count-badge");
+        if (cartCountBadge) {
+          const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+          cartCountBadge.textContent = totalItems;
+          cartCountBadge.classList.toggle("visible", totalItems > 0);
+        }
+        return cart;
       }
 
-      function updateCartBadge() {
-        const cartCountBadge = document.getElementById("cart-count-badge");
-        if (!cartCountBadge) return;
-        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-        cartCountBadge.textContent = totalItems;
-        cartCountBadge.classList.toggle("visible", totalItems > 0);
+      function saveCart(cart) {
+        localStorage.setItem("shoppingCart", JSON.stringify(cart));
+        loadCartAndUpdateBadge();
       }
 
       function generateTrackingId(prefix = "DGN") {
@@ -493,57 +469,60 @@
           .substr(2, 5)}`.toUpperCase();
       }
 
-      // وظيفة جلب المنتجات والمواد الخام من Firebase
-      async function fetchFirebaseData() {
+      async function initializeData() {
+        processMessage.style.display = "block";
         try {
-          const productsSnapshot = await getDocs(collection(db, "products"));
+          const [productsSnapshot, materialsSnapshot] = await Promise.all([
+            getDocs(collection(db, "products")),
+            getDocs(collection(db, "raw_materials")),
+          ]);
+
           allProducts = productsSnapshot.docs.map((doc) => ({
             id: parseInt(doc.id),
             ...doc.data(),
             price: parseFloat(doc.data().price),
           }));
 
-          const materialsSnapshot = await getDocs(
-            collection(db, "raw_materials")
-          );
           allRawMaterials = materialsSnapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
-            cost_per_unit: parseFloat(doc.data().cost_per_unit),
-            current_stock: parseFloat(doc.data().current_stock),
-            reorder_point: parseFloat(doc.data().reorder_point) || 0,
+            cost_per_unit: parseFloat(doc.data().cost_per_unit || 0),
+            type: doc.data().type || "أخرى",
+            name_ar: doc.data().name_ar,
           }));
 
-          // 1. ملء قائمة المواد الرئيسية (الأخشاب)
-          const woodMaterials = allRawMaterials.filter((m) => m.type === "خشب");
-          let materialOptions = '<option value="">-- اختر مادة --</option>';
-          woodMaterials.forEach((m) => {
-            materialOptions += `<option value="${m.name_ar}">${m.name_ar}</option>`;
-          });
-          materialSelect.innerHTML = materialOptions;
-
-          // 2. ملء قائمة الألوان
-          let colorOptions = `<option value="">-- اختر لون --</option>`;
-          colorOptions += `<option value="لون طبيعي (ورنيش)">لون طبيعي (ورنيش/حماية شفافة)</option>`;
-          standardColors.forEach((color) => {
-            colorOptions += `<option value="${color} (دهان)">${color} (دهان)</option>`;
-          });
-          colorSelect.innerHTML = colorOptions;
-
-          // تحديث قائمة الأبعاد عند تحميل البيانات
-          updateDimensionsOptions();
+          fillDropdowns();
         } catch (e) {
-          console.error("Error fetching Firebase data: ", e);
-          colorSelect.innerHTML = '<option value="">-- فشل التحميل --</option>';
-          document.getElementById("design-form").style.opacity = 0.5;
-          showToast(
-            "❌ فشل تحميل البيانات الضرورية. يرجى إعادة تحميل الصفحة.",
-            true
-          );
+          console.error("Initialization Error: ", e);
+          showToast("❌ فشل تحميل بيانات المخزون. يرجى مراجعة Firebase.", true);
+          designForm.style.opacity = 0.5;
+        } finally {
+          processMessage.style.display = "none";
         }
       }
 
-      // دالة تحديث قائمة الأبعاد حسب نوع المنتج
+      function fillDropdowns() {
+        // 1. تعبئة الأخشاب
+        const woodMaterials = allRawMaterials.filter((m) => m.type === "خشب");
+        let materialOptions = '<option value="">-- اختر مادة --</option>';
+        woodMaterials.forEach((m) => {
+          materialOptions += `<option value="${m.name_ar}">${m.name_ar}</option>`;
+        });
+        materialSelect.innerHTML = materialOptions;
+
+        // 2. تعبئة الألوان
+        let colorOptions = `<option value="">-- اختر لون --</option>`;
+        colorOptions += `<option value="لون طبيعي (ورنيش)">لون طبيعي (ورنيش/حماية شفافة)</option>`;
+        standardColors.forEach((color) => {
+          colorOptions += `<option value="${color} (دهان)">${color} (دهان)</option>`;
+        });
+        colorSelect.innerHTML = colorOptions;
+
+        // 3. تحديث الأبعاد بناءً على نوع المنتج
+        productTypeSelect.addEventListener("change", updateDimensionsOptions);
+        updateDimensionsOptions(); // تعبئة أولية
+      }
+
       function updateDimensionsOptions() {
         const selectedType = productTypeSelect.value;
         const options =
@@ -556,291 +535,241 @@
         dimensionsSelect.innerHTML = optionsHTML;
       }
 
-      // ====================================================================
-      // منطق الإرسال (Submit Logic) - يستخدم التكلفة الداخلية
-      // ====================================================================
-
-      function calculateEstimatedCost(color, type) {
-        // دالة تحاكي حساب التكلفة التقديرية بناءً على المخزون (لإرسالها لـ Gemini)
-        // هذا يحافظ على منطق MIS في الخلفية
+      function calculateEstimatedCost(materialName, color, productType) {
         let baseCost = 0;
+        let woodVolumeFactor = 1;
+        let paintVolumeFactor = 1;
+        let accessoryCost = 150;
 
-        // 1. تكلفة الخشب الأساسي (افتراض صنوبر)
-        const woodMaterial = allRawMaterials.find((m) =>
-          m.name_ar.includes("صنوبر")
+        const woodMaterial = allRawMaterials.find(
+          (m) => m.name_ar === materialName && m.type === "خشب"
         );
-        const woodCost =
-          (woodMaterial ? woodMaterial.cost_per_unit : 1500) * 1.5;
-        baseCost += woodCost;
+        const paintMaterial = allRawMaterials.find((m) =>
+          m.type.includes("طلاء")
+        );
+        const varnishMaterial = allRawMaterials.find((m) =>
+          m.name_ar.includes("ورنيش")
+        );
 
-        // 2. تكلفة التشطيب
-        const finishType = color.includes("ورنيش") ? "ورنيش" : "طلاء";
-        if (finishType === "ورنيش") {
-          const varnishMaterial = allRawMaterials.find((m) =>
-            m.name_ar.includes("ورنيش")
-          );
-          baseCost += varnishMaterial ? varnishMaterial.cost_per_unit : 200;
+        // تحديد معامل حجم الخشب التقريبي
+        if (productType.includes("طاولة")) woodVolumeFactor = 0.75;
+        else if (productType.includes("كنب")) woodVolumeFactor = 1.0;
+        else if (productType.includes("خزانة")) woodVolumeFactor = 1.2;
+        else woodVolumeFactor = 0.5;
+
+        if (woodMaterial) {
+          baseCost += (woodMaterial.cost_per_unit || 0) * woodVolumeFactor;
         } else {
-          const paintMaterial = allRawMaterials.find((m) =>
-            m.name_ar.includes("طلاء")
-          );
-          baseCost += paintMaterial ? paintMaterial.cost_per_unit : 500;
+          baseCost += 1500 * woodVolumeFactor;
         }
 
-        // 3. تكلفة ملحقات إضافية (افتراضية تختلف حسب نوع المنتج)
-        const multiplier = type.includes("طاولة")
-          ? 1
-          : type.includes("كنب")
-          ? 3
-          : 0.5;
-        baseCost += 300 * multiplier;
+        // تكلفة التشطيب
+        if (color.includes("ورنيش") && varnishMaterial) {
+          baseCost +=
+            (varnishMaterial.cost_per_unit || 200) * paintVolumeFactor;
+        } else if (paintMaterial) {
+          baseCost += (paintMaterial.cost_per_unit || 500) * paintVolumeFactor;
+        } else {
+          baseCost += 300;
+        }
 
-        return baseCost;
+        baseCost += accessoryCost;
+
+        return Math.round(baseCost);
       }
 
-      document
-        .getElementById("design-form")
-        .addEventListener("submit", async (e) => {
-          e.preventDefault();
+      function addToCartAsCustom(design) {
+        let cart = loadCartAndUpdateBadge();
 
-          // التحقق من الحقول المطلوبة
-          const requiredInputs = document.querySelectorAll("[required]");
-          let formValid = true;
+        const tempId = `CUSTOM-${Date.now()}`;
 
-          requiredInputs.forEach((input) => {
-            if (!input.value) {
-              input.style.borderColor = "red";
-              formValid = false;
-            } else {
-              input.style.borderColor = "";
-            }
-          });
+        const newItem = {
+          id: tempId,
+          name: design.title,
+          price: design.price_value,
+          quantity: 1,
+          isCustom: true,
+          // حفظ جميع تفاصيل التصميم داخل حقل 'details'
+          details: {
+            type: design.type,
+            dimensions: design.dimensions,
+            material: design.material,
+            color: design.color,
+            notes: design.notes,
+            estimatedCOGS: design.estimatedCOGS,
+            description: design.description,
+            initial_price: design.price_value,
+            // 💡 لإظهارها بوضوح للمدير:
+            title: design.title,
+          },
+        };
 
-          if (!formValid) {
-            showToast("الرجاء ملء جميع الحقول المطلوبة.", true);
-            return;
-          }
+        cart.push(newItem);
+        saveCart(cart);
+        showToast(`✅ تمت إضافة التصميم (${design.title}) إلى السلة للمراجعة!`);
+      }
 
-          const productType = document.getElementById("product-type").value;
-          const dimensions = document.getElementById("dimensions")?.value;
-          const color = document.getElementById("color")?.value;
-          const material = document.getElementById("material")?.value;
-          const notes = document.getElementById("notes")?.value;
-          const roomPlacement =
-            document.getElementById("room-placement")?.value;
+      // ====================================================================
+      // 2. منطق توليد التصميم (Gemini Logic)
+      // ====================================================================
 
-          // 1. حساب التكلفة التقديرية الداخلية (لـ Gemini)
-          const estimatedCOGS = calculateEstimatedCost(color, productType);
+      designForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-          // إظهار المعالجة
-          document.getElementById("design-result").classList.remove("show");
-          document.getElementById("processing-message").style.display = "block";
+        // 💡 التحقق من صحة النموذج باستخدام التحقق الافتراضي لـ HTML
+        if (!designForm.checkValidity()) {
+          showToast("الرجاء ملء جميع الحقول المطلوبة بشكل صحيح.", true);
+          designForm.reportValidity();
+          return;
+        }
 
-          // بناء قائمة المنتجات المتاحة للمقارنة
-          const filteredProducts = allProducts.filter(
-            (p) => p.category === productType && p.is_available !== false
-          );
+        const productType = productTypeSelect.value;
+        const dimensions = dimensionsSelect.value;
+        const color = colorSelect.value;
+        const material = materialSelect.value;
+        const notes = document.getElementById("notes")?.value;
+        const roomPlacement = document.getElementById("room-placement")?.value;
 
-          const productOptionsForAI = filteredProducts
-            .map(
-              (p) =>
-                `- ${p.name} (ID: ${p.id}, Price: ${p.price} ISK, Description: ${p.description})`
-            )
-            .join("\n");
+        const estimatedCOGS = calculateEstimatedCost(
+          material,
+          color,
+          productType
+        );
+        const initialSuggestedPrice = Math.round(estimatedCOGS * 1.35);
 
-          // 2. توليد تصميم مخصص وسعر
+        // إظهار المعالجة
+        designResultSection.classList.remove("show");
+        designResultSection.style.display = "none";
+        processMessage.style.display = "block";
 
-          const promptText = `
-          أنت خبير في تصميم الأثاث الخشبي. قم بإنشاء اقتراح تصميم بناءً على طلب العميل المفصل والمباشر.
-          اقترح سعراً نهائياً يكون منطقياً، مع مراعاة التكلفة التقديرية الداخلية (COGS) وأسعار المنتجات الجاهزة المماثلة.
+        const filteredProducts = allProducts.filter(
+          (p) => p.category === productType && p.is_available !== false
+        );
+
+        const productOptionsForAI = filteredProducts
+          .map((p) => `- ${p.name} (Price: ${p.price} ISK)`)
+          .join(", ");
+
+        const promptText = `
+          أنت خبير في تصميم الأثاث. أنشئ اقتراح تصميم بناءً على طلب العميل.
+          اقترح سعراً نهائياً منطقياً، يجب أن يتراوح بين ${initialSuggestedPrice} شيكل و ${
+          initialSuggestedPrice + 1000
+        } شيكل.
           
-          بيانات التسعير الداخلية:
-          - التكلفة التقديرية للمواد (COGS): ${estimatedCOGS.toFixed(0)} شيكل.
-          - المنتجات المماثلة للتسعير: ${
-            filteredProducts.length > 0
-              ? productOptionsForAI
-              : "لا يوجد منتجات مماثلة متاحة."
-          }
+          بيانات التسعير الداعمة:
+          - التكلفة التقديرية للمواد (COGS): ${estimatedCOGS} شيكل.
+          - المنتجات المماثلة: ${productOptionsForAI || "لا يوجد."}
 
-          طلب العميل المباشر:
+          طلب العميل:
           - نوع المنتج: ${productType}
-          - المكان: ${roomPlacement}
           - المقاسات: ${dimensions}
-          - المادة الرئيسية: ${material}
+          - المادة: ${material}
           - اللون والتشطيب: ${color}
-          - التفاصيل الإضافية والاحتياجات: ${notes}
+          - التفاصيل الإضافية: ${notes}
           
           أعطني إخراجاً بالتنسيق التالي بدقة:
           العنوان: <عنوان المنتج الموجز>
-          الوصف: <وصف احترافي ومختصر للمنتج>
+          الوصف: <وصف احترافي للمنتج>
           السعر المقترح: <قيمة نقدية (رقم) بالعملة شيكل>
         `;
 
-          try {
-            const textResult = await textModel.generateContent(promptText);
-            const textResponse = textResult.response.text();
+        try {
+          const textResult = await textModel.generateContent(promptText);
+          const textResponse = textResult.response.text();
 
-            const titleMatch = textResponse.match(/العنوان:\s*(.*)/);
-            const descriptionMatch = textResponse.match(/الوصف:\s*(.*)/);
-            const priceMatch = textResponse.match(
-              /السعر المقترح:\s*([\d\.\,\s]+)\s*شيكل/
-            );
+          const titleMatch = textResponse.match(/العنوان:\s*(.*)/);
+          const descriptionMatch = textResponse.match(/الوصف:\s*(.*)/);
+          const priceMatch = textResponse.match(
+            /السعر المقترح:\s*([\d\.\,\s]+)\s*شيكل/
+          );
 
-            let title = titleMatch ? titleMatch[1].trim() : "تصميم مخصص فريد";
-            let description = descriptionMatch
-              ? descriptionMatch[1].trim()
-              : "وصف مقترح من المساعد الذكي.";
-            let priceLine = priceMatch
-              ? priceMatch[0].trim()
-              : "السعر المقترح: 0 شيكل (بحاجة لتقييم)";
+          let title = titleMatch ? titleMatch[1].trim() : "تصميم مخصص فريد";
+          let description = descriptionMatch
+            ? descriptionMatch[1].trim()
+            : "وصف مقترح من المساعد.";
 
-            // معالجة لو لم يلتزم AI بالتنسيق بشكل كامل
-            if (!titleMatch || !descriptionMatch) {
-              [title, description, priceLine] = textResponse
-                .split("\n")
-                .filter((line) => line.trim() !== "");
-              title = title || "تصميم مقترح";
-              description = description || "تصميم وفق المواصفات المطلوبة";
-              priceLine = priceLine || "السعر المقترح: 0 شيكل";
-            }
+          const finalPriceValueMatch = priceMatch
+            ? priceMatch[0].match(/[\d\.]+/g)
+            : null;
+          const finalPriceValue = finalPriceValueMatch
+            ? parseFloat(finalPriceValueMatch[0])
+            : initialSuggestedPrice;
 
-            currentDesign = {
-              title: title.replace("العنوان:", "").trim(),
-              description: description.replace("الوصف:", "").trim(),
-              price: priceLine.trim(),
-              type: productType,
-              dimensions,
-              material,
-              color,
-              notes,
-              quantity: 1, // الكمية دائماً 1 في هذه الواجهة
-              estimatedCOGS: estimatedCOGS.toFixed(2),
-            };
+          currentDesign = {
+            title: title,
+            description: description,
+            price: finalPriceValue,
+            price_value: finalPriceValue,
+            type: productType,
+            dimensions,
+            material,
+            color,
+            notes,
+            quantity: 1,
+            estimatedCOGS: estimatedCOGS,
+          };
 
-            document.getElementById("processing-message").style.display =
-              "none";
+          processMessage.style.display = "none";
 
-            // عرض النتيجة
-            document.getElementById("result-content").innerHTML = `
+          // 💡 عرض المعلومات للزبون (طلبك الثاني)
+          document.getElementById("result-content").innerHTML = `
                 <h3 id="result-title">${currentDesign.title}</h3>
-                <p id="result-description">${currentDesign.description}</p>
+                <p><strong>الوصف المقترح:</strong> ${
+                  currentDesign.description
+                }</p>
+                <p><strong>المواصفات الرئيسية:</strong> ${
+                  currentDesign.material
+                }، ${currentDesign.color}، ${currentDesign.dimensions}</p>
                 <p id="result-price" style="font-size: 1.4rem; font-weight: bold; color: var(--primary-color);">
-                    ${currentDesign.price}
+                    السعر الأولي: ${currentDesign.price_value.toFixed(0)} شيكل
                 </p>
                 <p style="font-size: 0.9rem; color: #888; margin-top: 10px">
-                    السعر المقترح ليس نهائياً، وسيتم تأكيده بعد مراجعة طلبك.
+                    السعر المقترح ليس نهائياً، سيتم تأكيده بعد مراجعة الفريق.
                 </p>`;
-            document.getElementById("design-result").classList.add("show");
-          } catch (error) {
-            console.error("Error generating design:", error);
-            document.getElementById("processing-message").style.display =
-              "none";
-            showToast("❌ حدث خطأ أثناء إنشاء التصميم. حاول مرة أخرى.", true);
-          }
+          designResultSection.classList.add("show");
+          designResultSection.style.display = "block";
+        } catch (error) {
+          console.error("Error generating design:", error);
+          processMessage.style.display = "none";
+          showToast("❌ حدث خطأ أثناء إنشاء التصميم. حاول مرة أخرى.", true);
+        }
+      });
+
+      // ====================================================================
+      // 3. منطق الإرسال (إضافة للسلة)
+      // ====================================================================
+
+      document
+        .getElementById("submit-design-btn")
+        .addEventListener("click", () => {
+          if (!currentDesign) return;
+
+          // 💡 طلبك الأول: يذهب للسلة
+          addToCartAsCustom(currentDesign);
+          designResultSection.style.display = "none"; // إخفاء قسم النتيجة بعد الإضافة
+          designForm.reset();
+          updateDimensionsOptions();
         });
 
       // ====================================================================
-      // بدء التنفيذ
+      // 4. بدء التشغيل
       // ====================================================================
       document.addEventListener("DOMContentLoaded", () => {
-        // ... (منطق تحميل البيانات والبدء) ...
-        loadCart();
-        updateCartBadge();
-
-        fetchFirebaseData();
+        loadCartAndUpdateBadge();
+        initializeData();
 
         onAuthStateChanged(auth, (user) => {
           currentUser = user;
         });
 
-        // ربط الأحداث
-        productTypeSelect.addEventListener("change", updateDimensionsOptions);
-
+        // ربط زر إعادة الاقتراح
         document
           .getElementById("regenerate-design-btn")
           .addEventListener("click", () => {
-            document
-              .getElementById("design-form")
-              .dispatchEvent(
-                new Event("submit", { cancelable: true, bubbles: true })
-              );
+            designForm.dispatchEvent(
+              new Event("submit", { cancelable: true, bubbles: true })
+            );
           });
-
-        document
-          .getElementById("submit-design-btn")
-          .addEventListener("click", () => {
-            if (!currentDesign) return;
-
-            // فتح نموذج إرسال الطلب
-            document
-              .getElementById("design-checkout-modal")
-              .classList.add("active");
-            document.body.classList.add("scroll-lock");
-          });
-
-        document
-          .getElementById("design-checkout-form")
-          .addEventListener("submit", async (e) => {
-            e.preventDefault();
-
-            if (!currentUser) {
-              alert("يرجى تسجيل الدخول أولاً.");
-              window.location.href = "login.html";
-              return;
-            }
-
-            const trackingId = generateTrackingId();
-            const customerData = {
-              customer_uid: currentUser.uid,
-              name: document.getElementById("design-name").value,
-              phone: document.getElementById("design-phone").value,
-              email: document.getElementById("design-email").value,
-              address: document.getElementById("design-address").value,
-            };
-
-            const customOrder = {
-              ...currentDesign,
-              ...customerData,
-              tracking_id: trackingId,
-              order_date: new Date().toISOString(),
-              status: "قيد المراجعة",
-              type: "تصميم مخصص",
-              type_of_product: productTypeSelect.value,
-            };
-
-            try {
-              await addDoc(collection(db, "custom_designs"), customOrder);
-
-              closeModal("design-checkout-modal");
-              document.getElementById("design-tracking-id").textContent =
-                trackingId;
-              document
-                .getElementById("design-confirm-modal")
-                .classList.add("active");
-              document.body.classList.add("scroll-lock");
-
-              document.getElementById("design-form").reset();
-              updateDimensionsOptions();
-              document.getElementById("design-result").classList.remove("show");
-
-              showToast("✅ تم إرسال طلبك للتصميم المخصص بنجاح!");
-            } catch (error) {
-              console.error("Error submitting design order:", error);
-              showToast("❌ حدث خطأ أثناء إرسال طلبك. حاول مرة أخرى.", true);
-            }
-          });
-
-        function closeModal(modalId) {
-          document.getElementById(modalId).classList.remove("active");
-          document.body.classList.remove("scroll-lock");
-        }
-
-        document.querySelectorAll(".modal-close").forEach((btn) => {
-          btn.addEventListener("click", () => {
-            const modalId = btn.closest(".modal-overlay").id;
-            closeModal(modalId);
-          });
-        });
       });
     </script>
   </body>

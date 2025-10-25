@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>منجرة | إدارة التكاليف الثابتة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="admin.css" />
+    <style>
+      .cost-table th,
+      .cost-table td {
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="main-header">
+      <div class="logo">منجرة</div>
+      <nav>
+        <ul>
+          <li>
+            <a href="admin.html"
+              ><i class="fa-solid fa-gauge-high"></i> لوحة التحكم</a
+            >
+          </li>
+          <li>
+            <a href="orders_admin.html"
+              ><i class="fa-solid fa-box-open"></i> إدارة الطلبات</a
+            >
+          </li>
+          <li>
+            <a href="inventory.html"
+              ><i class="fa-solid fa-warehouse"></i> إدارة المنتجات</a
+            >
+          </li>
+          <li>
+            <a href="raw_materials_admin.html"
+              ><i class="fa-solid fa-hammer"></i> إدارة المواد الخام</a
+            >
+          </li>
+          <li>
+            <a href="fixed_costs_admin.html" class="active"
+              ><i class="fa-solid fa-calculator"></i> التكاليف الثابتة</a
+            >
+          </li>
+          <li>
+            <a href="#" id="logout-btn"
+              ><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <div class="main-content container-fluid">
+      <h1>إدارة التكاليف الثابتة</h1>
+
+      <div class="admin-panel">
+        <p style="color: #777; margin-bottom: 20px">
+          إجمالي التكاليف الثابتة الشهرية سيتم تقسيمه على مجموع ساعات تصنيع جميع
+          المنتجات لتقدير تكلفة الأعباء التشغيلية (Overhead) للساعة الواحدة.
+        </p>
+        <div class="section-header">
+          <button class="btn" id="add-cost-btn">
+            <i class="fa-solid fa-plus"></i> إضافة بند تكلفة
+          </button>
+        </div>
+        <div id="costs-table-container">
+          <p class="loading-msg">جارٍ تحميل التكاليف...</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="cost-modal" class="modal-overlay">
+      <div class="modal-content">
+        <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
+        <h2 id="cost-modal-title"></h2>
+        <form id="cost-form">
+          <input type="hidden" id="cost-id" />
+
+          <div class="form-group">
+            <label for="cost-name">اسم بند التكلفة</label>
+            <input type="text" id="cost-name" required />
+          </div>
+
+          <div class="form-group">
+            <label for="cost-amount">المبلغ الشهري (شيكل)</label>
+            <input
+              type="number"
+              id="cost-amount"
+              min="0"
+              step="0.01"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="cost-description">الوصف (اختياري)</label>
+            <textarea id="cost-description" rows="2"></textarea>
+          </div>
+
+          <div class="btn-group">
+            <button type="submit" class="btn">
+              <i class="fa-solid fa-save"></i> حفظ البند
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+        doc,
+        setDoc,
+        deleteDoc,
+        getDoc,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+      // 🛑 تأكد من تحديث الإعدادات التالية لتناسب مشروعك الفعلي في Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
+        authDomain: "ecomers-dd329.firebaseapp.com",
+        projectId: "ecomers-dd329",
+        storageBucket: "ecomers-dd329.firebasestorage.app",
+        messagingSenderId: "190646144215",
+        appId: "1:190646144215:web:d55f24091a920f92b6b492",
+        measurementId: "G-NVYK3DZR00",
+      };
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      // الدوال المساعدة لفتح وإغلاق المودال (يجب أن تكون موجودة في admin.css أو أنماط الصفحة)
+      function openModal(modalId) {
+        document.getElementById(modalId).classList.add("active");
+        document.body.classList.add("scroll-lock");
+      }
+      function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove("active");
+        document.body.classList.remove("scroll-lock");
+      }
+      document.querySelectorAll(".modal-overlay").forEach((modal) => {
+        modal.addEventListener("click", (e) => {
+          if (
+            e.target.closest(".modal-close") ||
+            e.target.classList.contains("modal-overlay")
+          ) {
+            closeModal(modal.id);
+          }
+        });
+      });
+
+      let allFixedCosts = [];
+
+      // --------------------------------------------------------
+      // التحقق من الصلاحيات والتحميل
+      // --------------------------------------------------------
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists() && userDoc.data().role === "admin") {
+            fetchAndRenderCosts();
+          } else {
+            alert("غير مصرح لك بالوصول إلى هذه الصفحة.");
+            window.location.href = "login.html";
+          }
+        } else {
+          window.location.href = "login.html";
+        }
+      });
+      document
+        .getElementById("logout-btn")
+        .addEventListener("click", async (e) => {
+          e.preventDefault();
+          await signOut(auth);
+          window.location.href = "login.html";
+        });
+
+      // --------------------------------------------------------
+      // وظائف جلب وعرض البيانات
+      // --------------------------------------------------------
+      async function fetchAndRenderCosts() {
+        const container = document.getElementById("costs-table-container");
+        container.innerHTML =
+          '<p class="loading-msg">جارٍ تحميل التكاليف...</p>';
+        try {
+          const snapshot = await getDocs(collection(db, "fixed_costs"));
+          allFixedCosts = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+            amount: parseFloat(doc.data().amount || 0),
+          }));
+
+          renderCostsTable(allFixedCosts);
+        } catch (e) {
+          console.error("Error fetching fixed costs: ", e);
+          container.innerHTML =
+            '<p class="loading-msg" style="color: red;">حدث خطأ في جلب التكاليف الثابتة.</p>';
+        }
+      }
+
+      function renderCostsTable(costs) {
+        const container = document.getElementById("costs-table-container");
+        if (costs.length === 0) {
+          container.innerHTML =
+            '<p class="loading-msg">لا توجد تكاليف ثابتة مسجلة.</p>';
+          return;
+        }
+
+        const totalFixedCost = costs.reduce(
+          (sum, cost) => sum + cost.amount,
+          0
+        );
+
+        let tableHtml = `
+          <div style="text-align: center; margin-bottom: 25px; background: #fff; padding: 15px; border-radius: 10px; border: 1px solid var(--primary-color);">
+            <p style="font-size: 1.5rem; font-weight: 700;">
+              الإجمالي الشهري للتكاليف الثابتة:
+              <span style="color: var(--danger-color);">${totalFixedCost.toFixed(
+                2
+              )} شيكل</span>
+            </p>
+          </div>
+          <table class="orders-table cost-table">
+            <thead>
+              <tr>
+                <th><i class="fa-solid fa-list-check"></i> البند</th>
+                <th><i class="fa-solid fa-money-bill-wave"></i> المبلغ الشهري (شيكل)</th>
+                <th><i class="fa-solid fa-info-circle"></i> الوصف</th>
+                <th>الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        costs.forEach((cost) => {
+          tableHtml += `
+            <tr data-id="${cost.id}">
+              <td>${cost.name}</td>
+              <td>${cost.amount.toFixed(2)}</td>
+              <td>${cost.description || "---"}</td>
+              <td class="actions-buttons" style="white-space: nowrap;">
+                <button class="btn btn-secondary btn-sm edit-cost-btn" data-id="${
+                  cost.id
+                }"><i class="fa-solid fa-pencil"></i> تعديل</button>
+                <button class="btn btn-danger btn-sm delete-cost-btn" data-id="${
+                  cost.id
+                }"><i class="fa-solid fa-trash"></i> حذف</button>
+              </td>
+            </tr>
+          `;
+        });
+        tableHtml += "</tbody></table>";
+        container.innerHTML = tableHtml;
+
+        // ربط الأحداث بعد العرض
+        document.querySelectorAll(".edit-cost-btn").forEach((btn) => {
+          btn.addEventListener("click", handleEditCost);
+        });
+        document.querySelectorAll(".delete-cost-btn").forEach((btn) => {
+          btn.addEventListener("click", handleDeleteCost);
+        });
+      }
+
+      // --------------------------------------------------------
+      // منطق الحفظ والتعديل والحذف
+      // --------------------------------------------------------
+      document.getElementById("add-cost-btn").addEventListener("click", () => {
+        document.getElementById("cost-modal-title").textContent =
+          "إضافة بند تكلفة جديد";
+        document.getElementById("cost-id").value = "";
+        document.getElementById("cost-form").reset();
+        openModal("cost-modal");
+      });
+
+      function handleEditCost(e) {
+        const id = e.currentTarget.dataset.id;
+        const cost = allFixedCosts.find((c) => c.id === id);
+        if (cost) {
+          document.getElementById(
+            "cost-modal-title"
+          ).textContent = `تعديل بند: ${cost.name}`;
+          document.getElementById("cost-id").value = cost.id;
+          document.getElementById("cost-name").value = cost.name;
+          document.getElementById("cost-amount").value = cost.amount;
+          document.getElementById("cost-description").value =
+            cost.description || "";
+          openModal("cost-modal");
+        }
+      }
+
+      function handleDeleteCost(e) {
+        const id = e.currentTarget.dataset.id;
+        if (confirm("هل أنت متأكد من حذف هذا البند؟")) {
+          deleteCost(id);
+        }
+      }
+
+      document
+        .getElementById("cost-form")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          const id =
+            document.getElementById("cost-id").value ||
+            doc(collection(db, "fixed_costs")).id;
+          const costData = {
+            name: document.getElementById("cost-name").value,
+            amount: parseFloat(document.getElementById("cost-amount").value),
+            description:
+              document.getElementById("cost-description").value || null,
+          };
+          try {
+            await setDoc(doc(db, "fixed_costs", id), costData);
+            closeModal("cost-modal");
+            fetchAndRenderCosts();
+            alert("تم حفظ بند التكلفة بنجاح.");
+          } catch (error) {
+            console.error("Error saving cost: ", error);
+            alert("حدث خطأ أثناء حفظ التكلفة.");
+          }
+        });
+
+      async function deleteCost(id) {
+        try {
+          await deleteDoc(doc(db, "fixed_costs", id));
+          fetchAndRenderCosts();
+          alert("تم حذف البند بنجاح.");
+        } catch (e) {
+          console.error("Error deleting cost: ", e);
+          alert("حدث خطأ أثناء الحذف.");
+        }
+      }
+    </script>
+  </body>
+</html>

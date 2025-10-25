@@ -16,11 +16,14 @@
     />
     <link rel="stylesheet" href="admin.css" />
     <style>
+      /* أنماط الشارات الأساسية (مهمة لضمان عرضها) */
       .status-badge {
         padding: 5px 10px;
         border-radius: 5px;
         font-weight: bold;
         display: inline-block;
+        white-space: nowrap;
+        font-size: 0.85rem;
       }
       .status-badge.قيد-المراجعة {
         background-color: #ffeb3b;
@@ -47,11 +50,11 @@
         color: white;
       }
       .status-badge.مكتمل {
-        background-color: var(--success-color);
+        background-color: #4caf50;
         color: white;
       }
       .status-badge.تم-الرفض {
-        background-color: var(--danger-color);
+        background-color: #e74c3c;
         color: white;
       }
       .status-badge.مؤرشف {
@@ -67,6 +70,10 @@
         color: white;
       }
 
+      /* تنسيق القسم الرئيسي */
+      .orders-section.admin-panel {
+        margin-top: 25px;
+      }
       .orders-section .section-header {
         display: flex;
         justify-content: space-between;
@@ -80,52 +87,119 @@
         flex-wrap: wrap;
         gap: 8px;
       }
-      .filter-btn {
-        background-color: #f0f0f0;
+
+      /* تنسيق عناصر المودال */
+      .modal-form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      textarea,
+      input,
+      select {
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #e6e9ee;
+        font-family: "Cairo", sans-serif;
+      }
+      .orders-table th,
+      .orders-table td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #f1f5f9;
+        text-align: right;
+        font-size: 0.95rem;
+      }
+
+      /* تحسين عرض تفاصيل الطلب داخل المودال المُحسن */
+      .order-details-group p {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+      }
+      .order-details-group p strong {
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-left: 5px;
+      }
+      .order-items-list {
+        list-style-type: none;
+        padding-right: 0;
+        margin-top: 10px;
+      }
+      .order-items-list li {
+        padding: 8px 0;
+        font-size: 0.95rem;
+        border-bottom: 1px dotted #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      /* 💡 الأنماط المُحسنة للأزرار في الجدول */
+      .actions-buttons .btn-icon {
+        background: none;
         border: none;
-        padding: 8px 15px;
-        border-radius: 8px;
+        color: var(--dark-color);
+        padding: 5px 8px;
         cursor: pointer;
-        font-weight: 600;
-        transition: background-color 0.3s;
-        font-family: "Cairo", sans-serif;
+        font-size: 1.1rem;
+        margin-left: 5px;
+        transition: color 0.2s;
       }
-      .filter-btn.active,
-      .filter-btn:hover {
-        background-color: var(--primary-color);
-        color: var(--white-color);
+      /* زر الإدارة (تغيير/عرض) */
+      .actions-buttons .btn-icon.btn-manage {
+        color: var(--info-color, #5d9cec);
       }
-      .bulk-action-btn {
-        font-family: "Cairo", sans-serif;
+      .actions-buttons .btn-icon.btn-manage:hover {
+        color: var(--dark-color);
+      }
+      /* زر الحذف */
+      .actions-buttons .btn-icon.btn-delete {
+        color: var(--danger-color, #e74c3c);
+      }
+      .actions-buttons .btn-icon.btn-delete:hover {
+        color: #d32f2f;
+      }
+
+      /* تنسيق منطقة الإجراءات الجماعية */
+      #bulk-actions-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 20px;
+        min-height: 50px;
         display: none;
       }
-      .bulk-action-btn.show {
-        font-family: "Cairo", sans-serif;
-        display: inline-block;
+      #bulk-actions-container.show {
+        display: flex;
       }
-      .actions-buttons {
-        position: relative;
-        text-align: center;
+      #bulk-actions-container select {
+        width: 200px;
+        padding: 8px;
+        border: 1px solid var(--primary-color);
       }
-      .actions-buttons .dropdown-menu {
-        position: absolute;
-        top: 100%;
-        left: 50%;
-        transform: translateX(-50%) translateY(10px);
-        background-color: var(--white-color);
-        box-shadow: var(--shadow);
+      #bulk-actions-container .btn {
+        padding: 8px 15px;
+        font-size: 0.9rem;
+      }
+      /* 💡 نمط حقل المواد الخام المخصص */
+      #custom-materials-field {
+        background-color: #f7f7f7;
+        padding: 10px;
         border-radius: 8px;
-        list-style: none;
-        padding: 5px;
-        z-index: 10;
-        min-width: 150px;
-        display: none;
-      }
-      .actions-buttons .dropdown-menu.show {
-        display: block;
+        margin-top: 10px;
       }
     </style>
   </head>
+
   <body>
     <header class="main-header">
       <div class="logo">منجرة</div>
@@ -152,6 +226,11 @@
             >
           </li>
           <li>
+            <a href="fixed_costs_admin.html"
+              ><i class="fa-solid fa-calculator"></i> التكاليف الثابتة</a
+            >
+          </li>
+          <li>
             <a href="#" id="logout-btn"
               ><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</a
             >
@@ -162,7 +241,6 @@
 
     <div class="main-content container-fluid">
       <h1>إدارة الطلبات</h1>
-
       <div class="orders-section admin-panel">
         <div class="section-header">
           <div class="filters-container" id="filters-container">
@@ -178,18 +256,18 @@
             <button class="filter-btn" data-filter="completed">مكتملة</button>
             <button class="filter-btn" data-filter="archived">مؤرشفة</button>
           </div>
-          <div class="actions-bulk">
-            <button
-              id="bulk-archive-btn"
-              class="btn btn-secondary bulk-action-btn"
-            >
-              أرشفة محدد
-            </button>
-            <button id="bulk-delete-btn" class="btn btn-danger bulk-action-btn">
-              حذف محدد
-            </button>
-          </div>
         </div>
+
+        <div id="bulk-actions-container">
+          <label for="bulk-status-select" style="font-weight: 600"
+            >تغيير حالة الطلبات المحددة:</label
+          >
+          <select id="bulk-status-select"></select>
+          <button class="btn btn-sm" id="apply-bulk-status">
+            <i class="fa-solid fa-check"></i> تطبيق
+          </button>
+        </div>
+
         <div id="orders-table-container">
           <p class="loading-msg">جارٍ تحميل الطلبات...</p>
         </div>
@@ -200,52 +278,66 @@
       <div class="modal-content">
         <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
         <h2>تفاصيل الطلب</h2>
+
         <div id="modal-order-details"></div>
         <hr style="margin: 20px 0; border-color: #f0f0f0" />
+
+        <h3><i class="fa-solid fa-list-ul"></i> إدارة حالة الطلب</h3>
 
         <div class="modal-form-grid">
           <div class="form-group">
             <label for="modal-status">تغيير حالة الطلب</label>
-            <select id="modal-status" name="modal-status"></select>
+            <select id="modal-status"></select>
           </div>
-          <div id="custom-price-field" class="form-group" style="display: none">
-            <label for="modal-price">السعر النهائي (شيكل)</label>
-            <input type="number" id="modal-price" name="modal-price" />
-          </div>
+        </div>
+
+        <div
+          id="custom-materials-field"
+          class="form-group"
+          style="display: none; flex-direction: column"
+        >
+          <label for="material-list">المواد الخام المطلوبة (ID:Quantity)</label>
+          <p
+            style="
+              font-size: 0.9rem;
+              color: var(--danger-color);
+              margin-bottom: 5px;
+            "
+          >
+            ⚠️ إلزامي للطلبات المخصصة عند القبول: يجب إدخال المواد والسعر
+            يدوياً.
+          </p>
+          <textarea
+            id="material-list"
+            rows="3"
+            placeholder="مثال: الخشب_1:0.5, الدهان_3:1.0"
+          ></textarea>
+          <p style="font-size: 0.8rem; color: #777">
+            * يجب استخدام ID المادة ووحدة القياس المسجلة.
+          </p>
+        </div>
+
+        <div
+          id="custom-price-field"
+          class="form-group"
+          style="display: none; flex-direction: column"
+        >
+          <label for="modal-price">السعر النهائي للعميل (شيكل)</label>
+          <input type="number" id="modal-price" min="0" step="0.01" />
         </div>
 
         <div
           id="rejection-reason-field"
           class="form-group"
-          style="display: none"
+          style="display: none; flex-direction: column"
         >
           <label for="rejection-reason">سبب الرفض</label>
           <textarea id="rejection-reason" rows="3"></textarea>
         </div>
-        <div class="btn-group">
-          <button id="save-status-btn" class="btn">
-            <i class="fa-solid fa-save"></i> حفظ
-          </button>
-        </div>
-      </div>
-    </div>
 
-    <div id="confirmation-modal" class="modal-overlay">
-      <div class="modal-content">
-        <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
-        <h2 id="confirm-title"></h2>
-        <p
-          id="confirm-message"
-          style="text-align: center; margin-bottom: 2rem"
-        ></p>
-        <div class="btn-group">
-          <button id="confirm-action-btn" class="btn btn-danger">
-            <i class="fa-solid fa-check"></i> تأكيد
-          </button>
-          <button class="btn btn-secondary modal-close">
-            <i class="fa-solid fa-times"></i> إلغاء
-          </button>
-        </div>
+        <button id="save-status-btn" class="btn">
+          <i class="fa-solid fa-save"></i> حفظ وتحديث الحالة
+        </button>
       </div>
     </div>
 
@@ -259,10 +351,9 @@
         query,
         doc,
         updateDoc,
-        deleteDoc,
         writeBatch,
-        where,
         getDoc,
+        deleteDoc,
       } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
       import {
         getAuth,
@@ -270,6 +361,7 @@
         signOut,
       } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
+      // تهيئة Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
         authDomain: "ecomers-dd329.firebaseapp.com",
@@ -277,59 +369,35 @@
         storageBucket: "ecomers-dd329.firebasestorage.app",
         messagingSenderId: "190646144215",
         appId: "1:190646144215:web:d55f24091a920f92b6b492",
-        measurementId: "G-NVYK3DZR00",
       };
 
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
       const auth = getAuth(app);
 
-      // عناصر الواجهة
-      const ordersTableContainer = document.getElementById(
-        "orders-table-container"
-      );
-      const filtersContainer = document.getElementById("filters-container");
+      // 💡 إزالة استيراد Gemini
 
-      const orderDetailsModal = document.getElementById("order-details-modal");
-      const modalOrderDetails = document.getElementById("modal-order-details");
-      const modalStatusSelect = document.getElementById("modal-status");
-      const customPriceField = document.getElementById("custom-price-field");
-      const modalPriceInput = document.getElementById("modal-price");
-      const rejectionReasonField = document.getElementById(
-        "rejection-reason-field"
-      );
-      const rejectionReasonTextarea =
-        document.getElementById("rejection-reason");
-      const saveStatusBtn = document.getElementById("save-status-btn");
+      let allOrders = [];
+      let currentOrderId = null;
+      let currentOrderCollection = null;
+      let currentOrderData = null;
 
-      const confirmationModal = document.getElementById("confirmation-modal");
-      const confirmTitle = document.getElementById("confirm-title");
-      const confirmMessage = document.getElementById("confirm-message");
-      const confirmActionBtn = document.getElementById("confirm-action-btn");
-      const bulkArchiveBtn = document.getElementById("bulk-archive-btn");
-      const bulkDeleteBtn = document.getElementById("bulk-delete-btn");
-
-      const orderStatuses = [
+      let rawMaterialsMap = new Map();
+      // 💡 قائمة الحالات المحدثة
+      const statusOptions = [
         "قيد المراجعة",
         "مقبول",
-        "مقبول-العميل", // حالة جديدة
+        "مقبول-العميل",
         "قيد التصنيع",
         "قيد الطلاء",
         "قيد التغليف",
         "قيد الشحن",
         "مكتمل",
         "تم الرفض",
-        "مرفوض-العميل", // حالة جديدة
         "مؤرشف",
       ];
 
-      let allOrders = [];
-      let currentFilter = "all";
-      let currentOrderId = null;
-      let currentOrderCollection = null;
-      let currentOrderData = null;
-
-      // الدوال المساعدة لفتح وإغلاق المودال مع تحسينات التمرير
+      // دوال التحكم في المودال (لتقليل التكرار)
       function openModal(modalId) {
         document.getElementById(modalId).classList.add("active");
         document.body.classList.add("scroll-lock");
@@ -338,11 +406,12 @@
         document.getElementById(modalId).classList.remove("active");
         document.body.classList.remove("scroll-lock");
       }
-
-      // إغلاق المودال بالنقر خارجها أو بـ Esc
       document.querySelectorAll(".modal-overlay").forEach((modal) => {
         modal.addEventListener("click", (e) => {
-          if (e.target.classList.contains("modal-overlay")) {
+          if (
+            e.target.closest(".modal-close") ||
+            e.target.classList.contains("modal-overlay")
+          ) {
             closeModal(modal.id);
           }
         });
@@ -357,12 +426,32 @@
         }
       });
 
-      // التحقق من صلاحيات المدير
+      async function fetchRawMaterials() {
+        const snapshot = await getDocs(collection(db, "raw_materials"));
+        rawMaterialsMap = new Map(
+          snapshot.docs.map((d) => [
+            d.id,
+            {
+              id: d.id,
+              ...d.data(),
+              current_stock: parseFloat(d.data().current_stock || 0),
+              total_cost_value: parseFloat(d.data().total_cost_value || 0),
+              cost_per_unit: parseFloat(d.data().cost_per_unit || 0),
+              unit: d.data().unit || "وحدة",
+              name_ar: d.data().name_ar || d.id,
+            },
+          ])
+        );
+      }
+
+      // كتلة التحقق من الصلاحيات
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           const userDoc = await getDoc(doc(db, "users", user.uid));
           if (userDoc.exists() && userDoc.data().role === "admin") {
-            fetchAndRenderOrders();
+            await fetchRawMaterials();
+            fetchOrders();
+            setupBulkActions();
           } else {
             alert("غير مصرح لك بالوصول إلى هذه الصفحة.");
             window.location.href = "login.html";
@@ -374,146 +463,47 @@
 
       document
         .getElementById("logout-btn")
-        .addEventListener("click", async (e) => {
-          e.preventDefault();
+        .addEventListener("click", async () => {
           await signOut(auth);
           window.location.href = "login.html";
         });
 
-      function renderTable(ordersToDisplay) {
-        if (ordersToDisplay.length === 0) {
-          ordersTableContainer.innerHTML =
-            '<p class="loading-msg">لا توجد طلبات لعرضها.</p>';
-          return;
-        }
+      async function fetchOrders() {
+        const readySnap = await getDocs(collection(db, "orders"));
+        const customSnap = await getDocs(collection(db, "custom_designs"));
 
-        let tableHtml = `
-          <table class="orders-table">
-            <thead>
-              <tr>
-                <th><input type="checkbox" id="select-all-checkbox" class="table-checkbox"></th>
-                <th><i class="fa-solid fa-user"></i> العميل</th>
-                <th><i class="fa-solid fa-tag"></i> النوع</th>
-                <th><i class="fa-solid fa-calendar-alt"></i> التاريخ</th>
-                <th><i class="fa-solid fa-money-bill"></i> الإجمالي</th>
-                <th><i class="fa-solid fa-info-circle"></i> الحالة</th>
-                <th><i class="fa-solid fa-tools"></i> الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-        `;
-        ordersToDisplay.forEach((order) => {
-          const statusClass = order.status.replace(/\s+/g, "-");
-          const orderType = order.type === "ready" ? "جاهز" : "مخصص";
-          const totalAmount =
-            order.type === "ready"
-              ? (order.total || 0).toFixed(0)
-              : order.final_price
-              ? order.final_price.toFixed(0)
-              : "---";
+        const readyOrders = readySnap.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+          type: "ready",
+        }));
 
-          tableHtml += `
-            <tr data-id="${order.id}" data-collection="${
-            order.type === "ready" ? "orders" : "custom_designs"
-          }">
-              <td><input type="checkbox" class="table-checkbox order-checkbox"></td>
-              <td>${order.name || "---"}</td>
-              <td><span class="status-badge" style="background-color: ${
-                order.type === "ready" ? "#5bc0de" : "#3e2723"
-              }; color: white;">${orderType}</span></td>
-              <td>${new Date(order.order_date).toLocaleDateString("en-US")}</td>
-              <td>${totalAmount} شيكل</td>
-              <td><span class="status-badge ${statusClass}">${
-            order.status
-          }</span></td>
-              <td class="actions-buttons">
-                <button class="dropdown-btn"><i class="fa-solid fa-ellipsis-v"></i></button>
-                <ul class="dropdown-menu">
-                  <li><button class="view-btn">عرض التفاصيل</button></li>
-                  <li><button class="edit-status-btn">تغيير الحالة</button></li>
-                  <li><button class="archive-btn">أرشفة</button></li>
-                  <li><button class="delete-btn text-danger">حذف</button></li>
-                </ul>
-              </td>
-            </tr>
-          `;
-        });
-        tableHtml += "</tbody></table>";
-        ordersTableContainer.innerHTML = tableHtml;
-        // setupCheckboxes();
+        const customOrders = customSnap.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+          type: "custom",
+        }));
+
+        allOrders = [...readyOrders, ...customOrders].sort(
+          (a, b) => new Date(b.order_date) - new Date(a.order_date)
+        );
+        const activeFilter =
+          document.querySelector(".filter-btn.active")?.dataset.filter || "all";
+        applyFilter(activeFilter);
       }
 
-      // وظائف إحصائيات الطلبات (تم نقلها من admin.html)
-      function updateStats() {
-        // لا نحتاج الإحصائيات هنا، ولكن نبقي الدالة فارغة أو نزيلها إذا لم تكن تستخدم لأي غرض آخر
-      }
-
-      async function fetchAndRenderOrders() {
-        ordersTableContainer.innerHTML =
-          '<p class="loading-msg">جارٍ تحميل الطلبات...</p>';
-        try {
-          const ordersCollection = collection(db, "orders");
-          const customDesignsCollection = collection(db, "custom_designs");
-
-          const ordersQuery = query(
-            ordersCollection,
-            orderBy("order_date", "desc")
-          );
-          const customDesignsQuery = query(
-            customDesignsCollection,
-            orderBy("order_date", "desc")
-          );
-
-          const [ordersSnapshot, customDesignsSnapshot] = await Promise.all([
-            getDocs(ordersQuery),
-            getDocs(customDesignsQuery),
-          ]);
-
-          const readyOrders = ordersSnapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-            type: "ready",
-          }));
-          const customOrders = customDesignsSnapshot.docs.map((doc) => ({
-            id: doc.id,
-            ...doc.data(),
-            type: "custom",
-          }));
-
-          allOrders = [...readyOrders, ...customOrders].sort(
-            (a, b) => new Date(b.order_date) - new Date(a.order_date)
-          );
-
-          updateStats(); // تبقى هنا احتياطًا
-          filterOrders(currentFilter);
-        } catch (e) {
-          console.error("Error fetching documents: ", e);
-          ordersTableContainer.innerHTML =
-            '<p class="loading-msg" style="color: red;">حدث خطأ في جلب الطلبات. الرجاء التحقق من اتصالك بالشبكة.</p>';
-        }
-      }
-
-      function filterOrders(filter) {
-        currentFilter = filter;
-        document
-          .querySelectorAll(".filter-btn")
-          .forEach((btn) => btn.classList.remove("active"));
-        document
-          .querySelector(`.filter-btn[data-filter="${filter}"]`)
-          .classList.add("active");
-
-        let filtered = allOrders;
-
+      function applyFilter(filter) {
+        let filteredOrders = allOrders;
         if (filter === "ready") {
-          filtered = allOrders.filter((o) => o.type === "ready");
+          filteredOrders = allOrders.filter((o) => o.type === "ready");
         } else if (filter === "custom") {
-          filtered = allOrders.filter((o) => o.type === "custom");
+          filteredOrders = allOrders.filter((o) => o.type === "custom");
         } else if (filter === "pending") {
-          filtered = allOrders.filter(
+          filteredOrders = allOrders.filter(
             (o) => o.status === "قيد المراجعة" || o.status === "مقبول"
           );
         } else if (filter === "in-progress") {
-          filtered = allOrders.filter((o) =>
+          filteredOrders = allOrders.filter((o) =>
             [
               "مقبول-العميل",
               "قيد التصنيع",
@@ -523,375 +513,503 @@
             ].includes(o.status)
           );
         } else if (filter === "completed") {
-          filtered = allOrders.filter((o) => o.status === "مكتمل");
+          filteredOrders = allOrders.filter((o) => o.status === "مكتمل");
         } else if (filter === "archived") {
-          filtered = allOrders.filter((o) => o.status === "مؤرشف");
-        }
-        renderTable(filtered);
-      }
-
-      function getSelectedOrders() {
-        const selectedIds = Array.from(
-          document.querySelectorAll(".order-checkbox:checked")
-        ).map((checkbox) => checkbox.closest("tr").dataset.id);
-        return allOrders.filter((order) => selectedIds.includes(order.id));
-      }
-
-      function updateBulkActionsVisibility() {
-        const selectedCount = getSelectedOrders().length;
-        if (selectedCount > 0) {
-          bulkArchiveBtn.classList.add("show");
-          bulkDeleteBtn.classList.add("show");
-        } else {
-          bulkArchiveBtn.classList.remove("show");
-          bulkDeleteBtn.classList.remove("show");
-        }
-      }
-
-      function setupCheckboxes() {
-        const selectAllCheckbox = document.getElementById(
-          "select-all-checkbox"
-        );
-        const orderCheckboxes = document.querySelectorAll(".order-checkbox");
-
-        selectAllCheckbox.addEventListener("change", (e) => {
-          orderCheckboxes.forEach(
-            (checkbox) => (checkbox.checked = e.target.checked)
+          filteredOrders = allOrders.filter(
+            (o) =>
+              o.status === "مؤرشف" ||
+              o.status === "تم الرفض" ||
+              o.status === "مرفوض-العميل"
           );
-          updateBulkActionsVisibility();
+        }
+        renderTable(filteredOrders);
+      }
+
+      // ... (دالة renderTable تبقى كما هي)
+      function renderTable(orders) {
+        const container = document.getElementById("orders-table-container");
+        if (!orders.length) {
+          container.innerHTML = "<p>لا توجد طلبات</p>";
+          document
+            .getElementById("bulk-actions-container")
+            .classList.remove("show");
+          return;
+        }
+        let html = `<table class="orders-table">
+        <thead><tr>
+        <th><input type="checkbox" id="select-all-orders"></th>
+        <th>العميل</th><th>النوع</th><th>التاريخ</th><th>الإجمالي</th><th>الحالة</th><th>إجراء</th>
+        </tr></thead><tbody>`;
+
+        orders.forEach((o) => {
+          const statusClass = o.status.replace(/\s+/g, "-");
+          const typeText = o.type === "ready" ? "جاهز" : "مخصص";
+          const total =
+            o.type === "ready"
+              ? (o.total || 0).toFixed(0)
+              : o.final_price
+              ? o.final_price.toFixed(0)
+              : "---";
+          html += `
+          <tr data-id="${o.id}" data-collection="${
+            o.type === "ready" ? "orders" : "custom_designs"
+          }">
+          <td><input type="checkbox" class="order-select-checkbox" data-id="${
+            o.id
+          }"></td>
+          <td>${o.name || "---"}</td>
+          <td>${typeText}</td>
+          <td>${new Date(o.order_date).toLocaleDateString("ar-EG")}</td>
+          <td>${total}</td>
+          <td><span class="status-badge ${statusClass}">${o.status}</span></td>
+          <td class="actions-buttons" style="white-space: nowrap;">
+            <button class="edit-btn btn-icon btn-manage" title="إدارة وتغيير الحالة"><i class="fa-solid fa-tools"></i></button>
+            <button class="delete-btn btn-icon btn-delete" title="حذف الطلب" data-id="${
+              o.id
+            }" data-collection="${
+            o.type === "ready" ? "orders" : "custom_designs"
+          }"><i class="fa-solid fa-trash"></i></button>
+          </td>
+          </tr>`;
         });
 
-        orderCheckboxes.forEach((checkbox) => {
-          checkbox.addEventListener("change", () => {
-            selectAllCheckbox.checked = Array.from(orderCheckboxes).every(
-              (cb) => cb.checked
-            );
-            updateBulkActionsVisibility();
-          });
+        html += `</tbody></table>`;
+        container.innerHTML = html;
+
+        // ربط أحداث التحديد المتعدد بعد عرض الجدول
+        document
+          .getElementById("select-all-orders")
+          .addEventListener("change", toggleAllCheckboxes);
+        document.querySelectorAll(".order-select-checkbox").forEach((cb) => {
+          cb.addEventListener("change", updateBulkActionsVisibility);
         });
-        updateBulkActionsVisibility(); // لتحديث الأزرار عند التحميل
+        updateBulkActionsVisibility(); // لتحديث الرؤية عند التحميل
       }
+      // ... (بقية دوال التحكم في الجدول)
 
-      filtersContainer.addEventListener("click", (e) => {
-        if (e.target.closest(".filter-btn")) {
-          filterOrders(e.target.closest(".filter-btn").dataset.filter);
-        }
-      });
-
-      ordersTableContainer.addEventListener("click", (e) => {
-        const row = e.target.closest("tr");
-        if (!row) return;
-
-        const orderId = row.dataset.id;
-        const collectionName = row.dataset.collection;
-        currentOrderId = orderId;
-        currentOrderCollection = collectionName;
-        currentOrderData = allOrders.find(
-          (o) =>
-            o.id === orderId &&
-            o.type === (collectionName === "orders" ? "ready" : "custom")
-        );
-
-        if (e.target.closest(".dropdown-btn")) {
-          const dropdownMenu = e.target
-            .closest(".actions-buttons")
-            .querySelector(".dropdown-menu");
-          document.querySelectorAll(".dropdown-menu.show").forEach((menu) => {
-            if (menu !== dropdownMenu) {
-              menu.classList.remove("show");
-            }
-          });
-          dropdownMenu.classList.toggle("show");
-        } else if (e.target.closest(".view-btn")) {
-          showDetailsModal();
-        } else if (e.target.closest(".edit-status-btn")) {
-          showEditStatusModal();
-        } else if (e.target.closest(".archive-btn")) {
-          showConfirmationModal(
-            "أرشفة",
-            "هل أنت متأكد من أرشفة هذا الطلب؟",
-            () => {
-              updateOrderStatus(
-                currentOrderId,
-                "مؤرشف",
-                currentOrderCollection,
-                currentOrderData
-              );
-            }
-          );
-        } else if (e.target.closest(".delete-btn")) {
-          showConfirmationModal(
-            "حذف",
-            "هل أنت متأكد من حذف هذا الطلب نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.",
-            () => {
-              deleteOrder(orderId, collectionName);
-            }
-          );
-        }
-      });
-
+      // منطق عرض وتعديل الطلبات المُحسن (زر الإدارة الفردي)
       document.addEventListener("click", (e) => {
-        if (!e.target.closest(".actions-buttons")) {
-          document.querySelectorAll(".dropdown-menu.show").forEach((menu) => {
-            menu.classList.remove("show");
-          });
-        }
-      });
+        // ... (معالجة زر الحذف)
 
-      bulkArchiveBtn.addEventListener("click", () => {
-        const selectedOrders = getSelectedOrders();
-        if (selectedOrders.length === 0) return;
-        showConfirmationModal(
-          "أرشفة جماعية",
-          `هل أنت متأكد من أرشفة ${selectedOrders.length} طلب؟`,
-          async () => {
-            const batch = writeBatch(db);
-            selectedOrders.forEach((order) => {
-              const docRef = doc(
-                db,
-                order.type === "ready" ? "orders" : "custom_designs",
-                order.id
-              );
-              batch.update(docRef, { status: "مؤرشف" });
-            });
-            await batch.commit();
-            fetchAndRenderOrders();
-            updateBulkActionsVisibility();
-          }
-        );
-      });
+        if (e.target.closest(".edit-btn")) {
+          const tr = e.target.closest("tr");
+          currentOrderId = tr.dataset.id;
+          currentOrderCollection = tr.dataset.collection;
+          currentOrderData = allOrders.find((o) => o.id === currentOrderId);
 
-      bulkDeleteBtn.addEventListener("click", () => {
-        const selectedOrders = getSelectedOrders();
-        if (selectedOrders.length === 0) return;
-        showConfirmationModal(
-          "حذف جماعي",
-          `هل أنت متأكد من حذف ${selectedOrders.length} طلب نهائياً؟ هذا الإجراء لا يمكن التراجع عنه.`,
-          async () => {
-            const batch = writeBatch(db);
-            selectedOrders.forEach((order) => {
-              const docRef = doc(
-                db,
-                order.type === "ready" ? "orders" : "custom_designs",
-                order.id
-              );
-              batch.delete(docRef);
-            });
-            await batch.commit();
-            fetchAndRenderOrders();
-            updateBulkActionsVisibility();
-          }
-        );
-      });
+          if (!currentOrderData) return;
 
-      function showConfirmationModal(title, message, callback) {
-        confirmTitle.textContent = title;
-        confirmMessage.textContent = message;
-        confirmActionBtn.onclick = () => {
-          callback();
-          closeModal("confirmation-modal");
-        };
-        closeModal("order-details-modal");
-        openModal("confirmation-modal");
-      }
+          const isCustom = currentOrderData.type === "custom";
 
-      function showDetailsModal() {
-        if (!currentOrderData) return;
-        let detailsHtml = `
-          <div class="order-details-group">
-            <p><strong><i class="fa-solid fa-user"></i> العميل:</strong> ${
-              currentOrderData.name || "---"
-            }</p>
-            <p><strong><i class="fa-solid fa-phone"></i> الهاتف:</strong> ${
-              currentOrderData.phone || "---"
-            }</p>
-            <p><strong><i class="fa-solid fa-location-dot"></i> العنوان:</strong> ${
-              currentOrderData.address || "---"
-            }</p>
-            <p><strong><i class="fa-solid fa-calendar-alt"></i> التاريخ:</strong> ${new Date(
-              currentOrderData.order_date
-            ).toLocaleDateString("en-US")}</p>
-            <p><strong><i class="fa-solid fa-info-circle"></i> الحالة:</strong> <span class="status-badge ${currentOrderData.status.replace(
-              /\s+/g,
-              "-"
-            )}">${currentOrderData.status}</span></p>
-          </div>
-        `;
-        if (currentOrderData.type === "ready") {
-          detailsHtml += `
-            <div class="order-details-group">
-              <p><strong><i class="fa-solid fa-boxes-stacked"></i> قائمة المنتجات:</strong></p>
-              <ul class="order-items-list">
-                ${currentOrderData.items
-                  .map((item) => {
-                    return `<li>${item.name} (الكمية: ${
-                      item.quantity
-                    }) - السعر: <span>${item.price.toFixed(
-                      0
-                    )} شيكل</span></li>`;
-                  })
-                  .join("")}
-              </ul>
-              <p style="margin-top: 15px;"><strong>الإجمالي:</strong> ${currentOrderData.total.toFixed(
-                0
-              )} شيكل</p>
-            </div>
+          // إعادة تعيين حقول التسعير والرفض والمواد الخام عند الفتح
+          document.getElementById("modal-price").value = "";
+          document.getElementById("rejection-reason").value = "";
+          document.getElementById("material-list").value = "";
+          document.getElementById("custom-price-field").style.display = "none";
+          document.getElementById("rejection-reason-field").style.display =
+            "none";
+          document.getElementById("custom-materials-field").style.display =
+            "none";
+
+          let detailsHTML = `
+              <div class="order-details-group">
+                  <p><strong><i class="fa-solid fa-user"></i> العميل:</strong> ${
+                    currentOrderData.name || "---"
+                  }</p>
+                  <p><strong><i class="fa-solid fa-phone"></i> الهاتف:</strong> ${
+                    currentOrderData.phone || "---"
+                  }</p>
+                  <p><strong><i class="fa-solid fa-map-marker-alt"></i> العنوان:</strong> ${
+                    currentOrderData.address || "---"
+                  }</p>
+                  <p><strong><i class="fa-solid fa-envelope"></i> الإيميل:</strong> ${
+                    currentOrderData.email || "---"
+                  }</p>
+                  <p><strong><i class="fa-solid fa-receipt"></i> رقم الطلب:</strong> ${
+                    currentOrderData.id
+                  }</p>
+                  <p><strong><i class="fa-solid fa-calendar-alt"></i> التاريخ:</strong> ${new Date(
+                    currentOrderData.order_date
+                  ).toLocaleDateString("ar-EG")}</p>
+                  <p><strong><i class="fa-solid fa-list-check"></i> ملاحظات العميل:</strong> ${
+                    currentOrderData.notes || "لا توجد"
+                  }</p>
+                  <p><strong><i class="fa-solid fa-tag"></i> الحالة الحالية:</strong> <span class="status-badge ${currentOrderData.status.replace(
+                    /\s+/g,
+                    "-"
+                  )}">${currentOrderData.status}</span></p>
+              </div>
           `;
-        } else {
-          detailsHtml += `
-            <div class="order-details-group">
-              <p><strong><i class="fa-solid fa-file-lines"></i> وصف التصميم:</strong> ${
-                currentOrderData.notes || "لا يوجد"
-              }</p>
-              <p><strong><i class="fa-solid fa-chair"></i> النوع:</strong> ${
-                currentOrderData.type_of_product || "---"
-              }</p>
-              <p><strong><i class="fa-solid fa-ruler-combined"></i> الأبعاد:</strong> ${
-                currentOrderData.dimensions || "---"
-              }</p>
-              <p><strong><i class="fa-solid fa-tree"></i> المادة:</strong> ${
-                currentOrderData.material || "---"
-              }</p>
-              <p><strong><i class="fa-solid fa-palette"></i> اللون:</strong> ${
-                currentOrderData.color || "---"
-              }</p>
-              ${
-                currentOrderData.rejection_reason
-                  ? `<p style="color:red;"><strong><i class="fa-solid fa-ban"></i> سبب الرفض:</strong> ${currentOrderData.rejection_reason}</p>`
-                  : ""
-              }
-              ${
-                currentOrderData.final_price
-                  ? `<p style="color:green;"><strong><i class="fa-solid fa-hand-holding-dollar"></i> السعر النهائي:</strong> ${currentOrderData.final_price} شيكل</p>`
-                  : `<p><strong><i class="fa-solid fa-tag"></i> السعر المقترح:</strong> ${currentOrderData.price}</p>`
-              }
-            </div>
-          `;
-        }
-        modalOrderDetails.innerHTML = detailsHtml;
-        openModal("order-details-modal");
-      }
 
-      function showEditStatusModal() {
-        if (!currentOrderData) return;
-        modalOrderDetails.innerHTML = `
-          <div class="order-details-group">
-            <p><strong>العميل:</strong> ${currentOrderData.name || "---"}</p>
-            <p><strong>الحالة الحالية:</strong> <span class="status-badge ${currentOrderData.status.replace(
-              /\s+/g,
-              "-"
-            )}">${currentOrderData.status}</span></p>
-          </div>
-        `;
-        modalStatusSelect.innerHTML = "";
-        orderStatuses.forEach((status) => {
-          const option = document.createElement("option");
-          option.value = status;
-          option.textContent = status;
-          modalStatusSelect.appendChild(option);
-        });
-        modalStatusSelect.value = currentOrderData.status;
-        const isCustom = currentOrderData.type === "custom";
-        const isRejected =
-          modalStatusSelect.value === "تم الرفض" ||
-          modalStatusSelect.value === "مرفوض-العميل";
-
-        if (isCustom) {
-          customPriceField.style.display =
-            !isRejected && modalStatusSelect.value !== "مقبول-العميل"
-              ? "block"
-              : "none";
-          modalPriceInput.value = currentOrderData.final_price || "";
-        } else {
-          customPriceField.style.display = "none";
-        }
-        rejectionReasonField.style.display = isRejected ? "block" : "none";
-        rejectionReasonTextarea.value = currentOrderData.rejection_reason || "";
-        openModal("order-details-modal");
-      }
-
-      modalStatusSelect.addEventListener("change", () => {
-        const isRejected =
-          modalStatusSelect.value === "تم الرفض" ||
-          modalStatusSelect.value === "مرفوض-العميل";
-        const isCustom = currentOrderData.type === "custom";
-        rejectionReasonField.style.display = isRejected ? "block" : "none";
-        customPriceField.style.display =
-          isCustom && !isRejected && modalStatusSelect.value !== "مقبول-العميل"
-            ? "block"
-            : "none";
-      });
-
-      // ... (دالة updateOrderStatus و saveStatusBtn.addEventListener) ...
-
-      async function updateOrderStatus(
-        orderId,
-        newStatus,
-        collectionName,
-        orderData
-      ) {
-        try {
-          const orderRef = doc(db, collectionName, orderId);
-          await updateDoc(orderRef, { status: newStatus });
-          // sendUpdateEmail(orderData, newStatus); // إذا كنت قد أضفت دالة الإيميل
-          fetchAndRenderOrders();
-        } catch (e) {
-          console.error("Error updating document: ", e);
-          alert("حدث خطأ في تحديث حالة الطلب.");
-        }
-      }
-
-      saveStatusBtn.addEventListener("click", async () => {
-        const newStatus = modalStatusSelect.value;
-        const finalPrice = modalPriceInput.value
-          ? parseFloat(modalPriceInput.value)
-          : null;
-        const rejectionReason = rejectionReasonTextarea.value;
-
-        if (
-          (newStatus === "تم الرفض" || newStatus === "مرفوض-العميل") &&
-          rejectionReason.trim() === ""
-        ) {
-          alert("الرجاء إدخال سبب الرفض عند رفض الطلب.");
-          return;
-        }
-        if (
-          currentOrderData.type === "custom" &&
-          newStatus === "مقبول" &&
-          (!finalPrice || finalPrice <= 0)
-        ) {
-          alert("الرجاء إدخال سعر نهائي صحيح للطلب المخصص عند القبول.");
-          return;
-        }
-
-        let updateData = { status: newStatus };
-        if (currentOrderData.type === "custom") {
-          if (newStatus === "مقبول") {
-            updateData.final_price = finalPrice;
-            updateData.rejection_reason = null;
-          } else if (newStatus === "تم الرفض" || newStatus === "مرفوض-العميل") {
-            updateData.rejection_reason = rejectionReason;
-            updateData.final_price = currentOrderData.final_price || null;
+          if (currentOrderData.type === "ready") {
+            // تفاصيل الطلب الجاهز
+            const total = (currentOrderData.total || 0).toFixed(0);
+            detailsHTML += `
+                  <h3><i class="fa-solid fa-boxes-stacked"></i> المنتجات المطلوبة:</h3>
+                  <ul class="order-items-list">
+                      ${currentOrderData.items
+                        .map(
+                          (item) => `
+                      <li>
+                          <span>${item.name} (العدد: ${item.quantity}) ${
+                            item.color ? `| اللون: ${item.color}` : ""
+                          }</span>
+                          <span>${parseFloat(item.price).toFixed(0)} شيكل</span>
+                      </li>
+                      `
+                        )
+                        .join("")}
+                  </ul>
+                  <p style="margin-top: 15px; font-size: 1.1rem;"><strong><i class="fa-solid fa-money-bill-wave"></i> الإجمالي المدفوع:</strong> ${total} شيكل</p>
+              `;
           } else {
-            updateData.final_price = currentOrderData.final_price;
-            updateData.rejection_reason = null;
+            // تفاصيل الطلب المخصص (Custom Design)
+            const priceDisplay = currentOrderData.final_price
+              ? currentOrderData.final_price.toFixed(0)
+              : currentOrderData.initial_price || "---";
+
+            detailsHTML += `
+                  <h3><i class="fa-solid fa-ruler-combined"></i> مواصفات التصميم المخصص:</h3>
+                  <p><strong>اسم المنتج المقترح:</strong> ${
+                    currentOrderData.title || "---"
+                  }</p>
+                  <p><strong>وصف العميل:</strong> ${
+                    currentOrderData.description || "---"
+                  }</p>
+                  <p><strong>النوع:</strong> ${
+                    currentOrderData.type_of_product || "---"
+                  }</p>
+                  <p><strong>المقاسات:</strong> ${
+                    currentOrderData.dimensions || "---"
+                  }</p>
+                  <p><strong>المادة:</strong> ${
+                    currentOrderData.material || "---"
+                  }</p>
+                  <p><strong>اللون:</strong> ${
+                    currentOrderData.color || "---"
+                  }</p>
+                  <p style="margin-top: 15px;"><strong>السعر المقترح (أولي):</strong> ${priceDisplay} شيكل</p>
+                  <p style="font-size: 0.9rem; color: #888;">تكلفة المواد التقديرية (COGS): ${
+                    currentOrderData.estimatedCOGS || "---"
+                  } شيكل</p>
+              `;
+
+            // 💡 إظهار حقل الإدخال اليدوي للمواد الخام
+            document.getElementById("custom-materials-field").style.display =
+              "flex";
+
+            // ملء حقل المواد الخام إذا كانت موجودة
+            if (
+              currentOrderData.required_materials_for_custom &&
+              currentOrderData.required_materials_for_custom.length > 0
+            ) {
+              const matList = currentOrderData.required_materials_for_custom
+                .map((req) => `${req.id}:${req.quantity}`)
+                .join(", ");
+              document.getElementById("material-list").value = matList;
+            }
+
+            // إظهار حقل التسعير النهائي لطلبات التصميم المخصصة عند قبولها
+            if (
+              currentOrderData.status === "قيد المراجعة" ||
+              currentOrderData.status === "تم الرفض"
+            ) {
+              document.getElementById("custom-price-field").style.display =
+                "flex";
+              document.getElementById("modal-price").value =
+                currentOrderData.final_price || "";
+            }
+            if (currentOrderData.status === "تم الرفض") {
+              document.getElementById("rejection-reason-field").style.display =
+                "flex";
+              document.getElementById("rejection-reason").value =
+                currentOrderData.rejection_reason || "";
+            }
           }
-        } else if (newStatus === "تم الرفض" || newStatus === "مرفوض-العميل") {
-          updateData.rejection_reason = rejectionReason;
+
+          document.getElementById("modal-order-details").innerHTML =
+            detailsHTML;
+
+          // ملء قائمة الحالة وتحديد الحالة الحالية
+          const modalStatus = document.getElementById("modal-status");
+
+          // 💡 تحديد خيارات الحالة بناءً على نوع الطلب
+          const availableStatusOptions =
+            currentOrderData.type === "ready"
+              ? statusOptions.filter((s) => s !== "مقبول-العميل")
+              : statusOptions; // الطلبات المخصصة: كل الخيارات متاحة للمدير
+
+          modalStatus.innerHTML = availableStatusOptions
+            .map(
+              (s) =>
+                `<option value="${s}" ${
+                  currentOrderData.status === s ? "selected" : ""
+                }>${s}</option>`
+            )
+            .join("");
+
+          openModal("order-details-modal");
+
+          // وظيفة متابعة لتحديث حالة الحقول بناءً على تغيير الحالة في المودال
+          document.getElementById("modal-status").onchange = (e) => {
+            const newStatus = e.target.value;
+            const isCustom = currentOrderData.type === "custom";
+
+            // إظهار حقل التسعير النهائي لطلبات التصميم المخصصة عند قبولها
+            if (
+              isCustom &&
+              (newStatus === "مقبول" || newStatus === "تم الرفض")
+            ) {
+              document.getElementById("custom-price-field").style.display =
+                "flex";
+              document.getElementById("modal-price").required = true;
+            } else {
+              document.getElementById("custom-price-field").style.display =
+                "none";
+              document.getElementById("modal-price").required = false;
+            }
+
+            // إظهار حقل المواد الخام
+            document.getElementById("custom-materials-field").style.display =
+              isCustom ? "flex" : "none";
+
+            // إظهار حقل سبب الرفض عند الرفض
+            if (isCustom && newStatus === "تم الرفض") {
+              document.getElementById("rejection-reason-field").style.display =
+                "flex";
+              document.getElementById("rejection-reason").required = true;
+            } else {
+              document.getElementById("rejection-reason-field").style.display =
+                "none";
+              document.getElementById("rejection-reason").required = false;
+            }
+          };
+          // تشغيل المنطق لمرة واحدة عند الفتح للتأكد من الحالة الابتدائية
+          document
+            .getElementById("modal-status")
+            .dispatchEvent(new Event("change"));
         }
 
-        try {
-          const orderRef = doc(db, currentOrderCollection, currentOrderId);
-          await updateDoc(orderRef, updateData);
-
-          closeModal("order-details-modal");
-          fetchAndRenderOrders();
-        } catch (e) {
-          console.error("Error updating document:", e);
-          alert("حدث خطأ أثناء تحديث حالة الطلب.");
+        if (e.target.closest(".modal-close")) {
+          e.target.closest(".modal-overlay").classList.remove("active");
         }
       });
-      // ... (بقية الدوال) ...
+
+      // منطق حفظ الحالة والسعر والمواد الخام المُحسن
+      document
+        .getElementById("save-status-btn")
+        .addEventListener("click", async () => {
+          const newStatus = document.getElementById("modal-status").value;
+          const finalPrice =
+            parseFloat(document.getElementById("modal-price").value) || null;
+          const rejectionReason =
+            document.getElementById("rejection-reason").value || null;
+          const materialListText =
+            document.getElementById("material-list").value; // 💡 جلب المواد الخام
+
+          if (!currentOrderData) return;
+
+          let updatePayload = { status: newStatus };
+
+          // 💡 تحديد شروط الخصم: (الطلبات الجاهزة: مقبول)، (الطلبات المخصصة: مقبول-العميل)
+          const isReadyOrderForDeduction =
+            currentOrderData.type === "ready" && newStatus === "مقبول";
+          const isCustomOrderForDeduction =
+            currentOrderData.type === "custom" && newStatus === "مقبول-العميل";
+
+          let requiredMaterialsForCustom = [];
+
+          // 💡 منطق الطلبات المخصصة: التحقق من الإدخال اليدوي عند القبول
+          if (currentOrderData.type === "custom") {
+            if (newStatus === "مقبول") {
+              // 1. التحقق من السعر
+              if (!finalPrice || finalPrice <= 0) {
+                alert("الرجاء إدخال سعر نهائي صحيح للموافقة على طلب التصميم.");
+                return;
+              }
+
+              // 2. التحقق من المواد الخام
+              if (!materialListText) {
+                alert(
+                  "⚠️ إلزامي: الرجاء إدخال قائمة المواد الخام (ID:Quantity) للطلب المخصص قبل إرسال التسعيرة للعميل (قبول)."
+                );
+                return;
+              }
+
+              // 3. تحليل المواد الخام المُدخلة يدوياً
+              const entries = materialListText
+                .split(",")
+                .map((e) => e.trim())
+                .filter((e) => e);
+
+              requiredMaterialsForCustom = entries
+                .map((entry) => {
+                  const [id, quantityStr] = entry.split(":");
+                  const quantity = parseFloat(quantityStr);
+                  if (id && !isNaN(quantity) && quantity > 0) {
+                    return { id: id.trim(), quantity: quantity };
+                  }
+                  return null;
+                })
+                .filter((req) => req !== null);
+
+              if (requiredMaterialsForCustom.length === 0) {
+                alert(
+                  "⚠️ إلزامي: لم يتم تحليل أي مواد خام صالحة من الإدخال. يرجى التأكد من التنسيق (ID:Quantity)."
+                );
+                return;
+              }
+
+              // 4. تحديث Payload للقبول
+              updatePayload.final_price = finalPrice;
+              updatePayload.required_materials_for_custom =
+                requiredMaterialsForCustom;
+              updatePayload.rejection_reason = null;
+            } else if (newStatus === "تم الرفض") {
+              if (!rejectionReason) {
+                alert("الرجاء إدخال سبب للرفض.");
+                return;
+              }
+              updatePayload.final_price = null;
+              updatePayload.rejection_reason = rejectionReason;
+            } else {
+              // للحفاظ على السعر والسبب في حالات النقل بين التنفيذ/المراجعة
+              if (currentOrderData.final_price)
+                updatePayload.final_price = currentOrderData.final_price;
+              if (currentOrderData.rejection_reason)
+                updatePayload.rejection_reason =
+                  currentOrderData.rejection_reason;
+            }
+          }
+
+          // 💡 منطق خصم المواد الخام الموحد
+          if (isReadyOrderForDeduction || isCustomOrderForDeduction) {
+            const productsSnap = await getDocs(collection(db, "products"));
+            const products = productsSnap.docs.map((d) => ({
+              id: parseInt(d.id),
+              ...d.data(),
+            }));
+            const batch = writeBatch(db);
+            const logCollection = collection(db, "raw_materials_log");
+            let insufficient = [];
+
+            let itemsToDeduct = [];
+
+            if (currentOrderData.type === "ready") {
+              itemsToDeduct = currentOrderData.items;
+            } else if (currentOrderData.type === "custom") {
+              // للطلب المخصص، نستخدم القائمة المخزنة في الوثيقة
+              const materialsForDeduction =
+                currentOrderData.required_materials_for_custom || [];
+
+              // إذا لم يكن هناك مواد مخزنة، نحاول استخدام المواد المُدخلة للتو في حالة القبول
+              if (materialsForDeduction.length === 0 && newStatus === "مقبول") {
+                materialsForDeduction = requiredMaterialsForCustom;
+              }
+
+              if (materialsForDeduction.length === 0) {
+                alert(
+                  "⚠️ فشل الخصم: لا توجد مواد خام محددة لخصمها من هذا الطلب المخصص."
+                );
+                return;
+              }
+
+              itemsToDeduct.push({
+                id: currentOrderData.id,
+                quantity: 1,
+                required_materials: materialsForDeduction,
+              });
+            }
+
+            for (const item of itemsToDeduct) {
+              const itemID = item.id;
+              const itemQuantity = item.quantity;
+
+              let requiredMaterialsList = [];
+
+              if (currentOrderData.type === "ready") {
+                const product = products.find(
+                  (p) => p.id === itemID || p.id === parseInt(itemID)
+                );
+                if (!product || !product.required_materials) continue;
+                requiredMaterialsList = product.required_materials;
+              } else if (currentOrderData.type === "custom") {
+                requiredMaterialsList = item.required_materials;
+              }
+
+              for (const req of requiredMaterialsList) {
+                const mat = rawMaterialsMap.get(req.id);
+                const need = req.quantity * itemQuantity;
+
+                if (!mat || mat.current_stock < need) {
+                  insufficient.push(
+                    `${mat ? mat.name_ar : "مادة"} (المطلوب: ${need.toFixed(
+                      2
+                    )}، المتاح: ${mat ? mat.current_stock.toFixed(2) : 0})`
+                  );
+                } else {
+                  const ref = doc(db, "raw_materials", req.id);
+                  const newStock = mat.current_stock - need;
+
+                  const consumedValue = need * mat.cost_per_unit;
+                  const newCost = mat.total_cost_value - consumedValue;
+
+                  batch.update(ref, {
+                    current_stock: newStock,
+                    total_cost_value: newCost > 0 ? newCost : 0,
+                  });
+
+                  // سجل حركة المواد الخام
+                  batch.set(doc(logCollection), {
+                    material_id: req.id,
+                    material_name: mat.name_ar,
+                    change_quantity: -need,
+                    change_value: -consumedValue,
+                    operation_type: "consumption",
+                    order_id: currentOrderId,
+                    date: new Date().toISOString(),
+                  });
+
+                  // تحديث الخريطة محلياً لعدم تكرار الخصم في نفس الدورة
+                  mat.current_stock = newStock;
+                  mat.total_cost_value = newCost;
+                }
+              }
+            }
+
+            if (insufficient.length) {
+              alert(
+                "⚠️ لا يمكن القبول بسبب نقص المواد:\n" + insufficient.join("\n")
+              );
+              return;
+            }
+
+            const orderRef = doc(db, currentOrderCollection, currentOrderId);
+            batch.update(orderRef, updatePayload);
+
+            try {
+              await batch.commit();
+              alert("✅ تم تحديث الحالة وخصم المواد الخام بنجاح.");
+              closeModal("order-details-modal");
+              fetchOrders();
+            } catch (e) {
+              console.error("Error committing batch:", e);
+              alert("حدث خطأ أثناء حفظ التغييرات.");
+            }
+          } else {
+            // تحديث بسيط للحالة فقط (بدون خصم)
+            const orderRef = doc(db, currentOrderCollection, currentOrderId);
+            try {
+              await updateDoc(orderRef, updatePayload);
+              alert("تم تحديث الحالة بنجاح.");
+              closeModal("order-details-modal");
+              fetchOrders();
+            } catch (e) {
+              console.error(e);
+              alert("حدث خطأ أثناء حفظ التغييرات.");
+            }
+          }
+        });
     </script>
   </body>
 </html>

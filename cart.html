@@ -152,8 +152,8 @@
                 />
               </div>
               <div class="form-group">
-                <label for="email">البريد الإلكتروني (اختياري)</label
-                ><input type="email" id="email" name="email" />
+                <label for="email">البريد الإلكتروني</label>
+                <input type="email" id="email" name="email" required />
               </div>
 
               <div class="form-group">
@@ -194,8 +194,8 @@
         <h2>شكراً لك!</h2>
         <p>تم استلام طلبك بنجاح. سنقوم بمعالجته في أقرب وقت ممكن.</p>
         <p style="margin-top: 1rem; font-size: 0.9rem; color: #888">
-          تم إرسال ملخص الطلب إلى بريدك الإلكتروني (إذا تم إدخاله). يمكنك متابعة
-          حالة طلبك من خلال صفحة
+          تم إرسال ملخص الطلب إلى بريدك الإلكتروني. يمكنك متابعة حالة طلبك من
+          خلال صفحة
           <a href="order-status.html">حالة الطلب</a> في أي وقت.
         </p>
       </div>
@@ -367,14 +367,13 @@
       }
 
       // ------------------------------------------------
-      // 💡 دالة إرسال تأكيد الطلب باستخدام Formspree (تنسيق نصي محسن)
+      // 💡 دالة إرسال تأكيد الطلب باستخدام Formspree
       // ------------------------------------------------
       async function sendOrderConfirmationEmail(
         customerData,
         readyItems,
         customItems
       ) {
-        // Formspree يتطلب حقل _replyto أو أن يتم إرسال الإيميل
         if (!customerData.email) return;
 
         const totalReady = readyItems
@@ -419,18 +418,17 @@
             : `${totalReady} شيكل`;
 
         const emailData = {
+          // ⚠️ يتم استخدام هذا الحقل كـ (Reply-To) ليتمكن الأدمن من الرد على العميل مباشرةً
           _replyto: customerData.email,
-          _subject: `🆕 طلب جديد من العميل ${customerData.name} - إجمالي ${finalTotalDisplay}`, // تحديد موضوع واضح
+          // ⚠️ البريد الإلكتروني للعميل ليكون واضحاً في السجل
+          البريد_الإلكتروني_للعميل: customerData.email,
+          _subject: `✅ طلبك رقم ${customerData.order_uid} (تأكيد من العميل)`, // موضوع خاص بالعميل
 
-          العميل: customerData.name,
-          الهاتف: customerData.phone,
-          البريد_الإلكتروني: customerData.email,
+          الاسم_الكامل: customerData.name,
+          رقم_الهاتف: customerData.phone,
           العنوان_الكامل: customerData.address,
-          الملاحظات:
-            document.getElementById("notes").value || "لا توجد ملاحظات",
+          ملاحظات_التوصيل: customerData.notes,
           __الإجمالي_النهائي__: finalTotalDisplay,
-
-          // إرسال تفاصيل المنتجات كسلسلة نصية طويلة
           __تفاصيل_الطلبات__: itemsList,
         };
 
@@ -495,9 +493,12 @@
                 const userDocSnap = await getDoc(userDocRef);
                 if (userDocSnap.exists()) {
                   const userData = userDocSnap.data();
+                  // ⚠️ تعبئة حقل الإيميل ببريد المستخدم المسجل
+                  const userEmail = userData.email || user.email || "";
+
                   document.getElementById("name").value = userData.name || "";
                   document.getElementById("phone").value = userData.phone || "";
-                  document.getElementById("email").value = userData.email || "";
+                  document.getElementById("email").value = userEmail; // ⚠️ التعبئة التلقائية
 
                   // محاولة تعبئة المدينة من بيانات العنوان المخزنة
                   const userAddress = userData.address || "";
@@ -535,12 +536,19 @@
           e.preventDefault();
 
           const phoneInput = document.getElementById("phone");
+          const emailInput = document.getElementById("email");
+
           // التحقق النهائي من نمط رقم الهاتف الفلسطيني
           const phonePattern = /^(05[69][0-9]{7})$/;
           if (!phonePattern.test(phoneInput.value)) {
             alert(
               "صيغة رقم الهاتف غير صحيحة. يجب أن يبدأ بـ 056 أو 059 ويحتوي على 10 أرقام."
             );
+            return;
+          }
+          // التحقق من الإيميل (إلزامي الآن)
+          if (!emailInput.value) {
+            alert("الرجاء إدخال البريد الإلكتروني.");
             return;
           }
 
@@ -554,9 +562,10 @@
 
               const customerData = {
                 customer_uid: user.uid,
+                order_uid: "ORD-" + Date.now(), // ⚠️ إضافة رقم طلب وهمي لرسالة الإيميل
                 name: document.getElementById("name").value,
                 phone: phoneInput.value,
-                email: document.getElementById("email").value,
+                email: emailInput.value, // استخدام القيمة المدخلة/المعبأة تلقائيًا
                 address: fullAddress,
                 city: selectedCity,
                 notes: notes,
@@ -572,6 +581,7 @@
                   phone: customerData.phone,
                   address: customerData.address,
                   city: customerData.city,
+                  email: customerData.email, // حفظ الإيميل في وثيقة المستخدم
                 });
 
                 const batch = writeBatch(db);

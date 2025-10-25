@@ -103,7 +103,7 @@
         color: #3e2723;
       }
       .status-badge.مقبول {
-        background-color: #2ecc71;
+        background-color: #2ecc71; /* مقبول = تمت الموافقة من المدير (جاهز للتنفيذ/مقبول السعر) */
       }
       .status-badge.قيد-التصنيع,
       .status-badge.قيد-الطلاء,
@@ -150,6 +150,7 @@
         display: flex;
         gap: 10px;
         justify-content: center;
+        flex-wrap: wrap;
       }
       .price-buttons .btn {
         font-family: "Cairo", sans-serif;
@@ -294,6 +295,7 @@
       const handlePriceDecision = async (orderId, collectionName, status) => {
         try {
           const orderRef = doc(db, collectionName, orderId);
+          // 💡 إذا وافق العميل، يتم تغيير الحالة إلى "مقبول-العميل" ليتم الخصم في لوحة المدير لاحقاً.
           await updateDoc(orderRef, { status: status });
           alert(`تم تحديث حالة طلبك إلى: ${status}`);
           location.reload();
@@ -359,6 +361,7 @@
                   .join("");
                 totalDisplay = `<p style="margin-top: 15px;"><strong>الإجمالي:</strong> ${orderData.total} شيكل</p>`;
               } else {
+                // طلب مخصص
                 itemsListHTML = `
                       <div class="custom-design-details">
                           <p><strong><i class="fa-solid fa-list-check"></i> وصف التصميم:</strong> ${
@@ -378,10 +381,12 @@
                           }</p>
                       </div>
                   `;
+                // 💡 شرط ظهور أزرار الموافقة/الرفض: فقط إذا كانت الحالة "مقبول" و final_price موجود.
                 if (orderData.status === "مقبول" && orderData.final_price) {
                   totalDisplay = `<p><strong><i class="fa-solid fa-hand-holding-dollar"></i> السعر النهائي:</strong> <span style="color: green;">${orderData.final_price} شيكل</span></p>`;
                   actionsHtml = `
                     <div class="price-buttons">
+                      <p style="text-align: center; font-weight: bold; color: #3e2723;">لقد قام المدير بتسعير طلبك. هل توافق على السعر النهائي؟</p>
                       <button class="btn btn-accept" data-id="${orderData.id}" data-collection="custom_designs" data-status="مقبول-العميل">قبول السعر</button>
                       <button class="btn btn-reject" data-id="${orderData.id}" data-collection="custom_designs" data-status="مرفوض-العميل">رفض السعر</button>
                     </div>
@@ -390,10 +395,14 @@
                   orderData.status === "تم الرفض" &&
                   orderData.rejection_reason
                 ) {
-                  totalDisplay = `<p><strong><i class="fa-solid fa-hand-holding-dollar"></i> السعر المقترح:</strong> ${orderData.price}</p>`;
+                  totalDisplay = `<p><strong><i class="fa-solid fa-hand-holding-dollar"></i> السعر الأولي:</strong> ${
+                    orderData.initial_price || orderData.price
+                  }</p>`;
                   itemsListHTML += `<p style="color:red; margin-top: 10px;"><strong><i class="fa-solid fa-circle-xmark"></i> سبب الرفض:</strong> ${orderData.rejection_reason}</p>`;
                 } else {
-                  totalDisplay = `<p><strong><i class="fa-solid fa-hand-holding-dollar"></i> السعر المقترح:</strong> ${orderData.price}</p>`;
+                  totalDisplay = `<p><strong><i class="fa-solid fa-hand-holding-dollar"></i> السعر المقترح:</strong> ${
+                    orderData.initial_price || orderData.price
+                  }</p>`;
                 }
               }
 

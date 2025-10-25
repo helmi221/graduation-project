@@ -16,13 +16,27 @@
     />
     <link rel="stylesheet" href="admin.css" />
     <style>
+      /* Status Colors & Display (كما كانت) */
       .product-status-available {
         color: var(--success-color);
         font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 5px;
       }
-      .product-status-unavailable {
+      .product-status-unavailable-auto {
         color: var(--danger-color);
         font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      .product-status-unavailable-manual {
+        color: var(--warning-color);
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 5px;
       }
     </style>
   </head>
@@ -52,6 +66,11 @@
             >
           </li>
           <li>
+            <a href="fixed_costs_admin.html"
+              ><i class="fa-solid fa-calculator"></i> التكاليف الثابتة</a
+            >
+          </li>
+          <li>
             <a href="#" id="logout-btn"
               ><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</a
             >
@@ -63,8 +82,9 @@
     <div class="main-content container-fluid">
       <h1>إدارة المنتجات</h1>
 
-      <div class="inventory-section admin-panel">
+      <div class="admin-panel">
         <div class="section-header">
+          <h2>قائمة المنتجات</h2>
           <button class="btn" id="add-product-btn">
             <i class="fa-solid fa-plus"></i> إضافة منتج جديد
           </button>
@@ -76,22 +96,23 @@
     </div>
 
     <div id="product-modal" class="modal-overlay">
-      <div class="modal-content" style="max-width: 800px">
+      <div class="modal-content">
         <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
         <h2 id="product-modal-title"></h2>
         <form id="product-form">
           <input type="hidden" id="product-id" />
 
-          <div class="form-group">
-            <label for="product-name">اسم المنتج</label>
-            <input type="text" id="product-name" required />
-          </div>
-
           <div class="modal-form-grid">
+            <div class="form-group">
+              <label for="product-name">اسم المنتج</label>
+              <input type="text" id="product-name" required />
+            </div>
+
             <div class="form-group">
               <label for="product-category">الفئة</label>
               <select id="product-category" required></select>
             </div>
+
             <div class="form-group">
               <label for="product-price">السعر (شيكل)</label>
               <input
@@ -102,6 +123,33 @@
                 required
               />
             </div>
+
+            <div class="form-group">
+              <label for="manufacturing-hours"
+                >ساعات التصنيع التقريبية (لكل قطعة)</label
+              >
+              <input
+                type="number"
+                id="manufacturing-hours"
+                min="0.5"
+                step="0.5"
+                value="1"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="product-is-available">الحالة</label>
+              <select id="product-is-available" required>
+                <option value="true">متوفر للبيع (يدوي)</option>
+                <option value="false">غير متوفر (يدوي)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="product-specs">المواصفات (اختياري)</label>
+              <textarea id="product-specs" rows="1"></textarea>
+            </div>
           </div>
 
           <div class="form-group">
@@ -109,63 +157,164 @@
             <textarea id="product-description" rows="3"></textarea>
           </div>
 
-          <div class="modal-form-grid">
-            <div class="form-group">
-              <label for="product-is-available">الحالة</label>
-              <select id="product-is-available" required>
-                <option value="true">متوفر</option>
-                <option value="false">غير متوفر</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="product-specs">المواصفات وخيارات الألوان</label>
-              <input
-                type="text"
-                id="product-specs"
-                placeholder="مثال: بني غامق، أبيض"
-              />
-            </div>
+          <h3>
+            <i class="fa-solid fa-calculator"></i> تحليل التكاليف (لكل قطعة)
+          </h3>
+          <div
+            style="
+              background-color: var(--light-color);
+              padding: 15px;
+              border-radius: 8px;
+              border: 1px dashed var(--border-color);
+              margin-bottom: 20px;
+            "
+          >
+            <p>
+              <strong>التكلفة المتغيرة (المواد الخام):</strong>
+              <span
+                id="variable-cost-display"
+                style="color: var(--info-color); font-weight: 700"
+                >---</span
+              >
+              شيكل
+            </p>
+            <p>
+              <strong>تكلفة الأعباء التشغيلية (Overhead):</strong>
+              <span
+                id="overhead-rate-display"
+                style="color: var(--danger-color); font-weight: 700"
+                >---</span
+              >
+              شيكل/ساعة
+            </p>
+            <p>
+              <strong>التكلفة الإجمالية (TCOGS):</strong>
+              <span
+                id="total-cost-display"
+                style="
+                  font-size: 1.2rem;
+                  color: var(--primary-color);
+                  font-weight: 800;
+                "
+                >---</span
+              >
+              شيكل
+            </p>
           </div>
 
-          <h3><i class="fa-solid fa-gears"></i> ربط المواد الخام اللازمة</h3>
-          <p style="font-size: 0.9rem; color: #777; margin-bottom: 15px">
-            اختر المادة ثم اضغط "إضافة" لتعيين الكمية المطلوبة لتصنيع قطعة
-            واحدة.
-          </p>
-
-          <div id="add-material-controls">
-            <select id="materials-select-simple" style="width: 100%">
-              <option value="">-- جارٍ التحميل --</option>
-            </select>
+          <h3><i class="fa-solid fa-robot"></i> اقتراح التسعير الذكي</h3>
+          <div
+            style="
+              background-color: #e8f5e9;
+              padding: 15px;
+              border-radius: 8px;
+              border: 1px dashed var(--success-color);
+              margin-bottom: 20px;
+            "
+          >
+            <p>
+              <strong
+                ><i class="fa-solid fa-percent"></i> هامش الربح المقترح:</strong
+              >
+              <span
+                id="ai-profit-margin"
+                style="color: var(--success-color); font-weight: 700"
+                >--%</span
+              >
+            </p>
+            <p>
+              <strong
+                ><i class="fa-solid fa-money-bill-wave"></i> السعر الجديد
+                المقترح:</strong
+              >
+              <span
+                id="ai-suggested-price"
+                style="
+                  font-size: 1.2rem;
+                  color: var(--success-color);
+                  font-weight: 800;
+                "
+                >---</span
+              >
+              شيكل
+            </p>
             <button
               type="button"
               class="btn btn-sm"
-              id="add-material-row-btn"
+              id="ai-propose-btn"
+              style="background-color: var(--success-color); margin-top: 10px"
+            >
+              <i class="fa-solid fa-sync"></i> اقتراح سعر جديد
+            </button>
+            <p
+              id="ai-loading-message"
+              class="loading-msg"
+              style="display: none"
+            >
+              جارٍ حساب الاقتراح بواسطة الذكاء الاصطناعي...
+            </p>
+          </div>
+          <p style="font-size: 0.85rem; color: #777; margin-top: -10px">
+            * يعتمد الاقتراح على بيانات التكلفة الحالية وحالة السوق.
+          </p>
+
+          <div class="form-group" style="margin-top: 15px">
+            <button
+              type="button"
+              class="btn btn-sm btn-secondary"
+              id="apply-ai-price-btn"
               disabled
             >
-              إضافة
+              <i class="fa-solid fa-arrow-down"></i> تطبيق السعر المقترح
             </button>
           </div>
 
-          <div id="materials-list-container">
-            <table
-              class="required-materials-table"
-              id="required-materials-table"
-            >
+          <h3><i class="fa-solid fa-gears"></i> ربط المواد الخام اللازمة</h3>
+          <div id="materials-table-wrapper" style="margin-bottom: 20px">
+            <table class="orders-table" id="required-materials-table">
               <thead>
                 <tr>
-                  <th>المادة</th>
-                  <th>وحدة القياس</th>
-                  <th>الكمية المطلوبة (لكل قطعة)</th>
-                  <th>حذف</th>
+                  <th><i class="fa-solid fa-ruler-combined"></i> المادة</th>
+                  <th><i class="fa-solid fa-box"></i> الوحدة</th>
+                  <th><i class="fa-solid fa-hashtag"></i> الكمية المطلوبة</th>
+                  <th><i class="fa-solid fa-trash"></i></th>
                 </tr>
               </thead>
               <tbody></tbody>
             </table>
           </div>
 
+          <div
+            class="modal-form-grid"
+            style="grid-template-columns: 2fr 1fr 1fr"
+          >
+            <div class="form-group">
+              <label for="material-select">اختر المادة لإضافتها</label>
+              <select id="material-select"></select>
+            </div>
+            <div class="form-group">
+              <label for="quantity-input">الكمية</label>
+              <input
+                type="number"
+                id="quantity-input"
+                min="0.01"
+                step="0.01"
+                value="1"
+              />
+            </div>
+            <div class="form-group" style="align-self: end">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                id="add-material-btn"
+              >
+                <i class="fa-solid fa-plus"></i> إضافة
+              </button>
+            </div>
+          </div>
+
           <div class="btn-group">
-            <button type="submit" class="btn" id="save-product-btn">
+            <button type="submit" class="btn">
               <i class="fa-solid fa-save"></i> حفظ المنتج
             </button>
           </div>
@@ -177,18 +326,18 @@
       <div class="modal-content">
         <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
         <h2 id="confirm-title"></h2>
-        <p
-          id="confirm-message"
-          style="text-align: center; margin-bottom: 2rem"
-        ></p>
+        <p id="confirm-message" style="margin-bottom: 20px"></p>
         <div class="btn-group">
-          <button id="confirm-action-btn" class="btn btn-danger">تأكيد</button>
-          <button class="btn btn-secondary modal-close">إلغاء</button>
+          <button class="btn btn-danger" id="confirm-action-btn">تأكيد</button>
+          <button
+            class="btn btn-secondary"
+            onclick="closeModal('confirmation-modal')"
+          >
+            إلغاء
+          </button>
         </div>
       </div>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
@@ -206,8 +355,9 @@
         onAuthStateChanged,
         signOut,
       } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+      import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai"; // 💡 استيراد Gemini
 
-      // تهيئة Firebase
+      // 🛑 إعدادات Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
         authDomain: "ecomers-dd329.firebaseapp.com",
@@ -221,53 +371,30 @@
       const db = getFirestore(app);
       const auth = getAuth(app);
 
-      // الدوال المساعدة لفتح وإغلاق المودال
-      function openModal(modalId) {
-        document.getElementById(modalId).classList.add("active");
-        document.body.classList.add("scroll-lock");
-      }
-      function closeModal(modalId) {
-        document.getElementById(modalId).classList.remove("active");
-        document.body.classList.remove("scroll-lock");
-      }
-      document.querySelectorAll(".modal-overlay").forEach((modal) => {
-        modal.addEventListener("click", (e) => {
-          if (e.target.classList.contains("modal-overlay")) {
-            closeModal(modal.id);
-          }
-        });
-      });
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "Escape") {
-          document
-            .querySelectorAll(".modal-overlay.active")
-            .forEach((modal) => {
-              closeModal(modal.id);
-            });
-        }
+      // 💡 إعدادات Gemini (جديد)
+      const API_KEY = "AIzaSyBcFkJsomDYhm1uGqoq3-8mHr0LTu-mZ9s";
+      const genAI = new GoogleGenerativeAI(API_KEY);
+      const pricingModel = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash",
       });
 
-      // عناصر الواجهة
-      const productsTableContainer = document.getElementById(
-        "products-table-container"
-      );
+      // المتغيرات العامة
+      let allProducts = [];
+      let allRawMaterials = [];
+      let rawMaterialsMap = new Map();
+      let currentRequiredMaterials = [];
       const productForm = document.getElementById("product-form");
-      const productIdInput = document.getElementById("product-id");
-      const productCategorySelect = document.getElementById("product-category");
-      const materialsSelectSimple = document.getElementById(
-        "materials-select-simple"
-      );
-      const addMaterialRowBtn = document.getElementById("add-material-row-btn");
       const requiredMaterialsTableBody = document.querySelector(
         "#required-materials-table tbody"
       );
-      const confirmActionBtn = document.getElementById("confirm-action-btn");
-      const productModalTitleEl = document.getElementById(
-        "product-modal-title"
-      );
+      const materialSelect = document.getElementById("material-select");
 
-      let allProducts = [];
-      let allRawMaterials = [];
+      // 💡 متغيرات التكاليف الثابتة
+      let totalMonthlyFixedCost = 0;
+      let totalMonthlyManufacturingHours = 0;
+      let overheadCostPerHour = 0;
+
+      // 💡 قائمة الفئات الثابتة (لحل مشكلة القائمة المنسدلة)
       const productCategories = [
         "طاولة سفرة",
         "كرسي",
@@ -279,14 +406,39 @@
         "طاولة تلفاز",
       ];
 
-      // التحقق من صلاحيات المدير
+      // --------------------------------------------------------
+      // الدوال المساعدة لفتح وإغلاق المودال
+      // --------------------------------------------------------
+      function openModal(modalId) {
+        document.getElementById(modalId).classList.add("active");
+        document.body.classList.add("scroll-lock");
+      }
+      function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove("active");
+        document.body.classList.remove("scroll-lock");
+      }
+      document.querySelectorAll(".modal-overlay").forEach((modal) => {
+        modal.addEventListener("click", (e) => {
+          if (
+            e.target.closest(".modal-close") ||
+            e.target.classList.contains("modal-overlay")
+          ) {
+            closeModal(modal.id);
+          }
+        });
+      });
+
+      // --------------------------------------------------------
+      // التحقق من الصلاحيات والتحميل
+      // --------------------------------------------------------
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           const userDoc = await getDoc(doc(db, "users", user.uid));
           if (userDoc.exists() && userDoc.data().role === "admin") {
             await fetchRawMaterials();
+            await fetchFixedCostsAndHours();
             fetchAndRenderProducts();
-            fillCategoriesDropdown();
+            fillCategoriesDropdown(); // 💡 ملء قائمة الفئات
           } else {
             alert("غير مصرح لك بالوصول إلى هذه الصفحة.");
             window.location.href = "login.html";
@@ -295,7 +447,6 @@
           window.location.href = "login.html";
         }
       });
-
       document
         .getElementById("logout-btn")
         .addEventListener("click", async (e) => {
@@ -304,102 +455,205 @@
           window.location.href = "login.html";
         });
 
+      // --------------------------------------------------------
+      // دالة ملء القائمة المنسدلة للفئات (المُصلحة)
+      // --------------------------------------------------------
       function fillCategoriesDropdown() {
-        productCategorySelect.innerHTML = productCategories
-          .map((cat) => `<option value="${cat}">${cat}</option>`)
-          .join("");
+        const select = document.getElementById("product-category");
+        select.innerHTML = ""; // تفريغ الخيارات الحالية
+
+        productCategories.forEach((cat) => {
+          const option = document.createElement("option");
+          option.value = cat;
+          option.textContent = cat;
+          select.appendChild(option);
+        });
       }
 
+      // --------------------------------------------------------
+      // دالة جلب التكاليف الثابتة وحساب تكلفة الساعة
+      // --------------------------------------------------------
+      async function fetchFixedCostsAndHours() {
+        try {
+          const costsSnapshot = await getDocs(collection(db, "fixed_costs"));
+          totalMonthlyFixedCost = costsSnapshot.docs.reduce(
+            (sum, doc) => sum + parseFloat(doc.data().amount || 0),
+            0
+          );
+          // افتراض إجمالي ساعات العمل الشهرية (مثال: 3 موظفين * 160 ساعة/موظف)
+          totalMonthlyManufacturingHours = 160 * 3;
+
+          if (totalMonthlyManufacturingHours > 0) {
+            overheadCostPerHour =
+              totalMonthlyFixedCost / totalMonthlyManufacturingHours;
+          } else {
+            overheadCostPerHour = 0;
+          }
+        } catch (e) {
+          console.error("Error fetching fixed costs: ", e);
+        }
+      }
+
+      // --------------------------------------------------------
+      // دالة حساب التكاليف المتغيرة والثابتة للمنتج
+      // --------------------------------------------------------
+      function calculateProductCosts(product) {
+        let variableCost = 0;
+        const hours = parseFloat(product.manufacturing_time_hours) || 0;
+        const materialsToCalculate =
+          product.required_materials || currentRequiredMaterials;
+
+        if (materialsToCalculate && materialsToCalculate.length > 0) {
+          for (const requiredMat of materialsToCalculate) {
+            const material = rawMaterialsMap.get(requiredMat.id);
+            if (material) {
+              variableCost += requiredMat.quantity * material.cost_per_unit;
+            }
+          }
+        }
+
+        const fixedCost = hours * overheadCostPerHour;
+        const totalCost = variableCost + fixedCost;
+
+        return {
+          variable_cost: variableCost,
+          fixed_cost: fixedCost,
+          total_cost: totalCost,
+          overhead_rate: overheadCostPerHour,
+        };
+      }
+
+      // --------------------------------------------------------
+      // دالة تحديث عرض التكاليف في المودال (للتكاليف والحساب الذكي)
+      // --------------------------------------------------------
+      function updateCostDisplay() {
+        const currentId = document.getElementById("product-id").value;
+
+        let productData;
+        if (currentId) {
+          productData = allProducts.find((p) => p.id == currentId) || {};
+          productData.required_materials = currentRequiredMaterials;
+          productData.manufacturing_time_hours =
+            parseFloat(document.getElementById("manufacturing-hours").value) ||
+            0;
+        } else {
+          productData = {
+            required_materials: currentRequiredMaterials,
+            manufacturing_time_hours:
+              parseFloat(
+                document.getElementById("manufacturing-hours").value
+              ) || 0,
+          };
+        }
+
+        const costs = calculateProductCosts(productData);
+
+        document.getElementById("variable-cost-display").textContent =
+          costs.variable_cost.toFixed(2);
+        document.getElementById("total-cost-display").textContent =
+          costs.total_cost.toFixed(2);
+        document.getElementById("overhead-rate-display").textContent =
+          costs.overhead_rate.toFixed(2);
+
+        // 💡 إعادة تعيين اقتراح الذكاء الاصطناعي عند تحديث التكلفة
+        document.getElementById("ai-profit-margin").textContent = "--%";
+        document.getElementById("ai-suggested-price").textContent = "---";
+        document.getElementById("apply-ai-price-btn").disabled = true;
+        document.getElementById("ai-loading-message").style.display = "none";
+      }
+
+      // --------------------------------------------------------
+      // دالة اقتراح التسعير باستخدام الذكاء الاصطناعي (جديد)
+      // --------------------------------------------------------
+      async function proposeNewPrice(costs, productName, currentPrice) {
+        const loadingMessage = document.getElementById("ai-loading-message");
+        const aiProfitMargin = document.getElementById("ai-profit-margin");
+        const aiSuggestedPrice = document.getElementById("ai-suggested-price");
+        const applyAiPriceBtn = document.getElementById("apply-ai-price-btn");
+
+        loadingMessage.style.display = "block";
+        aiProfitMargin.textContent = "--%";
+        aiSuggestedPrice.textContent = "---";
+        applyAiPriceBtn.disabled = true;
+
+        const promptText = `
+          أنت خبير تسعير استراتيجي لمنتجات الأثاث الخشبية. مهمتك هي اقتراح هامش ربح (كقيمة رقمية فقط، لا علامة %) وسعر بيع نهائي (كقيمة رقمية فقط) لمنتج بناءً على بيانات التكلفة المقدمة.
+
+          - اسم المنتج: ${productName}
+          - التكلفة الإجمالية (TCOGS - كلفة المنتج علينا): ${costs.total_cost.toFixed(
+            2
+          )} شيكل
+          - التكلفة المتغيرة (المواد الخام): ${costs.variable_cost.toFixed(
+            2
+          )} شيكل
+          - تكلفة الأعباء التشغيلية (Overhead): ${costs.fixed_cost.toFixed(
+            2
+          )} شيكل
+          - السعر الحالي للبيع: ${currentPrice.toFixed(2)} شيكل
+
+          بالنظر إلى التكاليف، اقترح هامش ربح يتراوح بين 30% و 60%.
+
+          أعطني إخراجاً بالتنسيق التالي بدقة، دون أي مقدمات أو شروحات إضافية:
+          هامش الربح المقترح: <نسبة مئوية بدون علامة %>
+          السعر المقترح: <السعر رقمي>
+        `;
+
+        try {
+          const result = await pricingModel.generateContent(promptText);
+          const responseText = result.response.text();
+
+          const marginMatch = responseText.match(
+            /هامش الربح المقترح:\s*([\d\.\,]+)/
+          );
+          const priceMatch = responseText.match(/السعر المقترح:\s*([\d\.\,]+)/);
+
+          if (marginMatch && priceMatch) {
+            const margin = parseFloat(marginMatch[1].replace(",", ""));
+            const price = parseFloat(priceMatch[1].replace(",", ""));
+
+            if (!isNaN(margin) && !isNaN(price) && price > costs.total_cost) {
+              aiProfitMargin.textContent = `${margin.toFixed(0)}%`;
+              aiSuggestedPrice.textContent = price.toFixed(2);
+              applyAiPriceBtn.disabled = false;
+            } else {
+              aiSuggestedPrice.textContent = "فشل: السعر غير منطقي";
+            }
+          } else {
+            aiSuggestedPrice.textContent = "فشل: خطأ في تنسيق الإخراج";
+          }
+        } catch (error) {
+          console.error("AI Pricing Error:", error);
+          aiSuggestedPrice.textContent = "❌ فشل الاقتراح (API Error)";
+          alert(
+            "فشل في الحصول على اقتراح التسعير من الذكاء الاصطناعي. تحقق من مفتاح API أو البيانات المدخلة."
+          );
+        } finally {
+          loadingMessage.style.display = "none";
+        }
+      }
+
+      // --------------------------------------------------------
+      // وظائف جلب وعرض المنتجات
+      // --------------------------------------------------------
       async function fetchRawMaterials() {
         try {
           const snapshot = await getDocs(collection(db, "raw_materials"));
           allRawMaterials = snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
-            unit: doc.data().unit || "---",
+            cost_per_unit: parseFloat(doc.data().cost_per_unit || 0),
           }));
-
-          // ⚠️ [الإصلاح هنا]: ملء القائمة المنسدلة بالمواد الخام بعد جلبها ⚠️
-          materialsSelectSimple.innerHTML =
-            '<option value="">-- اختر مادة خام --</option>' +
-            allRawMaterials
-              .map(
-                (m) =>
-                  `<option value="${m.id}" data-unit="${m.unit}">${m.name_ar} (${m.unit})</option>`
-              )
-              .join("");
+          rawMaterialsMap.clear();
+          allRawMaterials.forEach((mat) => rawMaterialsMap.set(mat.id, mat));
+          fillMaterialSelect();
         } catch (e) {
           console.error("Error fetching raw materials: ", e);
-          materialsSelectSimple.innerHTML =
-            '<option value="">-- فشل تحميل المواد الخام --</option>';
         }
       }
-
-      // --------------------------------------------------------
-      // المنطق الجديد لإدارة المواد الخام داخل المودال
-      // --------------------------------------------------------
-      materialsSelectSimple.addEventListener("change", () => {
-        addMaterialRowBtn.disabled = !materialsSelectSimple.value;
-      });
-
-      addMaterialRowBtn.addEventListener("click", () => {
-        const materialId = materialsSelectSimple.value;
-        if (!materialId) return;
-
-        const material = allRawMaterials.find((m) => m.id === materialId);
-        if (material) {
-          addMaterialRow(material, 1);
-          materialsSelectSimple.querySelector(
-            `option[value="${materialId}"]`
-          ).style.display = "none";
-          materialsSelectSimple.value = "";
-          addMaterialRowBtn.disabled = true;
-        }
-      });
-
-      function addMaterialRow(material, quantity = 1) {
-        if (
-          requiredMaterialsTableBody.querySelector(
-            `tr[data-id="${material.id}"]`
-          )
-        ) {
-          return;
-        }
-
-        const row = document.createElement("tr");
-        row.dataset.id = material.id;
-        row.innerHTML = `
-            <td>${material.name_ar}</td>
-            <td>${material.unit}</td>
-            <td>
-                <input type="number" class="required-quantity" min="0.001" step="any" value="${quantity}" required />
-            </td>
-            <td>
-                <button type="button" class="btn btn-danger btn-sm remove-material-btn" data-id="${material.id}"><i class="fa-solid fa-trash"></i></button>
-            </td>
-        `;
-        requiredMaterialsTableBody.appendChild(row);
-      }
-
-      requiredMaterialsTableBody.addEventListener("click", (e) => {
-        if (e.target.closest(".remove-material-btn")) {
-          const button = e.target.closest(".remove-material-btn");
-          const row = button.closest("tr");
-          const materialId = row.dataset.id;
-
-          const option = materialsSelectSimple.querySelector(
-            `option[value="${materialId}"]`
-          );
-          if (option) {
-            option.style.display = "block";
-          }
-          row.remove();
-        }
-      });
-      // --------------------------------------------------------
 
       async function fetchAndRenderProducts() {
-        productsTableContainer.innerHTML =
+        const container = document.getElementById("products-table-container");
+        container.innerHTML =
           '<p class="loading-msg">جارٍ تحميل المنتجات...</p>';
         try {
           const snapshot = await getDocs(collection(db, "products"));
@@ -408,19 +662,53 @@
             ...doc.data(),
             price: parseFloat(doc.data().price || 0),
             is_available: doc.data().is_available !== false,
+            manufacturing_time_hours: parseFloat(
+              doc.data().manufacturing_time_hours || 0
+            ),
           }));
+
+          allProducts = allProducts.map(checkProductAvailability);
 
           renderProductsTable(allProducts);
         } catch (e) {
           console.error("Error fetching products: ", e);
-          productsTableContainer.innerHTML =
+          container.innerHTML =
             '<p class="loading-msg" style="color: red;">حدث خطأ في جلب المنتجات.</p>';
         }
       }
 
+      function checkProductAvailability(product) {
+        if (product.is_available === false) {
+          product.availabilityCheck = "Unavailable_Manual";
+          return product;
+        }
+
+        let materialsAvailable = true;
+        if (
+          product.required_materials &&
+          product.required_materials.length > 0
+        ) {
+          for (const requiredMat of product.required_materials) {
+            const material = rawMaterialsMap.get(requiredMat.id);
+            if (!material || material.current_stock < requiredMat.quantity) {
+              materialsAvailable = false;
+              break;
+            }
+          }
+        }
+
+        if (!materialsAvailable) {
+          product.availabilityCheck = "Unavailable_Auto";
+        } else {
+          product.availabilityCheck = "Available";
+        }
+        return product;
+      }
+
       function renderProductsTable(products) {
+        const container = document.getElementById("products-table-container");
         if (products.length === 0) {
-          productsTableContainer.innerHTML =
+          container.innerHTML =
             '<p class="loading-msg">لا توجد منتجات مسجلة.</p>';
           return;
         }
@@ -433,6 +721,7 @@
                 <th><i class="fa-solid fa-chair"></i> اسم المنتج</th>
                 <th><i class="fa-solid fa-list-ul"></i> الفئة</th>
                 <th><i class="fa-solid fa-money-bill"></i> السعر (شيكل)</th>
+                <th><i class="fa-solid fa-dollar-sign"></i> إجمالي التكلفة (TCOGS)</th>
                 <th><i class="fa-solid fa-info-circle"></i> الحالة</th>
                 <th><i class="fa-solid fa-tools"></i> الإجراءات</th>
               </tr>
@@ -440,10 +729,30 @@
             <tbody>
         `;
         products.forEach((product) => {
-          const statusClass = product.is_available
-            ? "product-status-available"
-            : "product-status-unavailable";
-          const statusText = product.is_available ? "متوفر" : "غير متوفر";
+          const costs = calculateProductCosts(product);
+
+          let statusClass;
+          let statusContent;
+          const check = product.availabilityCheck;
+          const actionButtons = `
+            <button class="btn btn-secondary btn-sm edit-product-btn" data-id="${product.id}">
+                <i class="fa-solid fa-pencil"></i> تعديل
+            </button>
+            <button class="btn btn-danger btn-sm delete-product-btn" data-id="${product.id}">
+                <i class="fa-solid fa-trash"></i> حذف
+            </button>
+          `;
+
+          if (check === "Available") {
+            statusClass = "product-status-available";
+            statusContent = `متوفر (${product.is_available ? "يدوي" : "آلي"})`;
+          } else if (check === "Unavailable_Auto") {
+            statusClass = "product-status-unavailable-auto";
+            statusContent = `نقص مواد خام`;
+          } else {
+            statusClass = "product-status-unavailable-manual";
+            statusContent = "غير متوفر يدوياً";
+          }
 
           tableHtml += `
             <tr data-id="${product.id}">
@@ -451,123 +760,252 @@
               <td>${product.name}</td>
               <td>${product.category}</td>
               <td>${product.price.toFixed(2)}</td>
-              <td><span class="${statusClass}">${statusText}</span></td>
-              <td class="actions-buttons">
-                <button class="btn btn-secondary btn-sm edit-product-btn" data-id="${
-                  product.id
-                }"><i class="fa-solid fa-pencil"></i> تعديل</button>
-                <button class="btn btn-danger btn-sm delete-product-btn" data-id="${
-                  product.id
-                }"><i class="fa-solid fa-trash"></i> حذف</button>
-              </td>
+              <td>${costs.total_cost.toFixed(2)}</td> 
+              <td><div class="${statusClass}">${statusContent}</div></td>
+              <td class="actions-buttons">${actionButtons}</td>
             </tr>
           `;
         });
         tableHtml += "</tbody></table>";
-        productsTableContainer.innerHTML = tableHtml;
+        container.innerHTML = tableHtml;
+
+        document.querySelectorAll(".edit-product-btn").forEach((btn) => {
+          btn.addEventListener("click", handleEditProduct);
+        });
+        document.querySelectorAll(".delete-product-btn").forEach((btn) => {
+          btn.addEventListener("click", handleDeleteClick);
+        });
       }
 
+      // --------------------------------------------------------
+      // منطق إضافة/تعديل المنتجات (محدث)
+      // --------------------------------------------------------
       document
         .getElementById("add-product-btn")
         .addEventListener("click", () => {
-          productModalTitleEl.textContent = "إضافة منتج جديد";
+          document.getElementById("product-modal-title").textContent =
+            "إضافة منتج جديد";
           productForm.reset();
-          productIdInput.value = "";
-          requiredMaterialsTableBody.innerHTML = "";
-
-          Array.from(materialsSelectSimple.options).forEach((option) => {
-            option.style.display = "block";
-          });
-          materialsSelectSimple.value = "";
-          addMaterialRowBtn.disabled = true;
-
-          document.getElementById("product-is-available").value = "true";
+          document.getElementById("product-id").value = "";
+          currentRequiredMaterials = [];
+          renderRequiredMaterials();
           openModal("product-modal");
+          updateCostDisplay();
         });
 
-      productsTableContainer.addEventListener("click", (e) => {
-        if (e.target.closest(".edit-product-btn")) {
-          const id = e.target.closest(".edit-product-btn").dataset.id;
-          const product = allProducts.find((p) => p.id == id);
-          if (product) {
-            productModalTitleEl.textContent = `تعديل المنتج: ${product.name}`;
-            productIdInput.value = product.id;
-            document.getElementById("product-name").value = product.name;
-            productCategorySelect.value = product.category;
-            document.getElementById("product-price").value = product.price;
-            document.getElementById("product-description").value =
-              product.description || "";
-            document.getElementById("product-specs").value =
-              product.specs || "";
-            document.getElementById("product-is-available").value =
-              product.is_available ? "true" : "false";
+      function handleEditProduct(e) {
+        const id = e.currentTarget.dataset.id;
+        const product = allProducts.find((p) => p.id == id);
 
-            requiredMaterialsTableBody.innerHTML = "";
+        if (product) {
+          document.getElementById(
+            "product-modal-title"
+          ).textContent = `تعديل المنتج: ${product.name}`;
+          document.getElementById("product-id").value = product.id;
+          document.getElementById("product-name").value = product.name;
+          document.getElementById("product-category").value = product.category;
+          document.getElementById("product-price").value = product.price;
+          document.getElementById("manufacturing-hours").value =
+            product.manufacturing_time_hours || 1;
+          document.getElementById("product-description").value =
+            product.description || "";
+          document.getElementById("product-specs").value = product.specs || "";
+          document.getElementById("product-is-available").value =
+            product.is_available ? "true" : "false";
 
-            Array.from(materialsSelectSimple.options).forEach((option) => {
-              option.style.display = "block";
-            });
-            materialsSelectSimple.value = "";
-            addMaterialRowBtn.disabled = true;
-
-            if (
-              product.required_materials &&
-              Array.isArray(product.required_materials)
-            ) {
-              product.required_materials.forEach((req) => {
-                const material = allRawMaterials.find((m) => m.id === req.id);
-                if (material) {
-                  addMaterialRow(material, req.quantity);
-                  const option = materialsSelectSimple.querySelector(
-                    `option[value="${req.id}"]`
-                  );
-                  if (option) {
-                    option.style.display = "none";
-                  }
-                }
-              });
+          currentRequiredMaterials = (product.required_materials || []).map(
+            (req) => {
+              const mat = rawMaterialsMap.get(req.id);
+              return {
+                ...req,
+                name: mat ? mat.name_ar : "مادة مفقودة",
+                unit: mat ? mat.unit : "وحدة",
+              };
             }
-
-            openModal("product-modal");
-          }
-        } else if (e.target.closest(".delete-product-btn")) {
-          const id = e.target.closest(".delete-product-btn").dataset.id;
-          showConfirmationModal(
-            "حذف المنتج",
-            "هل أنت متأكد من حذف هذا المنتج نهائياً؟",
-            () => deleteProduct(id)
           );
+
+          document.getElementById("ai-profit-margin").textContent = "--%";
+          document.getElementById("ai-suggested-price").textContent = "---";
+          document.getElementById("ai-loading-message").style.display = "none";
+          document.getElementById("apply-ai-price-btn").disabled = true;
+
+          renderRequiredMaterials();
+          openModal("product-modal");
+          updateCostDisplay();
+        }
+      }
+
+      // --------------------------------------------------------
+      // منطق إدارة المواد الخام المطلوبة للمنتج
+      // --------------------------------------------------------
+      function fillMaterialSelect() {
+        const select = document.getElementById("material-select");
+        select.innerHTML =
+          '<option value="" disabled selected>اختر مادة</option>';
+        allRawMaterials.forEach((mat) => {
+          const option = document.createElement("option");
+          option.value = mat.id;
+          option.textContent = `${mat.name_ar} (${mat.unit})`;
+          select.appendChild(option);
+        });
+      }
+
+      document
+        .getElementById("add-material-btn")
+        .addEventListener("click", () => {
+          const materialId = materialSelect.value;
+          const quantityInput = document.getElementById("quantity-input");
+          const quantity = parseFloat(quantityInput.value);
+          const material = rawMaterialsMap.get(materialId);
+
+          if (!materialId || isNaN(quantity) || quantity <= 0) {
+            alert("يرجى اختيار مادة وإدخال كمية صحيحة.");
+            return;
+          }
+
+          const existingIndex = currentRequiredMaterials.findIndex(
+            (item) => item.id === materialId
+          );
+
+          const newMaterial = {
+            id: materialId,
+            name: material.name_ar,
+            unit: material.unit,
+            quantity: quantity,
+          };
+
+          if (existingIndex > -1) {
+            currentRequiredMaterials[existingIndex].quantity = quantity;
+          } else {
+            currentRequiredMaterials.push(newMaterial);
+          }
+
+          renderRequiredMaterials();
+          quantityInput.value = 1;
+          materialSelect.value = "";
+        });
+
+      requiredMaterialsTableBody.addEventListener("click", (e) => {
+        if (e.target.closest(".remove-material-btn")) {
+          const idToRemove = e.target.closest("tr").dataset.id;
+          currentRequiredMaterials = currentRequiredMaterials.filter(
+            (item) => item.id !== idToRemove
+          );
+          renderRequiredMaterials();
         }
       });
 
+      function renderRequiredMaterials() {
+        requiredMaterialsTableBody.innerHTML = "";
+        currentRequiredMaterials.forEach((item) => {
+          const row = requiredMaterialsTableBody.insertRow();
+          row.dataset.id = item.id;
+
+          row.innerHTML = `
+            <td>${item.name || "مادة غير معروفة"}</td> 
+            <td>${item.unit || "---"}</td>
+            <td><input type="number" value="${
+              item.quantity
+            }" min="0.01" step="0.01" data-id="${
+            item.id
+          }" class="quantity-update-input" style="width: 80px; text-align: center;"></td>
+            <td><button type="button" class="btn btn-danger btn-sm remove-material-btn"><i class="fa-solid fa-xmark"></i></button></td>
+          `;
+        });
+
+        document.querySelectorAll(".quantity-update-input").forEach((input) => {
+          input.addEventListener("change", (e) => {
+            const id = e.target.dataset.id;
+            const newQuantity = parseFloat(e.target.value);
+            const itemIndex = currentRequiredMaterials.findIndex(
+              (item) => item.id === id
+            );
+            if (itemIndex !== -1 && !isNaN(newQuantity) && newQuantity > 0) {
+              currentRequiredMaterials[itemIndex].quantity = newQuantity;
+              updateCostDisplay();
+            } else {
+              e.target.value = currentRequiredMaterials[itemIndex].quantity;
+            }
+          });
+        });
+
+        updateCostDisplay();
+      }
+
+      // ربط حقل ساعات التصنيع بـ updateCostDisplay
+      document
+        .getElementById("manufacturing-hours")
+        .addEventListener("change", updateCostDisplay);
+
+      // 💡 ربط زر الاقتراح وتطبيق السعر (جديد)
+      document
+        .getElementById("ai-propose-btn")
+        .addEventListener("click", (e) => {
+          e.preventDefault();
+
+          const productName = document.getElementById("product-name").value;
+          const currentPrice = parseFloat(
+            document.getElementById("product-price").value
+          );
+
+          const productDataForCost = {
+            required_materials: currentRequiredMaterials,
+            manufacturing_time_hours:
+              parseFloat(
+                document.getElementById("manufacturing-hours").value
+              ) || 0,
+          };
+          const costs = calculateProductCosts(productDataForCost);
+
+          if (costs.total_cost <= 0) {
+            alert(
+              "لا يمكن اقتراح سعر لأن التكلفة الإجمالية (TCOGS) تساوي صفر. يرجى مراجعة المواد الخام وساعات التصنيع."
+            );
+            return;
+          }
+
+          proposeNewPrice(costs, productName, currentPrice);
+        });
+
+      document
+        .getElementById("apply-ai-price-btn")
+        .addEventListener("click", () => {
+          const suggestedPrice =
+            document.getElementById("ai-suggested-price").textContent;
+          const priceInput = document.getElementById("product-price");
+
+          const priceValue = parseFloat(suggestedPrice);
+          if (!isNaN(priceValue)) {
+            priceInput.value = priceValue.toFixed(2);
+            alert("تم تطبيق السعر المقترح.");
+          }
+        });
+
+      // --------------------------------------------------------
+      // منطق الحفظ والحذف
+      // --------------------------------------------------------
       productForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const isNew = !productIdInput.value;
-        const newIdNumber = isNew
-          ? allProducts.length > 0
-            ? Math.max(...allProducts.map((p) => parseInt(p.id))) + 1
-            : 1
-          : parseInt(productIdInput.value);
-        const id = newIdNumber.toString();
+        const isNew = document.getElementById("product-id").value === "";
+        const id =
+          document.getElementById("product-id").value ||
+          doc(collection(db, "products")).id;
+        const idNumber = parseInt(id);
 
-        const requiredMaterials = Array.from(
-          requiredMaterialsTableBody.querySelectorAll("tr")
-        )
-          .map((row) => {
-            const materialId = row.dataset.id;
-            const quantity = parseFloat(
-              row.querySelector(".required-quantity").value
-            );
-            return { id: materialId, quantity: quantity };
-          })
-          .filter((req) => req.quantity > 0);
+        const requiredMaterials = currentRequiredMaterials.map((item) => ({
+          id: item.id,
+          quantity: item.quantity,
+        }));
 
         const productData = {
-          id: newIdNumber,
+          id: idNumber,
           name: document.getElementById("product-name").value,
-          category: productCategorySelect.value,
+          category: document.getElementById("product-category").value,
           price: parseFloat(document.getElementById("product-price").value),
+          manufacturing_time_hours: parseFloat(
+            document.getElementById("manufacturing-hours").value
+          ),
           description:
             document.getElementById("product-description").value || null,
           specs: document.getElementById("product-specs").value || null,
@@ -579,7 +1017,7 @@
         try {
           await setDoc(doc(db, "products", id), productData);
           closeModal("product-modal");
-          fetchAndRenderProducts();
+          await fetchAndRenderProducts();
           alert(
             `تم ${isNew ? "إضافة" : "تحديث"} المنتج وربط المواد الخام بنجاح.`
           );
@@ -588,6 +1026,15 @@
           alert("حدث خطأ أثناء حفظ المنتج.");
         }
       });
+
+      function handleDeleteClick(e) {
+        const id = e.currentTarget.dataset.id;
+        showConfirmationModal(
+          "تأكيد الحذف",
+          `هل أنت متأكد من حذف المنتج ذو المعرف ${id}؟ لا يمكن التراجع عن هذا الإجراء.`,
+          () => deleteProduct(id)
+        );
+      }
 
       async function deleteProduct(id) {
         try {
@@ -602,6 +1049,7 @@
       }
 
       function showConfirmationModal(title, message, callback) {
+        const confirmActionBtn = document.getElementById("confirm-action-btn");
         document.getElementById("confirm-title").textContent = title;
         document.getElementById("confirm-message").textContent = message;
         confirmActionBtn.onclick = () => {

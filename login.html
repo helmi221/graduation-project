@@ -74,16 +74,6 @@
   </head>
   <body>
     <div class="auth-container">
-      <div class="login-mascot-wrapper">
-        <video
-          id="simpson-video"
-          preload="auto"
-          playsinline
-          muted
-          src="https://media3.giphy.com/media/Jqp3r5kbFnvo5HSfQR/giphy.mp4"
-          video
-        ></video>
-      </div>
       <h2>تسجيل الدخول</h2>
       <form id="login-form">
         <div class="form-group">
@@ -130,54 +120,6 @@
       const loginForm = document.getElementById("login-form");
       const passwordInput = document.getElementById("password");
       const video = document.getElementById("simpson-video");
-
-      let reverseInterval = null;
-
-      passwordInput.addEventListener("mouseenter", playForward);
-
-      passwordInput.addEventListener("mouseleave", playReverse);
-
-      function playForward() {
-        stopReverse();
-        video.currentTime = 0;
-        video.playbackRate = 2; // سرعة تشغيل أمامي
-        video.play();
-
-        video.onended = () => {
-          video.pause();
-          video.currentTime = video.duration;
-        };
-      }
-
-      function playReverse() {
-        stopReverse();
-        video.pause();
-
-        if (!video.duration || isNaN(video.duration)) {
-          return;
-        }
-
-        let isAtEnd = video.currentTime >= video.duration - 0.1;
-
-        if (isAtEnd) {
-          reverseInterval = setInterval(() => {
-            video.currentTime -= 0.12; // سرعة عودة أسرع
-            if (video.currentTime <= 0.05) {
-              stopReverse();
-              video.pause();
-              video.currentTime = 0;
-              return;
-            }
-          }, 25); // تحديث سريع
-        }
-      }
-
-      function stopReverse() {
-        if (reverseInterval) {
-          clearInterval(reverseInterval);
-          reverseInterval = null;
-        }
-      }
 
       loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();

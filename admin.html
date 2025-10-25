@@ -42,6 +42,11 @@
             >
           </li>
           <li>
+            <a href="fixed_costs_admin.html"
+              ><i class="fa-solid fa-calculator"></i> التكاليف الثابتة</a
+            >
+          </li>
+          <li>
             <a href="#" id="logout-btn"
               ><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</a
             >
@@ -51,60 +56,36 @@
     </header>
 
     <div class="main-content container-fluid">
-      <h1>ملخص لوحة التحكم</h1>
+      <h1>مرحباً بك في لوحة المدير</h1>
 
-      <div class="dashboard-stats">
-        <div class="stat-card new-orders">
-          <div class="stat-info">
-            <h3 id="new-orders-count">0</h3>
-            <p>طلبات جديدة (مراجعة)</p>
-          </div>
-          <i class="fa-solid fa-bell stat-icon"></i>
-        </div>
-        <div class="stat-card in-progress">
-          <div class="stat-info">
-            <h3 id="in-progress-count">0</h3>
-            <p>طلبات قيد التنفيذ</p>
-          </div>
-          <i class="fa-solid fa-truck-fast stat-icon"></i>
-        </div>
-        <div class="stat-card completed">
-          <div class="stat-info">
-            <h3 id="completed-count">0</h3>
-            <p>طلبات مكتملة</p>
-          </div>
-          <i class="fa-solid fa-check-circle stat-icon"></i>
-        </div>
+      <div class="quick-links">
+        <a href="orders_admin.html" class="quick-link-card">
+          <i class="fa-solid fa-receipt"></i>
+          <h3>الطلبات الجديدة</h3>
+          <p id="new-orders-count">0</p>
+        </a>
+        <a href="orders_admin.html" class="quick-link-card">
+          <i class="fa-solid fa-gears"></i>
+          <h3>طلبات قيد العمل</h3>
+          <p id="in-progress-count">0</p>
+        </a>
+        <a href="inventory.html" class="quick-link-card">
+          <i class="fa-solid fa-warehouse"></i>
+          <h3>إجمالي المنتجات</h3>
+          <p id="total-products-count">0</p>
+        </a>
+        <a href="raw_materials_admin.html" class="quick-link-card">
+          <i class="fa-solid fa-boxes-stacked"></i>
+          <h3>المواد الخام المنخفضة</h3>
+          <p id="low-stock-count">0</p>
+        </a>
       </div>
 
-      <div class="quick-links-section admin-panel">
-        <h2><i class="fa-solid fa-th-large"></i> صفحات الإدارة السريعة</h2>
-        <div class="quick-links-grid">
-          <a
-            href="orders_admin.html"
-            class="quick-link-card"
-            style="background-color: var(--info-color)"
-          >
-            <i class="fa-solid fa-box-open"></i>
-            <h3>إدارة الطلبات</h3>
-          </a>
-          <a
-            href="inventory.html"
-            class="quick-link-card"
-            style="background-color: var(--success-color)"
-          >
-            <i class="fa-solid fa-warehouse"></i>
-            <h3>إدارة المنتجات</h3>
-          </a>
-          <a
-            href="raw_materials_admin.html"
-            class="quick-link-card"
-            style="background-color: var(--warning-color)"
-          >
-            <i class="fa-solid fa-hammer"></i>
-            <h3>إدارة المواد الخام</h3>
-          </a>
-        </div>
+      <div class="admin-panel">
+        <h2 style="text-align: right">ملخص الأداء</h2>
+        <p style="text-align: center; color: #777; padding: 50px">
+          هذا القسم مخصص للرسوم البيانية والمؤشرات الرئيسية (KPIs).
+        </p>
       </div>
     </div>
 
@@ -123,6 +104,7 @@
         signOut,
       } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
+      // 🛑 تأكد من تحديث الإعدادات التالية لتناسب مشروعك الفعلي في Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
         authDomain: "ecomers-dd329.firebaseapp.com",
@@ -132,16 +114,13 @@
         appId: "1:190646144215:web:d55f24091a920f92b6b492",
         measurementId: "G-NVYK3DZR00",
       };
-
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
       const auth = getAuth(app);
 
-      const newOrdersCount = document.getElementById("new-orders-count");
-      const inProgressCount = document.getElementById("in-progress-count");
-      const completedCount = document.getElementById("completed-count");
-
-      // التحقق من صلاحيات المدير
+      // --------------------------------------------------------
+      // التحقق من الصلاحيات والتحميل
+      // --------------------------------------------------------
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -155,7 +134,6 @@
           window.location.href = "login.html";
         }
       });
-
       document
         .getElementById("logout-btn")
         .addEventListener("click", async (e) => {
@@ -164,8 +142,20 @@
           window.location.href = "login.html";
         });
 
+      // --------------------------------------------------------
+      // وظيفة جلب الإحصائيات من Firebase
+      // --------------------------------------------------------
       async function fetchStats() {
+        const newOrdersCount = document.getElementById("new-orders-count");
+        const inProgressCount = document.getElementById("in-progress-count");
+        const completedCount = document.getElementById("completed-count");
+        const totalProductsCount = document.getElementById(
+          "total-products-count"
+        );
+        const lowStockCount = document.getElementById("low-stock-count");
+
         try {
+          // 1. إحصائيات الطلبات
           const ordersCollection = collection(db, "orders");
           const customDesignsCollection = collection(db, "custom_designs");
 
@@ -204,12 +194,30 @@
 
           newOrdersCount.textContent = newOrders;
           inProgressCount.textContent = inProgress;
-          completedCount.textContent = completed;
+          // Note: total orders stat is replaced by total products.
+
+          // 2. إحصائيات المنتجات
+          const productsSnapshot = await getDocs(collection(db, "products"));
+          totalProductsCount.textContent = productsSnapshot.size;
+
+          // 3. إحصائيات المواد الخام
+          const materialsSnapshot = await getDocs(
+            collection(db, "raw_materials")
+          );
+          let lowStock = 0;
+          materialsSnapshot.docs.forEach((doc) => {
+            const data = doc.data();
+            if (data.current_stock <= data.min_stock_level) {
+              lowStock++;
+            }
+          });
+          lowStockCount.textContent = lowStock;
         } catch (e) {
           console.error("Error fetching stats: ", e);
           newOrdersCount.textContent =
             inProgressCount.textContent =
-            completedCount.textContent =
+            totalProductsCount.textContent =
+            lowStockCount.textContent =
               "خطأ";
         }
       }

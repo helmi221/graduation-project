@@ -104,6 +104,11 @@
             >
           </li>
           <li>
+            <a href="fixed_costs_admin.html"
+              ><i class="fa-solid fa-calculator"></i> التكاليف الثابتة</a
+            >
+          </li>
+          <li>
             <a href="#" id="logout-btn"
               ><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</a
             >
@@ -126,6 +131,16 @@
         </div>
         <div id="materials-table-container">
           <p class="loading-msg">جارٍ تحميل المواد الخام...</p>
+        </div>
+      </div>
+
+      <div class="inventory-section admin-panel" style="margin-top: 30px">
+        <h2>
+          <i class="fa-solid fa-clipboard-list"></i> سجل حركة المخزون (آخر 50
+          حركة)
+        </h2>
+        <div id="materials-log-container">
+          <p class="loading-msg">جارٍ تحميل سجل الحركات...</p>
         </div>
       </div>
     </div>
@@ -269,6 +284,10 @@
         deleteDoc,
         getDoc,
         updateDoc,
+        writeBatch,
+        query,
+        orderBy,
+        limit,
       } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
       import {
         getAuth,
@@ -320,6 +339,7 @@
       const logoutBtn = document.getElementById("logout-btn");
 
       let allRawMaterials = [];
+      let rawMaterialsMap = new Map(); // 💡 Map for quick lookup
 
       // ------------------------------------
       // دوال مساعدة للمودال
@@ -334,7 +354,10 @@
       }
       document.querySelectorAll(".modal-overlay").forEach((modal) => {
         modal.addEventListener("click", (e) => {
-          if (e.target.classList.contains("modal-overlay")) {
+          if (
+            e.target.closest(".modal-close") ||
+            e.target.classList.contains("modal-overlay")
+          ) {
             closeModal(modal.id);
           }
         });
@@ -386,15 +409,116 @@
             current_stock: parseFloat(doc.data().current_stock || 0),
             total_cost_value: parseFloat(doc.data().total_cost_value || 0), // القيمة الإجمالية للمخزون
             reorder_point: parseFloat(doc.data().reorder_point || 0),
+            unit: doc.data().unit || "وحدة",
           }));
+
+          rawMaterialsMap = new Map(allRawMaterials.map((m) => [m.id, m])); // 💡 تحديث الـ Map
 
           renderMaterialsTable(allRawMaterials);
           fillStockSelect(allRawMaterials);
+
+          // 💡 استدعاء دالة جلب سجل الحركات بعد الانتهاء
+          await fetchAndRenderLog();
         } catch (e) {
           console.error("Error fetching raw materials: ", e);
           materialsTableContainer.innerHTML =
             '<p class="loading-msg" style="color: red;">حدث خطأ في جلب المواد الخام.</p>';
         }
+      }
+
+      // 💡 دالة جلب وعرض سجل الحركات (تمت إضافتها)
+      async function fetchAndRenderLog() {
+        const logContainer = document.getElementById("materials-log-container");
+        logContainer.innerHTML =
+          '<p class="loading-msg">جارٍ تحميل سجل الحركات...</p>';
+        try {
+          const logCollection = collection(db, "raw_materials_log");
+          // جلب آخر 50 حركة بترتيب تنازلي حسب التاريخ
+          const q = query(logCollection, orderBy("date", "desc"), limit(50));
+          const snapshot = await getDocs(q);
+
+          const logEntries = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+            date: new Date(doc.data().date).toLocaleString("ar-EG", {
+              dateStyle: "short",
+              timeStyle: "short",
+            }),
+          }));
+
+          renderLogTable(logEntries);
+        } catch (e) {
+          console.error("Error fetching materials log: ", e);
+          logContainer.innerHTML =
+            '<p class="loading-msg" style="color: red;">حدث خطأ في جلب سجل الحركات.</p>';
+        }
+      }
+
+      function renderLogTable(logEntries) {
+        if (logEntries.length === 0) {
+          document.getElementById("materials-log-container").innerHTML =
+            '<p class="loading-msg">لا يوجد سجل حركات لعرضه.</p>';
+          return;
+        }
+
+        let tableHtml = `
+              <table class="orders-table">
+                  <thead>
+                      <tr>
+                          <th><i class="fa-solid fa-list-check"></i> المادة</th>
+                          <th><i class="fa-solid fa-gear"></i> نوع العملية</th>
+                          <th><i class="fa-solid fa-arrows-up-down"></i> التغيير في الكمية</th>
+                          <th><i class="fa-solid fa-money-bill-wave"></i> التغيير في القيمة (شيكل)</th>
+                          <th><i class="fa-solid fa-calendar-alt"></i> التاريخ</th>
+                          <th><i class="fa-solid fa-box"></i> الطلب / المصدر</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+          `;
+        logEntries.forEach((entry) => {
+          const materialData = rawMaterialsMap.get(entry.material_id) || {};
+          const unit = materialData.unit || "وحدة";
+          const typeDisplay =
+            entry.operation_type === "purchase"
+              ? "شراء/إضافة"
+              : entry.operation_type === "correction"
+              ? "تصحيح"
+              : "استهلاك (طلب)";
+          const quantityColor =
+            entry.change_quantity > 0
+              ? "color: var(--success-color); font-weight: 700;"
+              : entry.change_quantity < 0
+              ? "color: var(--danger-color); font-weight: 700;"
+              : "color: #888;";
+          const valueColor =
+            entry.change_value > 0
+              ? "color: var(--success-color); font-weight: 700;"
+              : entry.change_value < 0
+              ? "color: var(--danger-color); font-weight: 700;"
+              : "color: #888;";
+
+          tableHtml += `
+                  <tr>
+                      <td>${entry.material_name || "---"}</td>
+                      <td>${typeDisplay}</td>
+                      <td style="${quantityColor}">${entry.change_quantity.toFixed(
+            2
+          )} ${unit}</td>
+                      <td style="${valueColor}">${entry.change_value.toFixed(
+            2
+          )} شيكل</td>
+                      <td>${entry.date}</td>
+                      <td>${
+                        entry.order_id
+                          ? `طلب رقم: ${entry.order_id}`
+                          : "إدارة المخزون"
+                      }</td>
+                  </tr>
+              `;
+        });
+        tableHtml += "</tbody></table>";
+        document.getElementById("materials-log-container").innerHTML =
+          tableHtml;
       }
 
       function renderMaterialsTable(materials) {
@@ -682,13 +806,31 @@
           newTotalCostValue = 0; // لضمان دقة النظام
         }
 
+        const batch = writeBatch(db);
+        const materialRef = doc(db, "raw_materials", materialId);
+        const logCollection = collection(db, "raw_materials_log");
+
+        // 1. تحديث بيانات المادة الخام
+        batch.update(materialRef, {
+          current_stock: newTotalStock,
+          total_cost_value: newTotalCostValue,
+          cost_per_unit: newAverageCostPerUnit,
+          last_update: new Date().toISOString(),
+        });
+
+        // 2. تسجيل حركة الشراء/التصحيح
+        batch.set(doc(logCollection), {
+          material_id: materialId,
+          material_name: material.name_ar,
+          change_quantity: inputQuantity, // حفظ القيمة المدخلة كما هي
+          change_value: inputTotalCost, // حفظ القيمة المدخلة كما هي
+          operation_type: operationType,
+          order_id: null, // لا يوجد طلب هنا
+          date: new Date().toISOString(),
+        });
+
         try {
-          await updateDoc(doc(db, "raw_materials", materialId), {
-            current_stock: newTotalStock,
-            total_cost_value: newTotalCostValue,
-            cost_per_unit: newAverageCostPerUnit,
-            last_update: new Date().toISOString(),
-          });
+          await batch.commit();
 
           closeModal("stock-modal");
           fetchAndRenderRawMaterials();
