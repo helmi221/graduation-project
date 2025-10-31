@@ -17,7 +17,7 @@
     />
     <style>
       .design-page-section {
-        max-width: 800px;
+        max-width: 900px;
         margin: 5rem auto;
         padding: 40px;
         background-color: var(--white-color);
@@ -29,7 +29,7 @@
         margin-top: 2rem;
       }
       .design-form .form-group {
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
       }
       .design-form .form-group label {
         display: block;
@@ -58,18 +58,17 @@
       .design-form .btn {
         display: block;
         width: 100%;
-        margin-top: 2rem;
+        margin-top: 2.5rem;
       }
-      /* General styles */
       .required-field {
         color: var(--danger-color);
         margin-right: 5px;
       }
-      .loading-bar-container {
-        display: none;
+      .loading-msg {
         text-align: center;
-        padding: 20px;
-        color: var(--primary-color);
+        font-size: 1.1rem;
+        color: #999;
+        padding: 40px;
       }
       .form-row {
         display: grid;
@@ -83,6 +82,69 @@
       }
       .design-result-section.show {
         display: block;
+      }
+
+      /* 💡 أنماط عرض المعاينة */
+      #material-preview-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 2rem;
+        padding-top: 15px;
+      }
+      .preview-card {
+        text-align: center;
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 15px;
+        background-color: var(--light-color);
+      }
+      .preview-box {
+        height: 120px;
+        border-radius: 8px;
+        margin-top: 10px;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        transition: background-image 0.5s;
+        border: 1px solid #ddd;
+      }
+      .preview-card p {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-top: 10px;
+      }
+      /* 💡 أنماط الإضافات */
+      #addons-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 10px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        max-height: 150px;
+        overflow-y: auto;
+      }
+      #addons-list li {
+        padding: 8px 15px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.95rem;
+      }
+      #addons-list li:last-child {
+        border-bottom: none;
+      }
+
+      /* 💡 نمط الخيارات غير المتوفرة أو المنخفضة */
+      #material-select option[disabled] {
+        color: #aaa;
+        background-color: #f7f7f7;
+      }
+      /* 💡 نمط خاص للمخزون المنخفض */
+      #material-select .low-stock-option {
+        color: #f39c12; /* لون تحذيري (أصفر/برتقالي) */
+        font-weight: bold;
       }
     </style>
   </head>
@@ -148,7 +210,7 @@
           <h2>صمم منتجك الخاص</h2>
         </div>
         <p style="text-align: center; color: #777">
-          صف لنا فكرتك في أربع خطوات بسيطة وسنقوم بتحويلها إلى تصميم مقترح.
+          صف لنا فكرتك في خطوات بسيطة وسنقوم بتحويلها إلى تصميم مقترح.
         </p>
 
         <form id="design-form" class="design-form">
@@ -200,15 +262,6 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label for="color"
-                  ><span class="required-field">*</span> اللون والتشطيب
-                  المفضّل</label
-                >
-                <select id="color" name="color" required>
-                  <option value="">-- جارٍ التحميل --</option>
-                </select>
-              </div>
-              <div class="form-group">
                 <label for="material"
                   ><span class="required-field">*</span> المادة الرئيسية المفضلة
                   (نوع الخشب)</label
@@ -217,6 +270,69 @@
                   <option value="">-- جارٍ التحميل --</option>
                 </select>
               </div>
+              <div class="form-group">
+                <label for="color"
+                  ><span class="required-field">*</span> اللون والتشطيب
+                  المفضّل</label
+                >
+                <select id="color" name="color" required>
+                  <option value="">-- جارٍ التحميل --</option>
+                </select>
+              </div>
+            </div>
+
+            <div id="material-preview-container">
+              <div class="preview-card">
+                <label>معاينة الخشب (التكستشر)</label>
+                <div id="preview-material-box" class="preview-box"></div>
+                <p id="material-label">الخشب: لم يُختر</p>
+              </div>
+              <div class="preview-card">
+                <label>معاينة اللون</label>
+                <div id="preview-color-box" class="preview-box"></div>
+                <p id="color-label">اللون: لم يُختر</p>
+              </div>
+            </div>
+
+            <h3
+              style="
+                margin-top: 1.5rem;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 5px;
+              "
+            >
+              <i class="fa-solid fa-layer-group"></i> إضافات وتفاصيل مميزة
+            </h3>
+            <div class="form-row" style="grid-template-columns: 3fr 1fr">
+              <div class="form-group" style="margin-bottom: 0">
+                <label
+                  for="addon-input"
+                  style="font-size: 1rem; margin-bottom: 0"
+                  >أضف ميزة (مثل: أدراج مخفية، حامل أكواب، إضاءة)</label
+                >
+                <input
+                  type="text"
+                  id="addon-input"
+                  placeholder="اكتب الميزة هنا..."
+                />
+              </div>
+              <div class="form-group" style="align-self: end; margin-bottom: 0">
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm"
+                  id="add-addon-btn"
+                >
+                  <i class="fa-solid fa-plus"></i> إضافة
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <ul id="addons-list">
+                <li style="text-align: center; color: #777">
+                  لا توجد إضافات بعد
+                </li>
+              </ul>
             </div>
 
             <div class="form-group" id="notes-group">
@@ -229,7 +345,7 @@
                 name="notes"
                 rows="4"
                 required
-                placeholder="مثال: أحتاج طاولة طعام بنمط ريفي، تتسع لـ 6 أشخاص، الميزانية 2500 شيكل، أريد أدراجاً مخفية."
+                placeholder="مثال: أحتاج طاولة طعام بنمط ريفي، الميزانية 3000-4000 شيكل، أريد أدراجاً مخفية."
               ></textarea>
             </div>
           </div>
@@ -274,7 +390,7 @@
             "
           >
             <p>
-              السعر المعروض هو سعر أولي مقترح. سيتم تأكيده بعد مراجعة الفريق.
+              السعر المعروض هو نطاق أولي مقترح. سيتم تأكيده بعد مراجعة الفريق.
               يمكنك الآن إضافته إلى السلة وإكمال طلبك.
             </p>
           </div>
@@ -381,6 +497,30 @@
       let allRawMaterials = [];
       let currentUser = null;
       let currentDesign = null;
+      let currentAddons = [];
+
+      // 💡 خريطة لربط الألوان العربية بأسماء ملفات الصور الإنجليزية في مجلد 'colers'
+      const colorFileMap = {
+        أبيض: "white.png",
+        أسود: "black.png",
+        "رمادي فاتح": "gray.png",
+        "أزرق نيلي": "blue.png",
+        "أخضر زمردي": "green.png",
+        "بيج مطفي": "offwhite.png",
+        "بني غامق": "braw.png",
+        "أحمر ساطع": "red.png",
+        "بني طبيعي": "normal.png",
+      };
+
+      // 💡 خريطة لربط أنواع الأخشاب بمسارات صور التكستشر المحلية (wood/)
+      const woodTextureMap = {
+        "خشب زان": "wood/Beech Wood.jpg",
+        "خشب بلوط": "wood/Oak Wood.webp",
+        "خشب سنديان": "wood/white-oak.jpg",
+        "خشب جوز": "wood/Walnut Wood.webp",
+        "خشب صنوبر": "wood/Pine Wood.webp",
+        "خشب صور": "colers/braw.png",
+      };
 
       const standardColors = [
         "أبيض",
@@ -392,6 +532,7 @@
         "بني غامق",
         "أحمر ساطع",
       ];
+
       const productDimensions = {
         "طاولة سفرة": [
           "مقاس صغير (2-4 أشخاص)",
@@ -418,12 +559,22 @@
       const materialSelect = document.getElementById("material");
       const dimensionsSelect = document.getElementById("dimensions");
       const toast = document.getElementById("toast-notification");
-      const designCheckoutForm = document.getElementById(
-        "design-checkout-form"
-      );
       const processMessage = document.getElementById("processing-message");
       const designResultSection = document.getElementById("design-result");
       const designForm = document.getElementById("design-form");
+
+      // 💡 عناصر المعاينة
+      const previewMaterialBox = document.getElementById(
+        "preview-material-box"
+      );
+      const previewColorBox = document.getElementById("preview-color-box");
+      const materialLabel = document.getElementById("material-label");
+      const colorLabel = document.getElementById("color-label");
+
+      // 💡 عناصر الإضافات
+      const addonInput = document.getElementById("addon-input");
+      const addAddonBtn = document.getElementById("add-addon-btn");
+      const addonsList = document.getElementById("addons-list");
 
       // ====================================================================
       // 1. وظائف المساعدة العامة وتهيئة البيانات
@@ -434,17 +585,6 @@
         toast.className = `toast show ${isError ? "error" : "success"}`;
         setTimeout(() => toast.classList.remove("show"), 3000);
       }
-
-      function closeModal(modalId) {
-        document.getElementById(modalId).classList.remove("active");
-        document.body.classList.remove("scroll-lock");
-      }
-      document.querySelectorAll(".modal-close").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const modalId = btn.closest(".modal-overlay").id;
-          closeModal(modalId);
-        });
-      });
 
       function loadCartAndUpdateBadge() {
         const storedCart = localStorage.getItem("shoppingCart") || "[]";
@@ -461,12 +601,6 @@
       function saveCart(cart) {
         localStorage.setItem("shoppingCart", JSON.stringify(cart));
         loadCartAndUpdateBadge();
-      }
-
-      function generateTrackingId(prefix = "DGN") {
-        return `${prefix}-${new Date().getTime().toString(36)}-${Math.random()
-          .toString(36)
-          .substr(2, 5)}`.toUpperCase();
       }
 
       async function initializeData() {
@@ -487,6 +621,8 @@
             id: doc.id,
             ...doc.data(),
             cost_per_unit: parseFloat(doc.data().cost_per_unit || 0),
+            current_stock: parseFloat(doc.data().current_stock || 0),
+            reorder_point: parseFloat(doc.data().reorder_point || 0), // 💡 جلب نقطة إعادة الطلب
             type: doc.data().type || "أخرى",
             name_ar: doc.data().name_ar,
           }));
@@ -501,26 +637,58 @@
         }
       }
 
-      function fillDropdowns() {
-        // 1. تعبئة الأخشاب
+      // 💡 دالة لملء القائمة المنسدلة للأخشاب مع التحقق من التوفر والمخزون المنخفض
+      function fillMaterialsDropdown() {
         const woodMaterials = allRawMaterials.filter((m) => m.type === "خشب");
         let materialOptions = '<option value="">-- اختر مادة --</option>';
+
         woodMaterials.forEach((m) => {
-          materialOptions += `<option value="${m.name_ar}">${m.name_ar}</option>`;
+          const isLowStock =
+            m.current_stock > 0 && m.current_stock <= m.reorder_point;
+          const isOutOfStock = m.current_stock <= 0;
+
+          let disabledAttr = "";
+          let availabilityText = "";
+          let customClass = "";
+
+          if (isOutOfStock) {
+            disabledAttr = "disabled";
+            availabilityText = " (نفذ المخزون)";
+          } else if (isLowStock) {
+            // 💡 المخزون منخفض: يتم تعطيله وإضافة كلاس للعرض بلون مختلف
+            disabledAttr = "disabled";
+            availabilityText = " (مخزون منخفض - يرجى الانتظار)";
+            customClass = "low-stock-option";
+          }
+          // إذا كان المخزون متوفراً (isAvailable = true): لا يوجد disabled
+
+          materialOptions += `<option value="${m.name_ar}" ${disabledAttr} class="${customClass}">${m.name_ar}${availabilityText}</option>`;
         });
         materialSelect.innerHTML = materialOptions;
+      }
 
-        // 2. تعبئة الألوان
+      function fillDropdowns() {
+        // 1. تعبئة الأخشاب مع التحقق من التوفر
+        fillMaterialsDropdown();
+
+        // 2. تعبئة الألوان (محدثة)
         let colorOptions = `<option value="">-- اختر لون --</option>`;
-        colorOptions += `<option value="لون طبيعي (ورنيش)">لون طبيعي (ورنيش/حماية شفافة)</option>`;
+        colorOptions += `<option value="بني طبيعي (ورنيش)">بني طبيعي (ورنيش/normal)</option>`;
         standardColors.forEach((color) => {
-          colorOptions += `<option value="${color} (دهان)">${color} (دهان)</option>`;
+          const colorName = color.trim();
+          if (colorFileMap[colorName]) {
+            colorOptions += `<option value="${colorName} (دهان)">${colorName} (دهان)</option>`;
+          }
         });
         colorSelect.innerHTML = colorOptions;
 
-        // 3. تحديث الأبعاد بناءً على نوع المنتج
+        // 3. ربط الأحداث
         productTypeSelect.addEventListener("change", updateDimensionsOptions);
-        updateDimensionsOptions(); // تعبئة أولية
+        materialSelect.addEventListener("change", updateMaterialPreview);
+        colorSelect.addEventListener("change", updateMaterialPreview);
+
+        updateDimensionsOptions();
+        updateMaterialPreview();
       }
 
       function updateDimensionsOptions() {
@@ -535,7 +703,56 @@
         dimensionsSelect.innerHTML = optionsHTML;
       }
 
-      function calculateEstimatedCost(materialName, color, productType) {
+      // 💡 وظيفة تحديث معاينة الصورة المحدثة والمُصححة
+      function updateMaterialPreview() {
+        const selectedMaterial = materialSelect.value.trim();
+        const selectedColorOption = colorSelect.value.split("(")[0].trim(); // جلب اسم اللون فقط
+
+        // 1. تحديث معاينة الخشب (التكستشر)
+        const woodTexturePath = woodTextureMap[selectedMaterial];
+
+        if (woodTexturePath) {
+          previewMaterialBox.style.backgroundImage = `url('${woodTexturePath}')`;
+          previewMaterialBox.style.backgroundColor = "transparent";
+          materialLabel.textContent = `الخشب: ${selectedMaterial}`;
+        } else if (selectedMaterial) {
+          // إذا لم نجد المسار في الخريطة، نستخدم صورة بـ 'colers/braw.png' كافتراضي
+          previewMaterialBox.style.backgroundImage = `url('colers/braw.png')`;
+          previewMaterialBox.style.backgroundColor = "transparent";
+          materialLabel.textContent = `الخشب: ${selectedMaterial}`;
+        } else {
+          // لا يوجد اختيار
+          previewMaterialBox.style.backgroundImage = "none";
+          previewMaterialBox.style.backgroundColor = "var(--light-color)";
+          materialLabel.textContent = "الخشب: لم يُختر";
+        }
+
+        // 2. تحديث معاينة اللون
+        if (selectedColorOption) {
+          const fileName = colorFileMap[selectedColorOption];
+          if (fileName) {
+            previewColorBox.style.backgroundImage = `url('colers/${fileName}')`;
+            previewColorBox.style.backgroundColor = "transparent";
+          } else {
+            // إذا لم نجد اسم الملف، نستخدم خلفية بيضاء
+            previewColorBox.style.backgroundImage = "none";
+            previewColorBox.style.backgroundColor = "var(--white-color)";
+          }
+          colorLabel.textContent = `اللون: ${selectedColorOption}`;
+        } else {
+          // لا يوجد اختيار
+          previewColorBox.style.backgroundImage = "none";
+          previewColorBox.style.backgroundColor = "var(--white-color)";
+          colorLabel.textContent = "اللون: لم يُختر";
+        }
+      }
+
+      function calculateEstimatedCost(
+        materialName,
+        color,
+        productType,
+        addons
+      ) {
         let baseCost = 0;
         let woodVolumeFactor = 1;
         let paintVolumeFactor = 1;
@@ -575,6 +792,9 @@
 
         baseCost += accessoryCost;
 
+        // 💡 إضافة تكلفة تقديرية للإضافات
+        baseCost += addons.length * 100;
+
         return Math.round(baseCost);
       }
 
@@ -596,10 +816,11 @@
             material: design.material,
             color: design.color,
             notes: design.notes,
+            addons: design.addons,
             estimatedCOGS: design.estimatedCOGS,
             description: design.description,
             initial_price: design.price_value,
-            // 💡 لإظهارها بوضوح للمدير:
+            price_range: design.price_range,
             title: design.title,
           },
         };
@@ -610,13 +831,82 @@
       }
 
       // ====================================================================
-      // 2. منطق توليد التصميم (Gemini Logic)
+      // 2. منطق الإضافات (Add-ons)
+      // ====================================================================
+
+      function renderAddonsList() {
+        addonsList.innerHTML = "";
+        if (currentAddons.length === 0) {
+          addonsList.innerHTML =
+            '<li style="text-align: center; color: #777;">لا توجد إضافات بعد</li>';
+          return;
+        }
+
+        currentAddons.forEach((addon, index) => {
+          const li = document.createElement("li");
+          li.innerHTML = `
+                  <span>${addon}</span>
+                  <button type="button" class="btn-danger btn-sm" data-index="${index}" style="background: none; border: none; color: var(--danger-color); font-size: 1.2rem; cursor: pointer;">
+                      &times;
+                  </button>
+              `;
+          addonsList.appendChild(li);
+        });
+
+        document.querySelectorAll("#addons-list button").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            const index = parseInt(e.currentTarget.dataset.index);
+            currentAddons.splice(index, 1);
+            renderAddonsList();
+            updateNotesWithAddons();
+          });
+        });
+
+        updateNotesWithAddons();
+      }
+
+      function updateNotesWithAddons() {
+        const notesTextarea = document.getElementById("notes");
+        let currentNotes = notesTextarea.value.split("\n");
+
+        currentNotes = currentNotes.filter(
+          (line) => !line.startsWith("الإضافات المطلوبة:")
+        );
+
+        if (currentAddons.length > 0) {
+          const addonsString = `الإضافات المطلوبة: ${currentAddons.join("، ")}`;
+          currentNotes.push(addonsString);
+        }
+
+        notesTextarea.value = currentNotes
+          .filter((line) => line.trim() !== "")
+          .join("\n");
+      }
+
+      addAddonBtn.addEventListener("click", () => {
+        const addonText = addonInput.value.trim();
+        if (addonText && currentAddons.length < 5) {
+          currentAddons.push(addonText);
+          addonInput.value = "";
+          renderAddonsList();
+        } else if (currentAddons.length >= 5) {
+          showToast("لا يمكن إضافة أكثر من 5 إضافات.", true);
+        }
+      });
+
+      // ====================================================================
+      // 3. منطق توليد التصميم (Gemini Logic) - تم التعديل لنطاق السعر
       // ====================================================================
 
       designForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        // 💡 التحقق من صحة النموذج باستخدام التحقق الافتراضي لـ HTML
+        // 💡 التحقق من أن الخشب المختار غير معطل (لضمان توفره)
+        if (materialSelect.selectedOptions[0]?.disabled) {
+          alert("لا يمكن إرسال طلب تصميم باستخدام مادة خام غير متوفرة حالياً.");
+          return;
+        }
+
         if (!designForm.checkValidity()) {
           showToast("الرجاء ملء جميع الحقول المطلوبة بشكل صحيح.", true);
           designForm.reportValidity();
@@ -633,14 +923,18 @@
         const estimatedCOGS = calculateEstimatedCost(
           material,
           color,
-          productType
+          productType,
+          currentAddons
         );
-        const initialSuggestedPrice = Math.round(estimatedCOGS * 1.35);
 
-        // إظهار المعالجة
-        designResultSection.classList.remove("show");
-        designResultSection.style.display = "none";
+        const minMargin = 1.3;
+        const maxMargin = 1.6;
+
+        const priceRangeMin = Math.round(estimatedCOGS * minMargin);
+        const priceRangeMax = Math.round(estimatedCOGS * maxMargin);
+
         processMessage.style.display = "block";
+        designResultSection.style.display = "none";
 
         const filteredProducts = allProducts.filter(
           (p) => p.category === productType && p.is_available !== false
@@ -651,36 +945,36 @@
           .join(", ");
 
         const promptText = `
-          أنت خبير في تصميم الأثاث. أنشئ اقتراح تصميم بناءً على طلب العميل.
-          اقترح سعراً نهائياً منطقياً، يجب أن يتراوح بين ${initialSuggestedPrice} شيكل و ${
-          initialSuggestedPrice + 1000
-        } شيكل.
+          أنت خبير في تصميم الأثاث. مهمتك هي:
+          1. إنشاء اقتراح تصميم بناءً على طلب العميل.
+          2. اقتراح نطاق سعري نهائي ضمن الحدود المتاحة.
           
           بيانات التسعير الداعمة:
           - التكلفة التقديرية للمواد (COGS): ${estimatedCOGS} شيكل.
           - المنتجات المماثلة: ${productOptionsForAI || "لا يوجد."}
+          - **نطاق السعر المسموح به:** يجب أن يتراوح النطاق المقترح بين ${priceRangeMin} شيكل و ${priceRangeMax} شيكل.
 
           طلب العميل:
           - نوع المنتج: ${productType}
           - المقاسات: ${dimensions}
           - المادة: ${material}
           - اللون والتشطيب: ${color}
-          - التفاصيل الإضافية: ${notes}
+          - التفاصيل الإضافية والملاحظات: ${notes}
           
-          أعطني إخراجاً بالتنسيق التالي بدقة:
+          أعطني إخراجاً بالتنسيق التالي بدقة، ولا تضف أي شرح أو مقدمات:
           العنوان: <عنوان المنتج الموجز>
           الوصف: <وصف احترافي للمنتج>
-          السعر المقترح: <قيمة نقدية (رقم) بالعملة شيكل>
+          نطاق السعر المقترح: <السعر الأدنى رقمياً> - <السعر الأقصى رقمياً> شيكل
         `;
 
         try {
           const textResult = await textModel.generateContent(promptText);
-          const textResponse = textResult.response.text();
+          const textResponse = result.response.text();
 
           const titleMatch = textResponse.match(/العنوان:\s*(.*)/);
           const descriptionMatch = textResponse.match(/الوصف:\s*(.*)/);
-          const priceMatch = textResponse.match(
-            /السعر المقترح:\s*([\d\.\,\s]+)\s*شيكل/
+          const priceRangeMatch = textResponse.match(
+            /نطاق السعر المقترح:\s*([\d\.\,\s]+)\s*-\s*([\d\.\,\s]+)\s*شيكل/
           );
 
           let title = titleMatch ? titleMatch[1].trim() : "تصميم مخصص فريد";
@@ -688,40 +982,57 @@
             ? descriptionMatch[1].trim()
             : "وصف مقترح من المساعد.";
 
-          const finalPriceValueMatch = priceMatch
-            ? priceMatch[0].match(/[\d\.]+/g)
-            : null;
-          const finalPriceValue = finalPriceValueMatch
-            ? parseFloat(finalPriceValueMatch[0])
-            : initialSuggestedPrice;
+          let finalPriceMin = priceRangeMin;
+          let finalPriceMax = priceRangeMax;
+
+          if (priceRangeMatch && priceRangeMatch[1] && priceRangeMatch[2]) {
+            finalPriceMin = parseFloat(
+              priceRangeMatch[1].replace(/[^0-9\.]/g, "")
+            );
+            finalPriceMax = parseFloat(
+              priceRangeMatch[2].replace(/[^0-9\.]/g, "")
+            );
+          }
+
+          if (
+            finalPriceMin < priceRangeMin ||
+            finalPriceMax > priceRangeMax ||
+            finalPriceMin >= finalPriceMax ||
+            isNaN(finalPriceMin) ||
+            isNaN(finalPriceMax)
+          ) {
+            finalPriceMin = priceRangeMin;
+            finalPriceMax = priceRangeMax;
+          }
+
+          const initialDesignPrice = finalPriceMin;
 
           currentDesign = {
             title: title,
             description: description,
-            price: finalPriceValue,
-            price_value: finalPriceValue,
+            price: initialDesignPrice,
+            price_value: initialDesignPrice,
+            price_range: `${finalPriceMin.toFixed(0)} - ${finalPriceMax.toFixed(
+              0
+            )}`,
             type: productType,
             dimensions,
             material,
             color,
             notes,
+            addons: currentAddons,
             quantity: 1,
             estimatedCOGS: estimatedCOGS,
           };
 
           processMessage.style.display = "none";
 
-          // 💡 عرض المعلومات للزبون (طلبك الثاني)
           document.getElementById("result-content").innerHTML = `
                 <h3 id="result-title">${currentDesign.title}</h3>
-                <p><strong>الوصف المقترح:</strong> ${
-                  currentDesign.description
-                }</p>
-                <p><strong>المواصفات الرئيسية:</strong> ${
-                  currentDesign.material
-                }، ${currentDesign.color}، ${currentDesign.dimensions}</p>
+                <p><strong>الوصف المقترح:</strong> ${currentDesign.description}</p>
+                <p><strong>المواصفات الرئيسية:</strong> ${currentDesign.material}، ${currentDesign.color}، ${currentDesign.dimensions}</p>
                 <p id="result-price" style="font-size: 1.4rem; font-weight: bold; color: var(--primary-color);">
-                    السعر الأولي: ${currentDesign.price_value.toFixed(0)} شيكل
+                    نطاق السعر الأولي: ${currentDesign.price_range} شيكل
                 </p>
                 <p style="font-size: 0.9rem; color: #888; margin-top: 10px">
                     السعر المقترح ليس نهائياً، سيتم تأكيده بعد مراجعة الفريق.
@@ -736,7 +1047,7 @@
       });
 
       // ====================================================================
-      // 3. منطق الإرسال (إضافة للسلة)
+      // 4. منطق الإرسال (إضافة للسلة)
       // ====================================================================
 
       document
@@ -744,15 +1055,17 @@
         .addEventListener("click", () => {
           if (!currentDesign) return;
 
-          // 💡 طلبك الأول: يذهب للسلة
           addToCartAsCustom(currentDesign);
-          designResultSection.style.display = "none"; // إخفاء قسم النتيجة بعد الإضافة
+          designResultSection.style.display = "none";
           designForm.reset();
           updateDimensionsOptions();
+          currentAddons = [];
+          renderAddonsList();
+          updateMaterialPreview();
         });
 
       // ====================================================================
-      // 4. بدء التشغيل
+      // 5. بدء التشغيل
       // ====================================================================
       document.addEventListener("DOMContentLoaded", () => {
         loadCartAndUpdateBadge();
@@ -762,14 +1075,15 @@
           currentUser = user;
         });
 
-        // ربط زر إعادة الاقتراح
         document
-          .getElementById("regenerate-design-btn")
+          .gسetElementById("regenerate-design-btn")
           .addEventListener("click", () => {
             designForm.dispatchEvent(
               new Event("submit", { cancelable: true, bubbles: true })
             );
           });
+
+        renderAddonsList();
       });
     </script>
   </body>

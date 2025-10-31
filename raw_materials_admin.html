@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>منجرة | إدارة المواد الخام</title>
+    <title>منجرة | إدارة المخزون</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -76,6 +76,40 @@
         font-weight: 600;
         border: 1px solid var(--primary-color);
       }
+      /* 💡 أنماط طي سجل الحركة */
+      .log-toggle-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        background-color: #f7f5f2;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border: 1px solid var(--border-color);
+      }
+      .log-toggle-header h2 {
+        margin: 0;
+        font-size: 1.2rem;
+        text-align: right;
+      }
+      .log-content-wrapper {
+        display: none;
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease-out;
+      }
+      .log-content-wrapper.active {
+        display: block;
+        max-height: 600px; /* قيمة كبيرة بما يكفي للعرض */
+        transition: max-height 0.5s ease-in;
+      }
+      .log-toggle-icon {
+        transition: transform 0.3s;
+      }
+      .log-toggle-header[aria-expanded="true"] .log-toggle-icon {
+        transform: rotate(90deg);
+      }
     </style>
   </head>
   <body>
@@ -109,6 +143,11 @@
             >
           </li>
           <li>
+            <a href="customers_admin.html"
+              ><i class="fa-solid fa-users"></i> إدارة العملاء</a
+            >
+          </li>
+          <li>
             <a href="#" id="logout-btn"
               ><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</a
             >
@@ -118,15 +157,16 @@
     </header>
 
     <div class="main-content container-fluid">
-      <h1>إدارة المواد الخام والمخزون</h1>
+      <h1>إدارة المخزون والمواد الخام</h1>
 
       <div class="inventory-section admin-panel">
         <div class="purchase-controls">
           <button class="btn" id="add-material-btn">
             <i class="fa-solid fa-plus"></i> تعريف مادة جديدة
           </button>
-          <button class="btn btn-secondary" id="add-stock-btn">
-            <i class="fa-solid fa-cubes-stacked"></i> إدارة كمية / تكلفة
+          <button class="btn btn-secondary" id="open-full-stock-modal-btn">
+            <i class="fa-solid fa-cubes-stacked"></i> تسجيل عملية شراء
+            (بالتكلفة)
           </button>
         </div>
         <div id="materials-table-container">
@@ -135,12 +175,21 @@
       </div>
 
       <div class="inventory-section admin-panel" style="margin-top: 30px">
-        <h2>
-          <i class="fa-solid fa-clipboard-list"></i> سجل حركة المخزون (آخر 50
-          حركة)
-        </h2>
-        <div id="materials-log-container">
-          <p class="loading-msg">جارٍ تحميل سجل الحركات...</p>
+        <div
+          class="log-toggle-header"
+          id="log-toggle-header"
+          aria-expanded="false"
+        >
+          <h2>
+            <i class="fa-solid fa-clipboard-list"></i> سجل حركة المخزون العام
+            (آخر 50 حركة)
+          </h2>
+          <i class="fa-solid fa-chevron-left log-toggle-icon"></i>
+        </div>
+        <div id="materials-log-container-wrapper" class="log-content-wrapper">
+          <div id="materials-log-container">
+            <p class="loading-msg">جارٍ تحميل سجل الحركات...</p>
+          </div>
         </div>
       </div>
     </div>
@@ -288,6 +337,7 @@
         query,
         orderBy,
         limit,
+        where, // 💡 استيراد where للبحث في السجل
       } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
       import {
         getAuth,
@@ -337,6 +387,15 @@
       const correctionTip = document.getElementById("correction-tip");
       const confirmActionBtn = document.getElementById("confirm-action-btn");
       const logoutBtn = document.getElementById("logout-btn");
+      const openFullStockModalBtn = document.getElementById(
+        "open-full-stock-modal-btn"
+      );
+
+      const logToggleHeader = document.getElementById("log-toggle-header");
+      const logContentWrapper = document.getElementById(
+        "materials-log-container-wrapper"
+      );
+      const logContainer = document.getElementById("materials-log-container");
 
       let allRawMaterials = [];
       let rawMaterialsMap = new Map(); // 💡 Map for quick lookup
@@ -369,6 +428,19 @@
             .forEach((modal) => {
               closeModal(modal.id);
             });
+        }
+      });
+
+      // 💡 منطق فتح وطى سجل الحركة
+      logToggleHeader.addEventListener("click", () => {
+        const isExpanded =
+          logToggleHeader.getAttribute("aria-expanded") === "true";
+        logToggleHeader.setAttribute("aria-expanded", !isExpanded);
+        logContentWrapper.classList.toggle("active");
+
+        // إذا تم فتحه لأول مرة، تأكد من تحميل السجل العام
+        if (!isExpanded && logContainer.querySelector(".loading-msg")) {
+          fetchAndRenderLog();
         }
       });
 
@@ -410,6 +482,7 @@
             total_cost_value: parseFloat(doc.data().total_cost_value || 0), // القيمة الإجمالية للمخزون
             reorder_point: parseFloat(doc.data().reorder_point || 0),
             unit: doc.data().unit || "وحدة",
+            name_ar: doc.data().name_ar || "---",
           }));
 
           rawMaterialsMap = new Map(allRawMaterials.map((m) => [m.id, m])); // 💡 تحديث الـ Map
@@ -417,23 +490,25 @@
           renderMaterialsTable(allRawMaterials);
           fillStockSelect(allRawMaterials);
 
-          // 💡 استدعاء دالة جلب سجل الحركات بعد الانتهاء
-          await fetchAndRenderLog();
+          // 💡 إذا كان السجل مفتوحاً، قم بتحميله
+          if (logContentWrapper.classList.contains("active")) {
+            await fetchAndRenderLog();
+          }
         } catch (e) {
-          console.error("Error fetching raw materials: ", e);
+          console.error("Error fetching fixed costs: ", e);
           materialsTableContainer.innerHTML =
             '<p class="loading-msg" style="color: red;">حدث خطأ في جلب المواد الخام.</p>';
         }
       }
 
-      // 💡 دالة جلب وعرض سجل الحركات (تمت إضافتها)
+      // 💡 دالة جلب وعرض سجل الحركات (تم تعديلها لتعرض السجل العام فقط)
       async function fetchAndRenderLog() {
-        const logContainer = document.getElementById("materials-log-container");
         logContainer.innerHTML =
           '<p class="loading-msg">جارٍ تحميل سجل الحركات...</p>';
+
         try {
           const logCollection = collection(db, "raw_materials_log");
-          // جلب آخر 50 حركة بترتيب تنازلي حسب التاريخ
+          // سجل عام
           const q = query(logCollection, orderBy("date", "desc"), limit(50));
           const snapshot = await getDocs(q);
 
@@ -446,7 +521,7 @@
             }),
           }));
 
-          renderLogTable(logEntries);
+          renderLogTable(logEntries, logContainer, false);
         } catch (e) {
           console.error("Error fetching materials log: ", e);
           logContainer.innerHTML =
@@ -454,9 +529,13 @@
         }
       }
 
-      function renderLogTable(logEntries) {
+      function renderLogTable(
+        logEntries,
+        targetContainer,
+        isSingleMaterial = false
+      ) {
         if (logEntries.length === 0) {
-          document.getElementById("materials-log-container").innerHTML =
+          targetContainer.innerHTML =
             '<p class="loading-msg">لا يوجد سجل حركات لعرضه.</p>';
           return;
         }
@@ -465,7 +544,11 @@
               <table class="orders-table">
                   <thead>
                       <tr>
-                          <th><i class="fa-solid fa-list-check"></i> المادة</th>
+                          ${
+                            !isSingleMaterial
+                              ? '<th><i class="fa-solid fa-list-check"></i> المادة</th>'
+                              : ""
+                          }
                           <th><i class="fa-solid fa-gear"></i> نوع العملية</th>
                           <th><i class="fa-solid fa-arrows-up-down"></i> التغيير في الكمية</th>
                           <th><i class="fa-solid fa-money-bill-wave"></i> التغيير في القيمة (شيكل)</th>
@@ -499,7 +582,11 @@
 
           tableHtml += `
                   <tr>
-                      <td>${entry.material_name || "---"}</td>
+                      ${
+                        !isSingleMaterial
+                          ? `<td>${entry.material_name || "---"}</td>`
+                          : ""
+                      }
                       <td>${typeDisplay}</td>
                       <td style="${quantityColor}">${entry.change_quantity.toFixed(
             2
@@ -517,8 +604,7 @@
               `;
         });
         tableHtml += "</tbody></table>";
-        document.getElementById("materials-log-container").innerHTML =
-          tableHtml;
+        targetContainer.innerHTML = tableHtml;
       }
 
       function renderMaterialsTable(materials) {
@@ -539,7 +625,6 @@
                 <th>الكمية المتوفرة</th>
                 <th>نقطة إعادة الطلب</th>
                 <th>الحالة</th>
-                <th>تاريخ آخر تحديث</th>
                 <th>الإجراءات</th>
               </tr>
             </thead>
@@ -572,8 +657,8 @@
               <td>${stock.toFixed(2)}</td>
               <td>${reorder.toFixed(2)}</td>
               <td>${statusHtml}</td>
-              <td>${lastUpdate}</td>
-              <td class="actions-buttons">
+              <td class="actions-buttons" style="white-space: nowrap;">
+                
                 <button class="btn btn-secondary btn-sm edit-material-btn" data-id="${
                   material.id
                 }"><i class="fa-solid fa-pencil"></i> تعديل الوصف</button>
@@ -586,6 +671,14 @@
         });
         tableHtml += "</tbody></table>";
         materialsTableContainer.innerHTML = tableHtml;
+
+        // ربط أحداث الأيقونات الجديدة
+        document.querySelectorAll(".edit-material-btn").forEach((btn) => {
+          btn.addEventListener("click", handleEditMaterial);
+        });
+        document.querySelectorAll(".delete-material-btn").forEach((btn) => {
+          btn.addEventListener("click", handleDeleteMaterialClick);
+        });
       }
 
       function fillStockSelect(materials) {
@@ -600,22 +693,10 @@
       }
 
       // ------------------------------------
-      // معالجات أحداث المودالات
+      // معالجات أحداث المودالات (الأصلية)
       // ------------------------------------
 
-      // فتح مودال تعريف مادة جديدة
-      document
-        .getElementById("add-material-btn")
-        .addEventListener("click", () => {
-          document.getElementById("modal-title").textContent =
-            "تعريف مادة خام جديدة";
-          materialIdInput.value = "";
-          materialForm.reset();
-          openModal("material-modal");
-        });
-
-      // فتح مودال إدارة كمية الشراء
-      document.getElementById("add-stock-btn").addEventListener("click", () => {
+      openFullStockModalBtn.addEventListener("click", () => {
         stockForm.reset();
         stockOperationSelect.value = "purchase";
         stockOperationSelect.dispatchEvent(new Event("change"));
@@ -672,31 +753,40 @@
       });
 
       // تعديل الوصف / حذف مادة
-      materialsTableContainer.addEventListener("click", (e) => {
-        if (e.target.closest(".edit-material-btn")) {
-          const id = e.target.closest(".edit-material-btn").dataset.id;
-          const material = allRawMaterials.find((m) => m.id === id);
-          if (material) {
-            document.getElementById("modal-title").textContent =
-              "تعديل وصف المادة";
-            materialIdInput.value = id;
-            document.getElementById("material-name").value = material.name_ar;
-            document.getElementById("material-type").value = material.type;
-            document.getElementById("material-unit").value =
-              material.unit || "";
-            document.getElementById("material-reorder").value =
-              material.reorder_point;
-            openModal("material-modal");
-          }
-        } else if (e.target.closest(".delete-material-btn")) {
-          const id = e.target.closest(".delete-material-btn").dataset.id;
-          showConfirmationModal(
-            "حذف مادة خام",
-            "هل أنت متأكد من حذف هذه المادة الخام نهائياً؟",
-            () => deleteRawMaterial(id)
-          );
+      function handleEditMaterial(e) {
+        const id = e.currentTarget.dataset.id;
+        const material = allRawMaterials.find((m) => m.id === id);
+        if (material) {
+          document.getElementById("modal-title").textContent =
+            "تعديل وصف المادة";
+          materialIdInput.value = id;
+          document.getElementById("material-name").value = material.name_ar;
+          document.getElementById("material-type").value = material.type;
+          document.getElementById("material-unit").value = material.unit || "";
+          document.getElementById("material-reorder").value =
+            material.reorder_point;
+          openModal("material-modal");
         }
-      });
+      }
+
+      function handleDeleteMaterialClick(e) {
+        const id = e.currentTarget.dataset.id;
+        showConfirmationModal(
+          "حذف مادة خام",
+          "هل أنت متأكد من حذف هذه المادة الخام نهائياً؟",
+          () => deleteRawMaterial(id)
+        );
+      }
+
+      document
+        .getElementById("add-material-btn")
+        .addEventListener("click", () => {
+          document.getElementById("modal-title").textContent =
+            "تعريف مادة خام جديدة";
+          materialIdInput.value = "";
+          materialForm.reset();
+          openModal("material-modal");
+        });
 
       // ------------------------------------
       // وظائف حفظ البيانات
@@ -723,6 +813,7 @@
         if (isUpdate) {
           const existingMaterial = allRawMaterials.find((m) => m.id === id);
           if (existingMaterial) {
+            // نحافظ على قيم المخزون والتكلفة في حالة التحديث الوصفي
             materialData.current_stock = existingMaterial.current_stock;
             materialData.cost_per_unit = existingMaterial.cost_per_unit;
             materialData.total_cost_value = existingMaterial.total_cost_value;
@@ -765,6 +856,8 @@
         let currentStock = material.current_stock;
         let currentTotalCostValue = material.total_cost_value;
         let newTotalStock, newTotalCostValue, newAverageCostPerUnit;
+        let changeQuantity = 0;
+        let changeValue = 0;
 
         if (operationType === "purchase") {
           if (inputQuantity <= 0 || inputTotalCost <= 0) {
@@ -774,10 +867,14 @@
             return;
           }
 
+          changeQuantity = inputQuantity;
+          changeValue = inputTotalCost;
           newTotalCostValue = currentTotalCostValue + inputTotalCost;
           newTotalStock = currentStock + inputQuantity;
         } else if (operationType === "correction") {
           // التصحيح: نضيف القيمة المُدخلة (قد تكون سالبة)
+          changeQuantity = inputQuantity;
+          changeValue = inputTotalCost;
           newTotalStock = currentStock + inputQuantity;
           newTotalCostValue = currentTotalCostValue + inputTotalCost;
 
@@ -822,8 +919,8 @@
         batch.set(doc(logCollection), {
           material_id: materialId,
           material_name: material.name_ar,
-          change_quantity: inputQuantity, // حفظ القيمة المدخلة كما هي
-          change_value: inputTotalCost, // حفظ القيمة المدخلة كما هي
+          change_quantity: changeQuantity, // حفظ القيمة المدخلة كما هي
+          change_value: changeValue, // حفظ القيمة المدخلة كما هي
           operation_type: operationType,
           order_id: null, // لا يوجد طلب هنا
           date: new Date().toISOString(),

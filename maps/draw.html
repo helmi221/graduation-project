@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>خريطة بنية النظام التفاعلية - تصميم هندسي فاتح</title>
+    <script
+      type="text/javascript"
+      src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"
+    ></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+      /* Light Aesthetic */
+      body {
+        font-family: "Tahoma", sans-serif;
+        background-color: #f7f5f2; /* Soft Beige */
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+        direction: ltr;
+      }
+      /* Engineering Grid Background */
+      #network {
+        width: 100%;
+        height: 100%;
+        border: none;
+        box-shadow: none;
+        background-color: #ffffff;
+        /* Repeating gradient for a subtle light grey grid (15px spacing) */
+        background-image: linear-gradient(
+            to right,
+            #eeeeee 1px,
+            transparent 1px
+          ),
+          linear-gradient(to bottom, #eeeeee 1px, transparent 1px);
+        background-size: 15px 15px;
+      }
+      /* Custom font settings for nodes to ensure proper RTL display of text/icons */
+      .vis-label {
+        direction: rtl !important;
+        text-align: right !important;
+        font-family: "Tahoma", sans-serif !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="network"></div>
+
+    <script type="text/javascript">
+      // Node Descriptions (Detailed Arabic Tooltips)
+      const nodeTitles = {
+        P_INDEX_LISTING:
+          "صفحة عرض المنتجات (index.html). تعرض المنتجات المتوفرة، وتطلق تحقق التوفر وتسمح بالإضافة إلى السلة.",
+        P_LOGIN:
+          "صفحات تسجيل الدخول/إنشاء حساب (login.html/signup.html). تُستخدم لإرسال بيانات المصادقة وتحديد دور المستخدم.",
+        P_DESIGN_INPUT:
+          "نموذج التصميم المخصص (design.html). يجمع مواصفات العميل ويرسلها لمحرك الذكاء الاصطناعي.",
+        P_CART_CHECKOUT:
+          "صفحة سلة المشتريات (cart.html). يتم فيها جمع بيانات العميل وحفظ الطلبات النهائية.",
+        P_STATUS_APPROVAL:
+          'صفحة متابعة الطلب (order-status.html). تُمكّن العميل من تتبع طلباته وتفعيل قرار "قبول السعر النهائي".',
+
+        L_AUTH: "وحدة التحكم بالصلاحيات والمصادقة (Firebase Auth).",
+        E_GEM_DESIGN:
+          "محرك الذكاء الاصطناعي (Gemini) المسؤول عن اقتراح تصميم وسعر أولي.",
+        E_GEM_RECO: "محرك التفاوض بالذكاء الاصطناعي لتطبيق الخصومات المتدرجة.",
+        L_AVAIL: "وحدة منطق التحقق من توفر المواد الخام للمنتجات الجاهزة.",
+        L_DEDUCT:
+          "وحدة منطق خصم المواد الخام من المخزون بعد موافقة المدير/العميل.",
+        L_COST: "وحدة منطق حساب متوسط التكلفة المرجح (WAC).",
+        E_EMAIL: "خدمة خارجية لإرسال رسائل البريد الإلكتروني لتأكيد الطلبات.",
+
+        A_STATUS_UPD:
+          "شاشة إدارة الطلبات (orders_admin.html) للتحكم في حالة الطلبات وتفعيل عملية الخصم (L_DEDUCT).",
+        A_PROD_LINK:
+          "شاشة إدارة المنتجات (inventory.html) لربط المنتج بقائمة المواد الخام المطلوبة وكمياتها.",
+        A_STOCK_INPUT:
+          "شاشة إدارة المواد الخام (raw_materials_admin.html) لتسجيل الشراء/التصحيح.",
+        A_PRICE_SET: "شاشة إدارة الطلبات لتحديد السعر النهائي للتصميم المخصص.",
+
+        D_PRODUCTS:
+          "كيان المنتجات (D_PRODUCTS). يخزن تعريفات المنتجات وقائمة المواد المطلوبة ومتطلباتها.",
+        D_RAW_MATS:
+          "كيان المخزون (D_RAW_MATS). يخزن الكمية الحالية، متوسط التكلفة المرجح (WAC)، والقيمة الإجمالية للمواد الخام.",
+        D_ORDERS:
+          "كيان الطلبات الجاهزة (D_ORDERS). يخزن سجل الطلبات التي تحتوي على منتجات جاهزة.",
+        D_CUSTOM:
+          "كيان التصاميم المخصصة (D_CUSTOM). يخزن طلبات التصميم، السعر النهائي، وقرار العميل.",
+        D_LOG:
+          "كيان سجل الحركات (D_LOG). يخزن سجل تدقيق لجميع عمليات الشراء والاستهلاك للمخزون.",
+        D_USERS:
+          "كيان المستخدمين (D_USERS). يخزن بيانات العميل والدور (Role) للمصادقة.",
+      };
+
+      // Edge Descriptions (Detailed Arabic Tooltips)
+      const edgeTitles = {
+        "Submit Credentials": "إرسال بيانات الدخول لـ L_AUTH للتحقق.",
+        "W: Ready Order": "حفظ سجل طلب منتج جاهز إلى قاعدة البيانات.",
+        "W: Custom Order": "حفظ سجل طلب تصميم مخصص أولي إلى قاعدة البيانات.",
+        "Trigger Email": "إرسال بيانات الطلب لخدمة البريد الخارجية.",
+        "Accept Price Trigger":
+          'تغيير الحالة إلى "مقبول-العميل" لتفعيل منطق الخصم (L_DEDUCT).',
+        "Admin Approval Trigger":
+          'تغيير الحالة إلى حالة تتطلب الخصم (مثل "مقبول" للجاهز)، مما يطلق L_DEDUCT.',
+        "R/W Auth & Profile":
+          "تحقق المصادقة وقراءة/تحديث الاسم والعنوان في D_USERS.",
+        "Output Proposal":
+          "إرجاع الوصف والسعر المقترحين من الذكاء الاصطناعي إلى واجهة design.html.",
+        "R: Read COGS":
+          "قراءة متوسط تكلفة المادة الخام (WAC) لتقدير السعر الأولي.",
+        "R: Read Info":
+          "قراءة قائمة المنتجات وأسعارها من D_PRODUCTS لتقديم التوصيات.",
+        "R: Check Stock": "التحقق من الكمية المتوفرة في المخزون.",
+        "R: Read Mat. List": "قراءة قائمة المواد المطلوبة للمنتج.",
+        "Input Purchase Data": "إدخال كميات وتكاليف الشراء أو التصحيح.",
+        "W: Update Stock/WAC":
+          "تحديث الكمية ومتوسط التكلفة المرجح (WAC) في D_RAW_MATS.",
+        "W: Purchase Log": "كتابة سجل حركة الشراء إلى سجل الحركات.",
+        "W: Product Definition":
+          "كتابة/تحديث تعريف المنتج ومتطلباته في D_PRODUCTS.",
+        "W: Final Price": "تحديث السعر النهائي لطلب التصميم المخصص.",
+        "W: Update Status": "تحديث حالة الطلب (قيد التصنيع، مكتمل، إلخ).",
+        "W: Decrement Stock/Cost":
+          "خصم الكمية والقيمة المالية المستهلكة من D_RAW_MATS.",
+        "W: Consumption Log": "كتابة سجل حركة الاستهلاك في D_LOG.",
+        "R: Ready Orders": "قراءة سجلات الطلبات الجاهزة لمراجعة المدير.",
+        "R: Custom Requests":
+          "قراءة سجلات طلبات التصميم المخصص لمراجعة المدير والتسعير.",
+        "R: Current Stock": "قراءة مستوى المخزون الحالي لعرضه في لوحة المدير.",
+        "Output Final Price": "عرض السعر النهائي للعميل في order-status.html.",
+        "R: Required Mat.": "قراءة قائمة المواد المطلوبة لتنفيذ عملية الخصم.",
+        "Input Specs": "إرسال مواصفات العميل إلى محرك الذكاء الاصطناعي.",
+        "Add to Cart": "إضافة المنتج إلى السلة (Local Storage).",
+      };
+
+      // 1. Define Nodes: Final Structure with Combined Labels
+      var nodes = new vis.DataSet([
+        // --- Client UI (File Name + Icon) ---
+        {
+          id: "P_INDEX_LISTING",
+          label: "index.html",
+          group: "Client",
+          title: nodeTitles.P_INDEX_LISTING,
+          shape: "box",
+          font: { face: "Tahoma", color: "#000000", align: "left", size: 14 },
+        },
+        {
+          id: "P_LOGIN",
+          label: "login.html / signup.html",
+          group: "Client",
+          title: nodeTitles.P_LOGIN,
+          shape: "box",
+          font: { face: "Tahoma", color: "#000000", align: "left", size: 14 },
+        },
+        {
+          id: "P_DESIGN_INPUT",
+          label: "design.html",
+          group: "Client",
+          title: nodeTitles.P_DESIGN_INPUT,
+          shape: "box",
+          font: { face: "Tahoma", color: "#000000", align: "left", size: 14 },
+        },
+        {
+          id: "P_CART_CHECKOUT",
+          label: "cart.html",
+          group: "Client",
+          title: nodeTitles.P_CART_CHECKOUT,
+          shape: "box",
+          font: { face: "Tahoma", color: "#000000", align: "left", size: 14 },
+        },
+        {
+          id: "P_STATUS_APPROVAL",
+          label: "rder-status.html",
+          group: "Client",
+          title: nodeTitles.P_STATUS_APPROVAL,
+          shape: "box",
+          font: { face: "Tahoma", color: "#000000", align: "left", size: 14 },
+        },
+
+        // --- AI & Core Logic (Icon Only Label) ---
+        {
+          id: "L_AUTH",
+          label: "\uf023",
+          group: "Logic",
+          title: nodeTitles.L_AUTH,
+          shape: "box",
+          size: 45,
+          font: { face: "FontAwesome", size: 30, color: "#000000" },
+        },
+        {
+          id: "E_GEM_DESIGN",
+          label: "\uf544",
+          group: "Logic",
+          title: nodeTitles.E_GEM_DESIGN,
+          shape: "box",
+          size: 45,
+          font: { face: "FontAwesome", size: 30, color: "#000000" },
+        },
+        {
+          id: "E_GEM_RECO",
+          label: "\uf0e5",
+          group: "Logic",
+          title: nodeTitles.E_GEM_RECO,
+          shape: "box",
+          size: 45,
+          font: { face: "FontAwesome", size: 30, color: "#000000" },
+        },
+        {
+          id: "L_AVAIL",
+          label: "\uf05a",
+          group: "Logic",
+          title: nodeTitles.L_AVAIL,
+          shape: "box",
+          size: 45,
+          font: { face: "FontAwesome", size: 30, color: "#000000" },
+        },
+        {
+          id: "L_DEDUCT",
+          label: "\uf4c0",
+          group: "Logic",
+          title: nodeTitles.L_DEDUCT,
+          shape: "box",
+          size: 45,
+          font: { face: "FontAwesome", size: 30, color: "#000000" },
+        },
+        {
+          id: "L_COST",
+          label: "\uf155",
+          group: "Logic",
+          title: nodeTitles.L_COST,
+          shape: "box",
+          size: 45,
+          font: { face: "FontAwesome", size: 30, color: "#000000" },
+        },
+        {
+          id: "E_EMAIL",
+          label: "\uf0e0",
+          group: "Logic",
+          title: nodeTitles.E_EMAIL,
+          shape: "box",
+          size: 45,
+          font: { face: "FontAwesome", size: 30, color: "#000000" },
+        },
+
+        // --- Admin UI (File Name + Icon) ---
+        {
+          id: "A_STATUS_UPD",
+          label: "orders_admin.html",
+          group: "Admin",
+          title: nodeTitles.A_STATUS_UPD,
+          shape: "box",
+          font: { face: "Tahoma", color: "#000000", align: "left", size: 14 },
+        },
+        {
+          id: "A_PROD_LINK",
+          label: "inventory.html",
+          group: "Admin",
+          title: nodeTitles.A_PROD_LINK,
+          shape: "box",
+          font: { face: "Tahoma", color: "#000000", align: "left", size: 14 },
+        },
+        {
+          id: "A_STOCK_INPUT",
+          label: "raw_materials_admin.html",
+          group: "Admin",
+          title: nodeTitles.A_STOCK_INPUT,
+          shape: "box",
+          font: { face: "Tahoma", color: "#000000", align: "left", size: 14 },
+        },
+        {
+          id: "A_PRICE_SET",
+          label: "Set Price",
+          group: "Admin",
+          title: nodeTitles.A_PRICE_SET,
+          shape: "box",
+          font: { face: "Tahoma", color: "#000000", align: "left", size: 14 },
+        },
+
+        // --- Data Entities (Icon Only Label) ---
+        {
+          id: "D_PRODUCTS",
+          label: "\uf554",
+          group: "Data",
+          title: nodeTitles.D_PRODUCTS,
+          shape: "box",
+          size: 45,
+          font: { face: "FontAwesome", size: 30, color: "#000000" },
+        },
+        {
+          id: "D_RAW_MATS",
+          label: "\uf6e3",
+          group: "Data",
+          title: nodeTitles.D_RAW_MATS,
+          shape: "box",
+          size: 45,
+          font: { face: "FontAwesome", size: 30, color: "#000000" },
+        },
+        {
+          id: "D_ORDERS",
+          label: "\uf466",
+          group: "Data",
+          title: nodeTitles.D_ORDERS,
+          shape: "box",
+          size: 45,
+          font: { face: "FontAwesome", size: 30, color: "#000000" },
+        },
+        {
+          id: "D_CUSTOM",
+          label: "\uf7d9",
+          group: "Data",
+          title: nodeTitles.D_CUSTOM,
+          shape: "box",
+          size: 45,
+          font: { face: "FontAwesome", size: 30, color: "#000000" },
+        },
+        {
+          id: "D_LOG",
+          label: "\uf0f6",
+          group: "Data",
+          title: nodeTitles.D_LOG,
+          shape: "box",
+          size: 45,
+          font: { face: "FontAwesome", size: 30, color: "#000000" },
+        },
+        {
+          id: "D_USERS",
+          label: "\uf007",
+          group: "Data",
+          title: nodeTitles.D_USERS,
+          shape: "box",
+          size: 45,
+          font: { face: "FontAwesome", size: 30, color: "#000000" },
+        },
+      ]);
+
+      // 2. Define Edges (Logical Relationships)
+      var edges = new vis.DataSet([
+        // --- PRIMARY DATA LINKS (Corrected) ---
+        {
+          from: "P_INDEX_LISTING",
+          to: "D_PRODUCTS",
+          label: "R: عرض المنتجات",
+          title: edgeTitles["R: Read Info"],
+        },
+        {
+          from: "P_INDEX_LISTING",
+          to: "L_AVAIL",
+          label: "Trigger Avail. Check",
+          title: edgeTitles["R: Check Stock"],
+        },
+        {
+          from: "P_INDEX_LISTING",
+          to: "P_CART_CHECKOUT",
+          label: "Add to Cart",
+          title: edgeTitles["Add to Cart"],
+        },
+
+        {
+          from: "P_CART_CHECKOUT",
+          to: "D_USERS",
+          label: "R/W: تحديث بيانات المستخدم",
+          title:
+            "R/W: قراءة وتحديث بيانات المستخدم (العنوان/الهاتف/الإيميل) عند الشراء.",
+        },
+        {
+          from: "P_STATUS_APPROVAL",
+          to: "D_USERS",
+          label: "R: Get User Orders",
+          title: "R: قراءة User ID لعرض طلبات العميل.",
+        },
+        {
+          from: "L_AUTH",
+          to: "D_USERS",
+          label: "R/W: Auth & Role",
+          title: edgeTitles["R/W Auth & Profile"],
+        },
+        {
+          from: "A_STATUS_UPD",
+          to: "D_USERS",
+          label: "R: Customer Info",
+          title: "R: قراءة بيانات العميل (الاسم/الهاتف) المرتبطة بالطلب.",
+        },
+
+        // --- Client to Logic/Data (Remaining) ---
+        {
+          from: "P_LOGIN",
+          to: "L_AUTH",
+          label: "Submit Credentials",
+          title: edgeTitles["Submit Credentials"],
+        },
+        {
+          from: "P_DESIGN_INPUT",
+          to: "E_GEM_DESIGN",
+          label: "Input Specs",
+          title: edgeTitles["Input Specs"],
+        },
+        {
+          from: "P_CART_CHECKOUT",
+          to: "D_ORDERS",
+          label: "W: Ready Order",
+          title: edgeTitles["W: Ready Order"],
+        },
+        {
+          from: "P_CART_CHECKOUT",
+          to: "D_CUSTOM",
+          label: "W: Custom Order",
+          title: edgeTitles["W: Custom Order"],
+        },
+        {
+          from: "P_CART_CHECKOUT",
+          to: "E_EMAIL",
+          label: "Trigger Email",
+          title: edgeTitles["Trigger Email"],
+        },
+        {
+          from: "P_STATUS_APPROVAL",
+          to: "L_DEDUCT",
+          label: "Accept Price Trigger",
+          title: edgeTitles["Accept Price Trigger"],
+        },
+
+        // --- Logic/AI to Data/Output ---
+        {
+          from: "E_GEM_DESIGN",
+          to: "P_DESIGN_INPUT",
+          label: "Output Proposal",
+          title: edgeTitles["Output Proposal"],
+        },
+        {
+          from: "E_GEM_DESIGN",
+          to: "D_RAW_MATS",
+          label: "R: Read COGS",
+          title: edgeTitles["R: Read COGS"],
+        },
+        {
+          from: "E_GEM_RECO",
+          to: "D_PRODUCTS",
+          label: "R: Read Info",
+          title: edgeTitles["R: Read Info"],
+        },
+        {
+          from: "L_AVAIL",
+          to: "D_RAW_MATS",
+          label: "R: Check Stock",
+          title: edgeTitles["R: Check Stock"],
+        },
+        {
+          from: "L_AVAIL",
+          to: "D_PRODUCTS",
+          label: "R: Read Mat. List",
+          title: edgeTitles["R: Read Mat. List"],
+        },
+        {
+          from: "P_DESIGN_INPUT",
+          to: "D_RAW_MATS",
+          label: "R: Read COGS",
+          title: edgeTitles["R: Read COGS"],
+        },
+
+        // --- Admin Actions to Logic/Data ---
+        {
+          from: "A_STATUS_UPD",
+          to: "L_DEDUCT",
+          label: "Admin Approval Trigger",
+          title: edgeTitles["Admin Approval Trigger"],
+        },
+        {
+          from: "A_STATUS_UPD",
+          to: "D_ORDERS",
+          label: "W: Update Status",
+          title: edgeTitles["W: Update Status"],
+        },
+        {
+          from: "A_STATUS_UPD",
+          to: "D_CUSTOM",
+          label: "W: Update Status",
+          title: edgeTitles["W: Update Status"],
+        },
+        {
+          from: "A_STOCK_INPUT",
+          to: "L_COST",
+          label: "Input Purchase Data",
+          title: edgeTitles["Input Purchase Data"],
+        },
+        {
+          from: "A_PROD_LINK",
+          to: "D_PRODUCTS",
+          label: "W: Product Definition",
+          title: edgeTitles["W: Product Definition"],
+        },
+        {
+          from: "A_PROD_LINK",
+          to: "D_RAW_MATS",
+          label: "R: Mat. List",
+          title: edgeTitles["R: Mat. List"],
+        },
+        {
+          from: "A_PRICE_SET",
+          to: "D_CUSTOM",
+          label: "W: Final Price",
+          title: edgeTitles["W: Final Price"],
+        },
+        {
+          from: "A_PRICE_SET",
+          to: "D_RAW_MATS",
+          label: "R: Mat. List",
+          title: edgeTitles["R: Mat. List"],
+        },
+
+        // --- Core Logic Execution to Data ---
+        {
+          from: "L_DEDUCT",
+          to: "D_RAW_MATS",
+          label: "W: Decrement Stock/Cost",
+          title: edgeTitles["W: Decrement Stock/Cost"],
+        },
+        {
+          from: "L_DEDUCT",
+          to: "D_LOG",
+          label: "W: Consumption Log",
+          title: edgeTitles["W: Consumption Log"],
+        },
+        {
+          from: "L_DEDUCT",
+          to: "D_PRODUCTS",
+          label: "R: Required Mat.",
+          title: edgeTitles["R: Required Mat."],
+        },
+        {
+          from: "L_DEDUCT",
+          to: "D_CUSTOM",
+          label: "R: Custom Mat.",
+          title: edgeTitles["R: Custom Mat."],
+        },
+        {
+          from: "L_COST",
+          to: "D_RAW_MATS",
+          label: "W: Update Stock/WAC",
+          title: edgeTitles["W: Update Stock/WAC"],
+        },
+        {
+          from: "L_COST",
+          to: "D_LOG",
+          label: "W: Purchase Log",
+          title: edgeTitles["W: Purchase Log"],
+        },
+
+        // --- Data Monitoring/Read ---
+        {
+          from: "D_ORDERS",
+          to: "A_STATUS_UPD",
+          label: "R: Ready Orders",
+          title: edgeTitles["R: Ready Orders"],
+        },
+        {
+          from: "D_CUSTOM",
+          to: "A_STATUS_UPD",
+          label: "R: Custom Requests",
+          title: edgeTitles["R: Custom Requests"],
+        },
+        {
+          from: "D_CUSTOM",
+          to: "A_PRICE_SET",
+          label: "R: Custom Request",
+          title: edgeTitles["R: Custom Request"],
+        },
+        {
+          from: "D_RAW_MATS",
+          to: "A_STOCK_INPUT",
+          label: "R: Current Stock",
+          title: edgeTitles["R: Current Stock"],
+        },
+        {
+          from: "D_CUSTOM",
+          to: "P_STATUS_APPROVAL",
+          label: "Output Final Price",
+          title: edgeTitles["Output Final Price"],
+        },
+        {
+          from: "D_LOG",
+          to: "A_STOCK_INPUT",
+          label: "R: View Log",
+          title: edgeTitles["R: Current Stock"],
+        },
+      ]);
+
+      // 3. Custom Options for Interactive Visualization
+      var options = {
+        layout: {
+          // Disable hierarchical layout for full drag freedom
+          hierarchical: { enabled: false },
+          randomSeed: 2,
+        },
+        interaction: {
+          hover: true,
+          dragNodes: true, // Enable full drag control
+          zoomView: true,
+        },
+        physics: {
+          enabled: true,
+          // Aggressive repulsion settings to prevent overlap
+          barnesHut: {
+            gravitationalConstant: -20000,
+            centralGravity: 0.1,
+            springLength: 150,
+            springConstant: 0.05,
+            avoidOverlap: 1,
+          },
+          maxVelocity: 30,
+          minVelocity: 1,
+          solver: "barnesHut",
+        },
+        groups: {
+          // Client Group: Dark Text on Light Blue Box
+          Client: {
+            shape: "box",
+            color: {
+              background: "#D2DAE6",
+              border: "#1c2833",
+              highlight: "#C0CCD9",
+            },
+            font: { color: "#000000", size: 14, face: "Tahoma", align: "left" },
+          },
+          // Admin Group: Dark Text on Light Green Box
+          Admin: {
+            shape: "box",
+            color: {
+              background: "#C8E6C9",
+              border: "#4caf50",
+              highlight: "#B0DAB0",
+            },
+            font: { color: "#000000", size: 14, face: "Tahoma", align: "left" },
+          },
+          // Logic Group: Dark Text on Light Brown/Beige Box
+          Logic: {
+            shape: "box",
+            size: 45,
+            color: {
+              background: "#F5E6D8",
+              border: "#795548",
+              highlight: "#E6D4C4",
+            },
+            font: { color: "#000000", size: 30, face: "FontAwesome" },
+          },
+          // Data Group: Dark Text on Light Amber Box
+          Data: {
+            shape: "box",
+            size: 45,
+            color: {
+              background: "#FFECB3",
+              border: "#e67e22",
+              highlight: "#FFE082",
+            },
+            font: { color: "#000000", size: 30, face: "FontAwesome" },
+          },
+        },
+        edges: {
+          arrows: "to",
+          color: { color: "#3e2723", highlight: "#795548" }, // Dark Lines
+          font: { align: "top", size: 10, color: "#333", face: "Tahoma" },
+          width: 1,
+          // CRITICAL CHANGE: Use 'straightCross' for forced orthogonal routing
+          smooth: { type: "straightCross", roundness: 0 },
+        },
+      };
+
+      // 4. Initialize the Network and Set Export Functionality
+
+      var container = document.getElementById("network");
+      var data = { nodes: nodes, edges: edges };
+      var network = new vis.Network(container, data, options);
+
+      // Disabling physics after initial stabilization for a final, clean, and non-overlapping view
+      network.on("stabilizationIterationsDone", function () {
+        setTimeout(() => {
+          network.setOptions({ physics: false });
+          network.fit({
+            animation: { duration: 1000, easingFunction: "easeInOutQuad" },
+          });
+        }, 500);
+      });
+
+      // --- EXPORT FUNCTIONALITY (HTML-TO-CANVAS) ---
+      const exportFunction = () => {
+        html2canvas(document.getElementById("network"), {
+          backgroundColor: "#FFFFFF",
+          scale: 4,
+        }).then(function (canvas) {
+          var image = canvas
+            .toDataURL("image/png")
+            .replace("image/png", "image/octet-stream");
+          var link = document.createElement("a");
+          link.download = "Carpentry_MIS_Architecture_UHD_LIGHT.png";
+          link.href = image;
+          link.click();
+        });
+      };
+      // Expose function globally for manual testing
+      window.exportGraph = exportFunction;
+    </script>
+  </body>
+</html>
+س

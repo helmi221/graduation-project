@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>منجرة | إدارة العملاء</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="admin.css" />
+    <style>
+      .customer-header-controls {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 25px;
+        align-items: center;
+      }
+
+      /* 💡 تصميم شريط البحث */
+      #customer-search {
+        flex-grow: 1;
+        padding: 12px 20px 12px 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s;
+      }
+      #customer-search:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(141, 110, 99, 0.1);
+      }
+
+      /* 💡 بطاقات الإحصائيات */
+      #customer-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-bottom: 30px;
+      }
+      .stat-card {
+        background-color: var(--white-color);
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        border-right: 4px solid var(--primary-color);
+      }
+      .stat-card h4 {
+        font-size: 0.9rem;
+        color: #777;
+        margin-bottom: 5px;
+      }
+      .stat-card p {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--dark-color);
+        margin: 0;
+      }
+
+      /* 💡 تحسين تصميم الأكورديون (Card-based) */
+      .customer-accordion-item {
+        margin-bottom: 12px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s;
+      }
+      .customer-accordion-item:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      }
+      .customer-info-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px;
+        background-color: var(--white-color);
+        cursor: pointer;
+        font-weight: 700;
+        border-radius: 8px;
+      }
+      .customer-info-header[aria-expanded="true"] {
+        border-radius: 8px 8px 0 0;
+        background-color: var(--light-color);
+      }
+      /* 💡 تحسين المحاذاة: استخدام flex أساسي للعمود الرئيسي */
+      .customer-main-details {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-size: 1rem;
+        color: var(--dark-color);
+        flex-grow: 1; /* السماح بتمدد العمود الرئيسي */
+      }
+      .customer-avatar-icon {
+        font-size: 1.5rem;
+        color: var(--primary-color);
+      }
+      .orders-count-badge {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 50px;
+        font-size: 0.9rem;
+        min-width: 80px; /* تحديد عرض ثابت لعدم تشوه المحاذاة */
+        text-align: center;
+        display: inline-block;
+      }
+
+      /* محتوى الأكورديون - التفاصيل والطلبات */
+      .orders-list-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out;
+        background-color: #fafafa;
+        border-top: 1px solid var(--border-color);
+        border-radius: 0 0 8px 8px;
+      }
+      .orders-list-content.active {
+        max-height: 1500px;
+        padding: 15px;
+        transition: max-height 0.7s ease-in;
+      }
+
+      .customer-details-section {
+        padding: 15px 0;
+        margin-bottom: 10px;
+        border-bottom: 1px dashed #ddd;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .customer-details-section p {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 6px;
+        font-size: 0.95rem;
+        color: #555;
+      }
+      .customer-details-section strong {
+        color: var(--dark-color);
+      }
+
+      .order-details-card {
+        background-color: var(--white-color);
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .order-details-card.ready {
+        border-right: 4px solid var(--success-color);
+      }
+      .order-details-card.custom {
+        border-right: 4px solid var(--info-color);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="main-header">
+      <div class="logo">منجرة</div>
+      <nav>
+        <ul>
+          <li>
+            <a href="admin.html"
+              ><i class="fa-solid fa-gauge-high"></i> لوحة التحكم</a
+            >
+          </li>
+          <li>
+            <a href="orders_admin.html"
+              ><i class="fa-solid fa-box-open"></i> إدارة الطلبات</a
+            >
+          </li>
+          <li>
+            <a href="inventory.html"
+              ><i class="fa-solid fa-warehouse"></i> إدارة المنتجات</a
+            >
+          </li>
+          <li>
+            <a href="raw_materials_admin.html"
+              ><i class="fa-solid fa-hammer"></i> إدارة المواد الخام</a
+            >
+          </li>
+          <li>
+            <a href="fixed_costs_admin.html"
+              ><i class="fa-solid fa-calculator"></i> التكاليف الثابتة</a
+            >
+          </li>
+          <li>
+            <a href="customers_admin.html" class="active"
+              ><i class="fa-solid fa-users"></i> إدارة العملاء</a
+            >
+          </li>
+          <li>
+            <a href="#" id="logout-btn"
+              ><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <div class="main-content container-fluid">
+      <h1>إدارة العملاء</h1>
+
+      <div class="admin-panel">
+        <div id="customer-stats">
+          <div class="stat-card">
+            <h4>إجمالي العملاء</h4>
+            <p id="total-customers-count">0</p>
+          </div>
+          <div class="stat-card" style="border-color: var(--info-color)">
+            <h4>عملاء بطلبات نشطة</h4>
+            <p id="active-customers-count">0</p>
+          </div>
+          <div class="stat-card" style="border-color: var(--success-color)">
+            <h4>إجمالي عدد الطلبات</h4>
+            <p id="total-orders-count">0</p>
+          </div>
+        </div>
+
+        <div class="customer-header-controls">
+          <input
+            type="text"
+            id="customer-search"
+            placeholder="ابحث بالاسم أو البريد الإلكتروني أو الهاتف..."
+          />
+          <i class="fa-solid fa-magnifying-glass" style="color: #999"></i>
+        </div>
+
+        <div id="customers-list-container">
+          <p class="loading-msg">جارٍ تحميل بيانات العملاء...</p>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+      import {
+        getFirestore,
+        collection,
+        getDocs,
+        doc,
+        getDoc,
+        query,
+        where,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+      // تهيئة Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
+        authDomain: "ecomers-dd329.firebaseapp.com",
+        projectId: "ecomers-dd329",
+        storageBucket: "ecomers-dd329.firebasestorage.app",
+        messagingSenderId: "190646144215",
+        appId: "1:190646144215:web:d55f24091a920f92b6b492",
+        measurementId: "G-NVYK3DZR00",
+      };
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+      const auth = getAuth(app);
+
+      const customersListContainer = document.getElementById(
+        "customers-list-container"
+      );
+      const searchInput = document.getElementById("customer-search");
+
+      let allCustomersData = []; // لتخزين جميع بيانات العملاء والطلبات المجلوبة
+
+      // --------------------------------------------------------
+      // وظائف الإحصائيات
+      // --------------------------------------------------------
+      function updateCustomerStats(customers, allOrders) {
+        document.getElementById("total-customers-count").textContent =
+          customers.length;
+        document.getElementById("total-orders-count").textContent =
+          allOrders.length;
+
+        // حساب العملاء بطلبات نشطة (قيد التنفيذ، قيد المراجعة، الخ...)
+        const activeStatuses = [
+          "قيد المراجعة",
+          "مقبول",
+          "مقبول-العميل",
+          "قيد التصنيع",
+          "قيد الطلاء",
+          "قيد التغليف",
+          "قيد الشحن",
+        ];
+        const activeOrderUids = new Set(
+          allOrders
+            .filter((order) => activeStatuses.includes(order.status))
+            .map((order) => order.customer_uid)
+        );
+        document.getElementById("active-customers-count").textContent =
+          activeOrderUids.size;
+      }
+
+      // --------------------------------------------------------
+      // وظيفة جلب وعرض بيانات العملاء
+      // --------------------------------------------------------
+      async function fetchAndRenderCustomers() {
+        customersListContainer.innerHTML =
+          '<p class="loading-msg"><i class="fa-solid fa-spinner fa-spin"></i> جارٍ تحميل بيانات العملاء...</p>';
+        try {
+          // 1. جلب العملاء
+          const usersQuery = query(
+            collection(db, "users"),
+            where("role", "!=", "admin")
+          );
+          const usersSnapshot = await getDocs(usersQuery);
+          const customers = usersSnapshot.docs.map((doc) => ({
+            uid: doc.id,
+            ...doc.data(),
+          }));
+
+          // 2. جلب جميع الطلبات
+          const ordersSnap = await getDocs(collection(db, "orders"));
+          const customSnap = await getDocs(collection(db, "custom_designs"));
+
+          const allOrders = [
+            ...ordersSnap.docs.map((d) => ({
+              id: d.id,
+              type: "ready",
+              order_date: d.data().order_date || "2000-01-01",
+              ...d.data(),
+            })),
+            ...customSnap.docs.map((d) => ({
+              id: d.id,
+              type: "custom",
+              order_date: d.data().order_date || "2000-01-01",
+              ...d.data(),
+            })),
+          ];
+
+          // 3. دمج الطلبات مع العملاء
+          allCustomersData = customers.map((customer) => {
+            const customerOrders = allOrders
+              .filter((order) => order.customer_uid === customer.uid)
+              .sort((a, b) => new Date(b.order_date) - new Date(a.order_date));
+
+            return {
+              ...customer,
+              orders: customerOrders,
+              orderCount: customerOrders.length,
+            };
+          });
+
+          updateCustomerStats(customers, allOrders); // تحديث الإحصائيات العامة
+          renderCustomersList(allCustomersData); // عرض القائمة الكاملة
+          setupAccordionListeners();
+          setupSearchListener();
+        } catch (e) {
+          console.error("Error fetching customer data: ", e);
+          customersListContainer.innerHTML =
+            '<p class="loading-msg" style="color: red;">حدث خطأ في جلب بيانات العملاء.</p>';
+        }
+      }
+
+      // --------------------------------------------------------
+      // وظيفة بناء قائمة العملاء والطلبات المطوية
+      // --------------------------------------------------------
+      function renderCustomersList(customersToRender) {
+        if (customersToRender.length === 0) {
+          customersListContainer.innerHTML =
+            '<p style="text-align: center; color: #999; margin-top: 30px;"><i class="fa-solid fa-exclamation-triangle"></i> لا توجد نتائج مطابقة لعملية البحث.</p>';
+          return;
+        }
+
+        let listHtml = "";
+
+        customersToRender.forEach((customer) => {
+          const orderCount = customer.orderCount;
+          const lastOrderDate =
+            orderCount > 0
+              ? new Date(customer.orders[0].order_date).toLocaleDateString(
+                  "ar-EG"
+                )
+              : "لا يوجد";
+
+          listHtml += `
+                    <div class="customer-accordion-item">
+                        <div class="customer-info-header" data-uid="${
+                          customer.uid
+                        }" aria-expanded="false" role="button">
+                            <div class="customer-main-details">
+                                <i class="fa-solid fa-circle-user customer-avatar-icon"></i>
+                                ${customer.name || "عميل غير معروف"}
+                            </div>
+                            <div style="display: flex; gap: 15px; align-items: center;">
+                                <span class="orders-count-badge">${orderCount} طلب</span>
+                                <i class="fa-solid fa-chevron-left accordion-toggle-icon"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="orders-list-content" id="orders-content-${
+                          customer.uid
+                        }">
+                            <div class="customer-details-section">
+                                <p><strong><i class="fa-solid fa-envelope"></i> البريد الإلكتروني:</strong> <span>${
+                                  customer.email || "---"
+                                }</span></p>
+                                <p><strong><i class="fa-solid fa-phone"></i> رقم الهاتف:</strong> <span>${
+                                  customer.phone || "---"
+                                }</span></p>
+                                <p><strong><i class="fa-solid fa-map-marker-alt"></i> العنوان:</strong> <span>${
+                                  customer.address || "---"
+                                }</span></p>
+                                <p><strong><i class="fa-solid fa-calendar-alt"></i> آخر طلب:</strong> <span>${lastOrderDate}</span></p>
+                            </div>
+                            
+                            <h4 style="margin-bottom: 10px; color: var(--dark-color); padding-top: 5px;">سجل الطلبات</h4>
+                            ${
+                              orderCount > 0
+                                ? renderCustomerOrders(customer.orders)
+                                : '<p style="text-align: center; color: #999; padding-bottom: 15px;">لم يقم العميل بطلب أي منتجات بعد.</p>'
+                            }
+                        </div>
+                    </div>
+                `;
+        });
+
+        customersListContainer.innerHTML = listHtml;
+        setupAccordionListeners(); // يجب إعادة ربط المستمعين بعد إعادة بناء HTML
+      }
+
+      // --------------------------------------------------------
+      // وظيفة بناء تفاصيل طلبات العميل (لم تتغير جوهرياً)
+      // --------------------------------------------------------
+      function renderCustomerOrders(orders) {
+        return orders
+          .map((order) => {
+            const totalDisplay =
+              order.type === "ready"
+                ? `الإجمالي: ${parseFloat(order.total || 0).toFixed(0)} ₪`
+                : `السعر المقترح: ${parseFloat(
+                    order.final_price || order.initial_price || 0
+                  ).toFixed(0)} ₪`;
+
+            const typeClass = order.type === "ready" ? "ready" : "custom";
+            const productInfo =
+              order.type === "ready"
+                ? `المنتج: ${order.items[0].name} ${
+                    order.items.length > 1
+                      ? `و ${order.items.length - 1} آخر`
+                      : ""
+                  }`
+                : `نوع التصميم: ${order.type_of_product || "---"}`;
+
+            // 💡 دالة بسيطة لعرض حالة الطلب بلون مناسب
+            const getStatusBadge = (status) => {
+              const statusClass = status.replace(/\s+/g, "-");
+              return `<span class="status-badge ${statusClass}">${status}</span>`;
+            };
+
+            return `
+                    <div class="order-details-card ${typeClass}">
+                        <p><strong><i class="fa-solid fa-receipt"></i> رقم الطلب:</strong> ${
+                          order.id
+                        }</p>
+                        <p><strong><i class="fa-solid fa-box"></i> ${productInfo}</strong></p>
+                        <p><strong><i class="fa-solid fa-calendar"></i> التاريخ:</strong> ${new Date(
+                          order.order_date
+                        ).toLocaleDateString("ar-EG")}</p>
+                        <p><strong><i class="fa-solid fa-tag"></i> الحالة:</strong> ${getStatusBadge(
+                          order.status
+                        )}</p>
+                        <p><strong><i class="fa-solid fa-money-bill-wave"></i> ${totalDisplay}</strong></p>
+                    </div>
+                `;
+          })
+          .join("");
+      }
+
+      // --------------------------------------------------------
+      // منطق البحث (Filtering)
+      // --------------------------------------------------------
+      function setupSearchListener() {
+        searchInput.addEventListener("input", (e) => {
+          const searchTerm = e.target.value.toLowerCase().trim();
+
+          if (searchTerm === "") {
+            renderCustomersList(allCustomersData);
+            return;
+          }
+
+          const filteredCustomers = allCustomersData.filter((customer) => {
+            const name = (customer.name || "").toLowerCase();
+            const email = (customer.email || "").toLowerCase();
+            const phone = (customer.phone || "").toLowerCase();
+
+            // البحث بالاسم أو البريد أو الهاتف
+            return (
+              name.includes(searchTerm) ||
+              email.includes(searchTerm) ||
+              phone.includes(searchTerm)
+            );
+          });
+
+          renderCustomersList(filteredCustomers);
+        });
+      }
+
+      // --------------------------------------------------------
+      // منطق الأكورديون (Accordion)
+      // --------------------------------------------------------
+      function setupAccordionListeners() {
+        document.querySelectorAll(".customer-info-header").forEach((header) => {
+          header.removeEventListener("click", toggleAccordion); // إزالة أي مستمع قديم قبل الإضافة
+          header.addEventListener("click", toggleAccordion);
+        });
+      }
+
+      function toggleAccordion(e) {
+        const header = e.currentTarget;
+        const contentId = `orders-content-${header.dataset.uid}`;
+        const content = document.getElementById(contentId);
+        const isExpanded = header.getAttribute("aria-expanded") === "true";
+
+        // إغلاق كل المحتوى المفتوح
+        document
+          .querySelectorAll(".customer-info-header[aria-expanded='true']")
+          .forEach((h) => {
+            if (h !== header) {
+              h.setAttribute("aria-expanded", "false");
+              document
+                .getElementById(`orders-content-${h.dataset.uid}`)
+                .classList.remove("active");
+            }
+          });
+
+        // فتح أو إغلاق المحتوى المحدد
+        if (isExpanded) {
+          header.setAttribute("aria-expanded", "false");
+          content.classList.remove("active");
+        } else {
+          header.setAttribute("aria-expanded", "true");
+          content.classList.add("active");
+        }
+      }
+
+      // --------------------------------------------------------
+      // بدء التشغيل
+      // --------------------------------------------------------
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists() && userDoc.data().role === "admin") {
+            fetchAndRenderCustomers();
+          } else {
+            alert("غير مصرح لك بالوصول إلى هذه الصفحة.");
+            window.location.href = "login.html";
+          }
+        } else {
+          window.location.href = "login.html";
+        }
+      });
+
+      document
+        .getElementById("logout-btn")
+        .addEventListener("click", async (e) => {
+          e.preventDefault();
+          await signOut(auth);
+          window.location.href = "login.html";
+        });
+    </script>
+  </body>
+</html>

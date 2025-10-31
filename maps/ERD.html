@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enhanced Firestore ERD (Pure Black & White)</title>
+    <script
+      type="text/javascript"
+      src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"
+    ></script>
+    <style>
+      /* --- Global Style (Minimalist B&W Theme) --- */
+      body {
+        font-family: "Tahoma", sans-serif;
+        background-color: #fff;
+        margin: 0;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      #network {
+        width: 100%;
+        height: 100%;
+        background: #fff;
+      }
+
+      /* --- Node Label Styling (Like Drawn Tables) --- */
+      .vis-label {
+        font-family: "Consolas", "Courier New", monospace !important;
+        font-size: 13px !important;
+        white-space: pre-wrap;
+        text-align: left !important;
+        line-height: 1.4;
+      }
+
+      /* Optional slight border radius and shadow for table boxes */
+      canvas {
+        border: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="network"></div>
+
+    <script type="text/javascript">
+      // Helper: create ASCII-style table labels
+      function formatTable(title, columns) {
+        const top = "┌──────────────────────────┐";
+        const bottom = "└──────────────────────────┘";
+        let label = `${top}\n│  ${title
+          .toUpperCase()
+          .padEnd(22)}│\n├──────────────────────────┤\n`;
+        columns.forEach((col) => {
+          let prefix = col.isPK ? "PK│" : col.isFK ? "FK│" : "  │";
+          label += `${prefix} ${col.key}\n`;
+        });
+        label += bottom;
+        return label;
+      }
+
+      const columns = {
+        USERS: [
+          { key: "uid", isPK: true },
+          { key: "role" },
+          { key: "name, email" },
+          { key: "address, phone" },
+        ],
+        PRODUCTS: [
+          { key: "product_id", isPK: true },
+          { key: "price" },
+          { key: "is_available" },
+          { key: "required_materials (Array)" },
+        ],
+        RAW_MATS: [
+          { key: "mat_id", isPK: true },
+          { key: "current_stock" },
+          { key: "cost_per_unit (WAC)" },
+          { key: "total_cost_value" },
+          { key: "reorder_point" },
+        ],
+        ORDERS: [
+          { key: "order_id", isPK: true },
+          { key: "customer_uid", isFK: true },
+          { key: "items (Array)" },
+          { key: "total" },
+          { key: "status" },
+        ],
+        CUSTOM_DESIGNS: [
+          { key: "design_id", isPK: true },
+          { key: "customer_uid", isFK: true },
+          { key: "final_price" },
+          { key: "status" },
+          { key: "required_materials_for_custom (Array)" },
+        ],
+        LOG: [
+          { key: "log_id", isPK: true },
+          { key: "material_id", isFK: true },
+          { key: "operation_type" },
+          { key: "change_quantity, change_value" },
+        ],
+      };
+
+      // --- Nodes (Tables) ---
+      var nodes = new vis.DataSet([
+        {
+          id: "USERS",
+          label: formatTable("USERS", columns.USERS),
+          shape: "box",
+          x: -400,
+          y: -200,
+        },
+        {
+          id: "PRODUCTS",
+          label: formatTable("PRODUCTS", columns.PRODUCTS),
+          shape: "box",
+          x: 0,
+          y: -400,
+        },
+        {
+          id: "RAW_MATS",
+          label: formatTable("RAW_MATERIALS", columns.RAW_MATS),
+          shape: "box",
+          x: 400,
+          y: -200,
+        },
+        {
+          id: "LOG",
+          label: formatTable("RAW_MATS_LOG", columns.LOG),
+          shape: "box",
+          x: 400,
+          y: 150,
+        },
+        {
+          id: "ORDERS",
+          label: formatTable("ORDERS", columns.ORDERS),
+          shape: "box",
+          x: -400,
+          y: 150,
+        },
+        {
+          id: "CUSTOM",
+          label: formatTable("CUSTOM_DESIGNS", columns.CUSTOM_DESIGNS),
+          shape: "box",
+          x: 0,
+          y: 150,
+        },
+      ]);
+
+      // --- Edges (Relations) ---
+      var edges = new vis.DataSet([
+        { from: "USERS", to: "ORDERS", label: "1:N", color: { color: "#000" } },
+        { from: "USERS", to: "CUSTOM", label: "1:N", color: { color: "#000" } },
+        {
+          from: "PRODUCTS",
+          to: "RAW_MATS",
+          label: "N:M (usage)",
+          dashes: true,
+          color: { color: "#000" },
+        },
+        {
+          from: "RAW_MATS",
+          to: "LOG",
+          label: "1:N (log)",
+          color: { color: "#000" },
+        },
+        {
+          from: "ORDERS",
+          to: "RAW_MATS",
+          label: "Consumption",
+          dashes: true,
+          color: { color: "#000" },
+        },
+        {
+          from: "CUSTOM",
+          to: "RAW_MATS",
+          label: "Consumption",
+          dashes: true,
+          color: { color: "#000" },
+        },
+        {
+          from: "ORDERS",
+          to: "LOG",
+          label: "Log Src",
+          dashes: true,
+          color: { color: "#000" },
+        },
+        {
+          from: "CUSTOM",
+          to: "LOG",
+          label: "Log Src",
+          dashes: true,
+          color: { color: "#000" },
+        },
+      ]);
+
+      // --- Options (Static layout, clean lines) ---
+      var options = {
+        nodes: {
+          shape: "box",
+          color: { background: "#fff", border: "#000", highlight: "#ccc" },
+          font: { color: "#000", size: 13, face: "Consolas", align: "left" },
+          borderWidth: 2,
+          margin: 10,
+          shapeProperties: { borderRadius: 6 },
+        },
+        edges: {
+          color: { color: "#000", highlight: "#555" },
+          width: 1.5,
+          smooth: { type: "straightCross" },
+          arrows: { to: { enabled: true, scaleFactor: 0.7 } },
+          font: { size: 10, color: "#000", strokeWidth: 0 },
+        },
+        interaction: { dragNodes: true, hover: true, zoomView: true },
+        physics: { enabled: false },
+        layout: { hierarchical: false },
+      };
+
+      // --- Init network ---
+      var network = new vis.Network(
+        document.getElementById("network"),
+        { nodes, edges },
+        options
+      );
+
+      network.once("initRedraw", function () {
+        network.fit({
+          animation: { duration: 800, easingFunction: "easeInOutQuad" },
+        });
+      });
+    </script>
+  </body>
+</html>

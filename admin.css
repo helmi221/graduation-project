@@ -569,3 +569,50 @@ h1 {
   border-radius: 6px;
   font-family: "Cairo", sans-serif;
 }
+/* 💡 NEW: Customers Management Styles (Accordion) */
+.customer-accordion-item {
+  margin-bottom: 5px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.customer-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: var(--light-color); /* #f7f5f2 */
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+.customer-info-header:hover {
+  background-color: #eee;
+}
+.accordion-toggle-icon {
+  transition: transform 0.3s;
+}
+.customer-info-header[aria-expanded="true"] .accordion-toggle-icon {
+  transform: rotate(90deg);
+}
+.orders-list-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  padding: 0 15px;
+  background-color: var(--white-color);
+  border-top: 1px solid var(--border-color);
+}
+.orders-list-content.active {
+  max-height: 1000px; /* قيمة عالية بما يكفي */
+  padding: 15px;
+  transition: max-height 0.5s ease-in;
+}
+.order-details-card {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
