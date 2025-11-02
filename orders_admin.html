@@ -204,6 +204,18 @@
         border-radius: 8px;
         margin-top: 10px;
       }
+      /* 💡 (جديد) نمط حقل ساعات التصنيع */
+      #manufacturing-hours-field {
+        background-color: #f0f8ff;
+        padding: 10px;
+        border-radius: 8px;
+        margin-top: 10px;
+        border: 1px dashed var(--info-color);
+      }
+      #manufacturing-hours-field label {
+        color: var(--info-color);
+        font-weight: 700;
+      }
     </style>
   </head>
 
@@ -229,7 +241,12 @@
           </li>
           <li>
             <a href="raw_materials_admin.html"
-              ><i class="fa-solid fa-hammer"></i> إدارة المواد الخام</a
+              ><i class="fa-solid fa-hammer"></i> المواد الخام (المخزون)</a
+            >
+          </li>
+          <li>
+            <a href="suppliers_admin.html"
+              ><i class="fa-solid fa-truck-fast"></i> الموردين (المشتريات)</a
             >
           </li>
           <li>
@@ -250,7 +267,6 @@
         </ul>
       </nav>
     </header>
-
     <div class="main-content container-fluid">
       <h1>إدارة الطلبات</h1>
       <div class="orders-section admin-panel">
@@ -301,6 +317,26 @@
             <label for="modal-status">تغيير حالة الطلب</label>
             <select id="modal-status"></select>
           </div>
+        </div>
+
+        <div
+          id="manufacturing-hours-field"
+          class="form-group"
+          style="display: none; flex-direction: column"
+        >
+          <label for="modal-manufacturing-hours"
+            ><i class="fa-solid fa-hourglass-half"></i> ساعات التصنيع المقدرة
+            (لتعديل الطابور)</label
+          >
+          <input
+            type="number"
+            id="modal-manufacturing-hours"
+            min="1"
+            step="1"
+          />
+          <p style="font-size: 0.8rem; color: #777">
+            * هذا الحقل لتحديد أولوية الطلب في طابور الإنتاج.
+          </p>
         </div>
 
         <div
@@ -393,7 +429,6 @@
       let currentOrderData = null;
 
       let rawMaterialsMap = new Map();
-      // 💡 قائمة الحالات المحدثة
       const statusOptions = [
         "قيد المراجعة",
         "مقبول",
@@ -407,7 +442,6 @@
         "مؤرشف",
       ];
 
-      // 💡 قائمة الفئات لتبسيط العرض في الجدول
       const productCategories = [
         "طاولة سفرة",
         "كرسي",
@@ -419,6 +453,143 @@
         "طاولة تلفاز",
       ];
       let allProducts = []; // لتخزين المنتجات محلياً لحساب COGS
+
+      // 💡 (جديد) الثوابت الافتراضية لحساب الوقت
+      const WORK_HOURS_PER_DAY = 8; // 8 ساعات عمل في اليوم
+      const DEFAULT_HOURS_READY_PRODUCT = 5;
+      const DEFAULT_HOURS_CUSTOM_PRODUCT = 20;
+      const PROCESSING_BUFFER_DAYS = 2;
+
+      // 💡 (جديد) دالة موحدة لحساب ساعات الطلب
+      function getHoursForOrder(order, allProducts) {
+        // 1. الأولوية للوقت المدخل يدوياً من المدير
+        if (
+          order.manufacturing_time_override &&
+          order.manufacturing_time_override > 0
+        ) {
+          return parseFloat(order.manufacturing_time_override);
+        }
+
+        let totalHours = 0;
+
+        try {
+          if (order.type === "ready" && order.items) {
+            order.items.forEach((item) => {
+              const product = allProducts.find(
+                (p) => p.id == item.id || p.id == parseInt(item.id)
+              );
+              const itemQuantity = item.quantity || 1;
+
+              if (product && product.manufacturing_time_hours > 0) {
+                totalHours += product.manufacturing_time_hours * itemQuantity;
+              } else {
+                totalHours += DEFAULT_HOURS_READY_PRODUCT * itemQuantity;
+              }
+            });
+          } else if (order.type === "custom") {
+            // (تبسيط) الطلبات المخصصة تستخدم الافتراضي ما لم يعدلها المدير
+            totalHours = DEFAULT_HOURS_CUSTOM_PRODUCT;
+          }
+        } catch (e) {
+          console.error("Error calculating hours for order:", order.id, e);
+          totalHours = DEFAULT_HOURS_READY_PRODUCT;
+        }
+
+        return totalHours > 0 ? totalHours : DEFAULT_HOURS_READY_PRODUCT;
+      }
+
+      // 💡 (جديد) الخوارزمية الدقيقة لحساب وقت الطابور
+      function calculateEstimatedCompletionDays(
+        targetOrder,
+        allOrders,
+        allProducts
+      ) {
+        if (!targetOrder) {
+          return { minDays: "---", maxDays: "---" };
+        }
+
+        // 1. حساب ساعات الطلب المستهدف
+        const targetOrderHours = getHoursForOrder(targetOrder, allProducts);
+
+        // 2. تحديد حالات طابور الإنتاج
+        const IN_QUEUE_STATUSES = [
+          "مقبول",
+          "مقبول-العميل",
+          "قيد التصنيع",
+          "قيد الطلاء",
+          "قيد التغليف",
+        ];
+        const PENDING_STATUSES = ["قيد المراجعة"];
+
+        let acceptedQueueHours = 0; // الساعات المؤكدة في الطابور
+        let pendingQueueHours = 0; // الساعات المحتملة (الأسوأ)
+
+        // 3. تحليل جميع الطلبات الأخرى
+        allOrders.forEach((order) => {
+          if (order.id === targetOrder.id) return; // تخطي الطلب نفسه
+
+          const orderHours = getHoursForOrder(order, allProducts);
+          if (orderHours === 0) return;
+
+          // 4. تجميع الساعات المؤكدة (التي في الطابور فعلياً)
+          if (IN_QUEUE_STATUSES.includes(order.status)) {
+            acceptedQueueHours += orderHours;
+          }
+
+          // 5. تجميع الساعات المحتملة (التي تنتظر المراجعة وجاءت قبل الطلب المستهدف)
+          if (PENDING_STATUSES.includes(order.status)) {
+            const orderDate = new Date(order.order_date);
+            const targetOrderDate = new Date(targetOrder.order_date);
+
+            // (تطبيق منطق "وقت الطلب")
+            if (orderDate < targetOrderDate) {
+              pendingQueueHours += orderHours;
+            }
+          }
+        });
+
+        // 6. حساب الأيام
+        let minTotalDays, maxTotalDays;
+
+        const targetOrderDays = Math.ceil(
+          targetOrderHours / WORK_HOURS_PER_DAY
+        );
+        const acceptedQueueDays = Math.ceil(
+          acceptedQueueHours / WORK_HOURS_PER_DAY
+        );
+        const pendingQueueDays = Math.ceil(
+          pendingQueueHours / WORK_HOURS_PER_DAY
+        );
+
+        // (تطبيق منطق "مرحلية الطلب")
+        if (IN_QUEUE_STATUSES.includes(targetOrder.status)) {
+          // الحالة أ: الطلب المستهدف في الطابور بالفعل
+          // الوقت = (كل الطلبات المؤكدة في الطابور) + (شحن)
+          // (ملاحظة: acceptedQueueHours هنا لا تشمل الطلب المستهدف)
+          const totalQueueHours = acceptedQueueHours + targetOrderHours;
+          minTotalDays =
+            Math.ceil(totalQueueHours / WORK_HOURS_PER_DAY) +
+            PROCESSING_BUFFER_DAYS;
+          maxTotalDays = minTotalDays; // الوقت مؤكد
+        } else {
+          // الحالة ب: الطلب المستهدف "قيد المراجعة"
+          // الحد الأدنى = (كل الطلبات المؤكدة الحالية) + (طلبه) + (شحن)
+          minTotalDays =
+            acceptedQueueDays + targetOrderDays + PROCESSING_BUFFER_DAYS;
+          // الحد الأقصى = (كل الطلبات المؤكدة) + (كل الطلبات المعلقة الأقدم) + (طلبه) + (شحن)
+          maxTotalDays =
+            acceptedQueueDays +
+            pendingQueueDays +
+            targetOrderDays +
+            PROCESSING_BUFFER_DAYS;
+        }
+
+        // 7. إعادة قيمة دقيقة
+        return {
+          minDays: Math.ceil(minTotalDays),
+          maxDays: Math.ceil(maxTotalDays),
+        };
+      }
 
       // دوال التحكم في المودال (لتقليل التكرار)
       function openModal(modalId) {
@@ -449,7 +620,7 @@
         }
       });
 
-      // 💡 جلب المواد الخام والمنتجات لعمليات الخصم والتحليل
+      // جلب المواد الخام والمنتجات
       async function fetchProductsAndMaterials() {
         const [materialsSnap, productsSnap] = await Promise.all([
           getDocs(collection(db, "raw_materials")),
@@ -475,10 +646,10 @@
           id: d.id,
           ...d.data(),
           price: parseFloat(d.data().price || 0),
-          total_cost: parseFloat(d.data().total_cost || 0), // TCOGS
+          total_cost: parseFloat(d.data().total_cost || 0),
           manufacturing_time_hours: parseFloat(
             d.data().manufacturing_time_hours || 0
-          ), // 💡 جلب وقت التصنيع
+          ),
         }));
       }
 
@@ -506,7 +677,7 @@
           window.location.href = "login.html";
         });
 
-      // 💡 منطق الخصم من المخزون (مكرر من orders_admin.html الأصلي)
+      // منطق الخصم من المخزون
       async function attemptStockDeduction(
         orderData,
         requiredMaterialsForCustom,
@@ -666,6 +837,7 @@
         });
       });
 
+      // 💡 (تم التعديل) دالة عرض الجدول
       function renderTable(orders) {
         const container = document.getElementById("orders-table-container");
         if (!orders.length) {
@@ -685,6 +857,7 @@
         <th>التاريخ</th>
         <th>الإجمالي</th>
         <th>الحالة</th>
+        <th>الوقت المقدر (أيام)</th>
         <th>إجراء</th>
         </tr></thead><tbody>`;
 
@@ -706,6 +879,17 @@
               ? o.final_price.toFixed(0)
               : "---";
 
+          // 💡 (جديد) حساب الوقت المقدر لكل طلب
+          const estimatedTime = calculateEstimatedCompletionDays(
+            o,
+            allOrders,
+            allProducts
+          );
+          const timeDisplay =
+            o.status === "مكتمل" || o.status === "تم الرفض"
+              ? "---"
+              : `${estimatedTime.minDays} - ${estimatedTime.maxDays} يوم`;
+
           html += `
           <tr data-id="${o.id}" data-collection="${
             o.type === "ready" ? "orders" : "custom_designs"
@@ -719,6 +903,7 @@
           <td>${new Date(o.order_date).toLocaleDateString("ar-EG")}</td>
           <td>${total} ₪</td>
           <td><span class="status-badge ${statusClass}">${o.status}</span></td>
+          <td style="font-weight: bold; color: var(--info-color);">${timeDisplay}</td>
           <td class="actions-buttons" style="white-space: nowrap;">
             <button class="edit-btn btn-icon btn-manage" title="إدارة وتغيير الحالة"><i class="fa-solid fa-tools"></i></button>
             <button class="delete-btn btn-icon btn-delete" title="حذف الطلب" data-id="${
@@ -843,11 +1028,12 @@
         }
       });
 
+      // 💡 (تم التعديل) دالة فتح مودال التفاصيل
       function openOrderDetailsModal() {
         const isCustom = currentOrderData.type === "custom";
-        const currentStatus = currentOrderData.status; // 💡 الحالة الحالية
+        const currentStatus = currentOrderData.status;
 
-        // إعادة تعيين حقول التسعير والرفض والمواد الخام عند الفتح
+        // إخفاء جميع الحقول الإضافية كإعداد افتراضي
         document.getElementById("modal-price").value = "";
         document.getElementById("rejection-reason").value = "";
         document.getElementById("material-list").value = "";
@@ -856,6 +1042,8 @@
           "none";
         document.getElementById("custom-materials-field").style.display =
           "none";
+        document.getElementById("manufacturing-hours-field").style.display =
+          "none"; // 💡 (جديد) إخفاء حقل الساعات
 
         let detailsHTML = `
               <div class="order-details-group">
@@ -888,7 +1076,7 @@
           `;
 
         if (currentOrderData.type === "ready") {
-          // تفاصيل الطلب الجاهز
+          // ... (كود الطلب الجاهز - لم يتغير) ...
           const total = (currentOrderData.total || 0).toFixed(0);
           detailsHTML += `
                   <h3><i class="fa-solid fa-boxes-stacked"></i> المنتجات المطلوبة:</h3>
@@ -909,7 +1097,7 @@
                   <p style="margin-top: 15px; font-size: 1.1rem;"><strong><i class="fa-solid fa-money-bill-wave"></i> الإجمالي المدفوع:</strong> ${total} شيكل</p>
               `;
         } else {
-          // تفاصيل الطلب المخصص (Custom Design)
+          // ... (كود الطلب المخصص - لم يتغير) ...
           const priceDisplay = currentOrderData.final_price
             ? currentOrderData.final_price.toFixed(0)
             : currentOrderData.initial_price || "---";
@@ -940,11 +1128,10 @@
                   } شيكل</p>
               `;
 
-          // 💡 إظهار حقل الإدخال اليدوي للمواد الخام
+          // إظهار حقل الإدخال اليدوي للمواد الخام
           document.getElementById("custom-materials-field").style.display =
             "flex";
 
-          // ملء حقل المواد الخام إذا كانت موجودة
           if (
             currentOrderData.required_materials_for_custom &&
             currentOrderData.required_materials_for_custom.length > 0
@@ -955,7 +1142,6 @@
             document.getElementById("material-list").value = matList;
           }
 
-          // إظهار حقل التسعير النهائي لطلبات التصميم المخصصة عند قبولها
           if (
             currentStatus === "قيد المراجعة" ||
             currentStatus === "تم الرفض"
@@ -973,14 +1159,27 @@
           }
         }
 
+        // 💡 (جديد) إظهار حقل الساعات وتعبئته
+        const manufacturingHoursField = document.getElementById(
+          "manufacturing-hours-field"
+        );
+        const manufacturingHoursInput = document.getElementById(
+          "modal-manufacturing-hours"
+        );
+
+        // حساب الساعات الافتراضية
+        const calculatedHours = getHoursForOrder(currentOrderData, allProducts);
+
+        // تعبئة الحقل: استخدم القيمة المحفوظة (Override) إن وجدت، وإلا استخدم القيمة المحسوبة
+        manufacturingHoursInput.value =
+          currentOrderData.manufacturing_time_override || calculatedHours;
+        manufacturingHoursField.style.display = "flex";
+
         document.getElementById("modal-order-details").innerHTML = detailsHTML;
 
-        // ملء قائمة الحالة وتحديد الحالة الحالية
+        // ... (كود ملء قائمة الحالة - لم يتغير) ...
         const modalStatus = document.getElementById("modal-status");
-
-        // 💡 تحديد خيارات الحالة بناءً على نوع الطلب والحالة الحالية (التعديل المطلوب)
         let availableStatusOptions = statusOptions;
-
         const approvedStatuses = [
           "مقبول",
           "مقبول-العميل",
@@ -992,13 +1191,11 @@
         ];
 
         if (approvedStatuses.includes(currentStatus)) {
-          // إذا كانت الحالة الحالية قد تمت الموافقة عليها أو دخلت مرحلة التنفيذ، نحذف خيار "تم الرفض"
           availableStatusOptions = statusOptions.filter(
             (s) => s !== "تم الرفض"
           );
 
           if (currentStatus === "مقبول" && currentOrderData.type === "ready") {
-            // للطلبات الجاهزة المقبولة، يجب إزالة "مقبول" و "قيد المراجعة"
             availableStatusOptions = availableStatusOptions.filter(
               (s) => s !== "مقبول" && s !== "قيد المراجعة"
             );
@@ -1007,7 +1204,6 @@
             currentStatus === "مقبول-العميل" &&
             currentOrderData.type === "custom"
           ) {
-            // للطلبات المخصصة المقبولة من العميل، يجب إزالة "مقبول" و "قيد المراجعة" و "مقبول-العميل"
             availableStatusOptions = availableStatusOptions.filter(
               (s) =>
                 s !== "مقبول" && s !== "قيد المراجعة" && s !== "مقبول-العميل"
@@ -1018,7 +1214,6 @@
           currentStatus === "مرفوض-العميل" ||
           currentStatus === "مؤرشف"
         ) {
-          // إذا كانت الحالة النهائية (مرفوض/مؤرشف)، لا تسمح بالعودة للقبول أو التنفيذ
           availableStatusOptions = statusOptions.filter(
             (s) => s === currentStatus || s === "مؤرشف"
           );
@@ -1035,12 +1230,11 @@
 
         openModal("order-details-modal");
 
-        // وظيفة متابعة لتحديث حالة الحقول بناءً على تغيير الحالة في المودال
+        // ... (كود متابعة تغيير الحالة في المودال - لم يتغير) ...
         document.getElementById("modal-status").onchange = (e) => {
           const newStatus = e.target.value;
           const isCustom = currentOrderData.type === "custom";
 
-          // إظهار حقل التسعير النهائي لطلبات التصميم المخصصة عند قبولها
           if (isCustom && (newStatus === "مقبول" || newStatus === "تم الرفض")) {
             document.getElementById("custom-price-field").style.display =
               "flex";
@@ -1051,11 +1245,9 @@
             document.getElementById("modal-price").required = false;
           }
 
-          // إظهار حقل المواد الخام
           document.getElementById("custom-materials-field").style.display =
             isCustom ? "flex" : "none";
 
-          // إظهار حقل سبب الرفض عند الرفض
           if (isCustom && newStatus === "تم الرفض") {
             document.getElementById("rejection-reason-field").style.display =
               "flex";
@@ -1066,13 +1258,12 @@
             document.getElementById("rejection-reason").required = false;
           }
         };
-        // تشغيل المنطق لمرة واحدة عند الفتح للتأكد من الحالة الابتدائية
         document
           .getElementById("modal-status")
           .dispatchEvent(new Event("change"));
       }
 
-      // منطق حفظ الحالة والسعر والمواد الخام المُحسن
+      // 💡 (تم التعديل) منطق حفظ الحالة والسعر والمواد الخام المُحسن
       document
         .getElementById("save-status-btn")
         .addEventListener("click", async () => {
@@ -1082,13 +1273,43 @@
           const rejectionReason =
             document.getElementById("rejection-reason").value || null;
           const materialListText =
-            document.getElementById("material-list").value; // 💡 جلب المواد الخام
+            document.getElementById("material-list").value;
+          // 💡 (جديد) جلب الساعات المُعدلة
+          const manufacturingHoursOverride =
+            parseFloat(
+              document.getElementById("modal-manufacturing-hours").value
+            ) || null;
 
           if (!currentOrderData) return;
 
+          const currentStatus = currentOrderData.status;
+          const isCustom = currentOrderData.type === "custom";
+          const isReady = currentOrderData.type === "ready";
+
           let updatePayload = { status: newStatus };
 
-          // 💡 تحديد شروط الخصم: (الطلبات الجاهزة: مقبول)، (الطلبات المخصصة: مقبول-العميل)
+          // 💡 (جديد) إضافة الساعات المُعدلة إلى الحمولة
+          if (manufacturingHoursOverride) {
+            updatePayload.manufacturing_time_override =
+              manufacturingHoursOverride;
+          }
+
+          // 💡 (جديد) تحديد شروط تسجيل تاريخ الموافقة
+          const isReadyFirstApproval =
+            isReady &&
+            newStatus === "مقبول" &&
+            currentStatus === "قيد المراجعة";
+          const isCustomFirstApproval =
+            isCustom &&
+            newStatus === "مقبول-العميل" &&
+            (currentStatus === "مقبول" || currentStatus === "قيد المراجعة");
+
+          if (isReadyFirstApproval || isCustomFirstApproval) {
+            // نسجل تاريخ الموافقة فقط عند النقلة الأولى
+            updatePayload.acceptance_date = new Date().toISOString();
+          }
+
+          // 💡 تحديد شروط الخصم
           const isReadyOrderForDeduction =
             currentOrderData.type === "ready" && newStatus === "مقبول";
           const isCustomOrderForDeduction =
@@ -1096,16 +1317,13 @@
 
           let requiredMaterialsForCustom = [];
 
-          // 💡 منطق الطلبات المخصصة: التحقق من الإدخال اليدوي عند القبول
+          // 💡 منطق الطلبات المخصصة
           if (currentOrderData.type === "custom") {
             if (newStatus === "مقبول") {
-              // 1. التحقق من السعر
               if (!finalPrice || finalPrice <= 0) {
                 alert("الرجاء إدخال سعر نهائي صحيح للموافقة على طلب التصميم.");
                 return;
               }
-
-              // 2. التحقق من المواد الخام
               if (!materialListText) {
                 alert(
                   "⚠️ إلزامي: الرجاء إدخال قائمة المواد الخام (ID:Quantity) للطلب المخصص قبل إرسال التسعيرة للعميل (قبول)."
@@ -1113,12 +1331,11 @@
                 return;
               }
 
-              // 3. تحليل المواد الخام المُدخلة يدوياً
+              // ... (كود تحليل المواد الخام - لم يتغير) ...
               const entries = materialListText
                 .split(",")
                 .map((e) => e.trim())
                 .filter((e) => e);
-
               requiredMaterialsForCustom = entries
                 .map((entry) => {
                   const [id, quantityStr] = entry.split(":");
@@ -1129,7 +1346,6 @@
                   return null;
                 })
                 .filter((req) => req !== null);
-
               if (requiredMaterialsForCustom.length === 0) {
                 alert(
                   "⚠️ إلزامي: لم يتم تحليل أي مواد خام صالحة من الإدخال. يرجى التأكد من التنسيق (ID:Quantity)."
@@ -1137,7 +1353,6 @@
                 return;
               }
 
-              // 4. تحديث Payload للقبول
               updatePayload.final_price = finalPrice;
               updatePayload.required_materials_for_custom =
                 requiredMaterialsForCustom;
@@ -1150,7 +1365,6 @@
               updatePayload.final_price = null;
               updatePayload.rejection_reason = rejectionReason;
             } else {
-              // للحفاظ على السعر والسبب في حالات النقل بين التنفيذ/المراجعة
               if (currentOrderData.final_price)
                 updatePayload.final_price = currentOrderData.final_price;
               if (currentOrderData.rejection_reason)

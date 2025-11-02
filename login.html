@@ -4,105 +4,122 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>منجرة | تسجيل الدخول</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="style.css" />
-    <style>
-      .auth-container {
-        max-width: 450px;
-        margin: 100px auto;
-        padding: 40px;
-        background-color: var(--white-color, #fff);
-        border-radius: var(--border-radius);
-        box-shadow: var(--shadow);
-        text-align: center;
-      }
-      .auth-container h2 {
-        margin-bottom: 1.5rem;
-      }
-      .form-group {
-        text-align: right;
-        margin-bottom: 1.5rem;
-      }
-      .form-group input {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        font-size: 1rem;
-        font-family: "Cairo", sans-serif;
-        transition: border-color 0.2s, box-shadow 0.2s;
-      }
-      .form-group input:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(121, 85, 72, 0.2);
-      }
-      .btn-auth {
-        width: 100%;
-        margin-top: 1.5rem;
-        display: inline-block;
-        background: var(--primary-color);
-        color: var(--white-color);
-        padding: 12px 25px;
-        border-radius: 8px;
-        font-weight: 600;
-        border: none;
-        cursor: pointer;
-        transition: background-color 0.3s;
-      }
-      .btn-auth:hover {
-        background-color: var(--dark-color);
-      }
-      .login-mascot-wrapper {
-        width: 200px;
-        height: 150px;
-        margin: 0 auto 20px auto;
-        border-radius: 12px; /* زوايا ناعمة قليلاً */
-        overflow: hidden;
-        box-shadow: var(--shadow);
-      }
-      #simpson-video {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-      .login-mascot-text {
-        color: #777;
-        font-weight: 600;
-        margin-bottom: 1.5rem;
-      }
-    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
   </head>
   <body>
-    <div class="auth-container">
-      <h2>تسجيل الدخول</h2>
-      <form id="login-form">
-        <div class="form-group">
-          <label for="email">البريد الإلكتروني</label>
-          <input type="email" id="email" required />
+    <header>
+      <nav class="container">
+        <a href="index.html" class="logo">منجرة</a>
+        <div class="nav-items">
+          <ul class="desktop-nav">
+            <li>
+              <a href="index.html" class="nav-link">الرئيسية</a>
+            </li>
+            <li>
+              <a href="products.html" class="nav-link">منتجاتنا</a>
+            </li>
+            <li><a href="order-status.html" class="nav-link">حالة الطلب</a></li>
+            <li>
+              <a href="recommendation.html" class="nav-link">النجار الذكي</a>
+            </li>
+            <li><a href="design.html" class="nav-link">صمم منتجك</a></li>
+          </ul>
+
+          <div class="auth-nav">
+            <a href="cart.html" class="cart-icon-wrapper">
+              <i class="fa-solid fa-bag-shopping" id="cart-icon"></i>
+              <span id="cart-count-badge">0</span>
+            </a>
+            <div class="profile-dropdown" id="profile-dropdown">
+              <div class="profile-icon">
+                <i class="fa-solid fa-user"></i>
+              </div>
+              <div class="dropdown-menu">
+                <div class="dropdown-header">
+                  <span id="user-display-name">مرحباً بك</span>
+                  <p id="user-email">زائر</p>
+                </div>
+                <a href="login.html" id="auth-link">تسجيل الدخول</a>
+                <a href="#" id="logout-link" style="display: none"
+                  >تسجيل الخروج</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <button class="menu-toggle" id="menu-toggle">
+            <div class="hamburger-icon">
+              <span></span><span></span><span></span>
+            </div>
+          </button>
         </div>
-        <div class="form-group">
-          <label for="password">كلمة المرور</label>
-          <input type="password" id="password" required />
-        </div>
-        <button type="submit" class="btn-auth">تسجيل الدخول</button>
-      </form>
-      <p style="margin-top: 15px">
-        ليس لديك حساب؟ <a href="signup.html">إنشاء حساب جديد</a>
-      </p>
+      </nav>
+    </header>
+
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="index.html" class="nav-link">الرئيسية</a>
+      <a href="products.html" class="nav-link">منتجاتنا</a>
+      <a href="order-status.html" class="nav-link">حالة الطلب</a>
+      <a href="recommendation.html" class="nav-link">النجار الذكي</a>
+      <a href="design.html" class="nav-link">صمم منتجك</a>
     </div>
 
+    <main>
+      <section class="container auth-section">
+        <h2>تسجيل الدخول</h2>
+        <form id="login-form" class="auth-form">
+          <div class="form-group">
+            <label for="email">البريد الإلكتروني</label>
+            <input type="email" id="email" required />
+          </div>
+          <div class="form-group">
+            <label for="password">كلمة المرور</label>
+            <input type="password" id="password" required />
+          </div>
+          <button type="submit" class="btn">تسجيل الدخول</button>
+        </form>
+        <div class="auth-link">
+          <p>ليس لديك حساب؟ <a href="signup.html">إنشاء حساب جديد</a></p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container footer-content">
+        <a href="index.html" class="footer-logo">منجرة</a>
+        <div class="footer-links">
+          <a href="#">من نحن</a> <a href="#">تواصل معنا</a>
+        </div>
+      </div>
+      <div class="copyright">&copy; 2025 جميع الحقوق محفوظة.</div>
+    </footer>
+
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+      // --- 💡 (جديد) كود الواجهة (هيدر + سلة) ---
       import {
         getAuth,
-        signInWithEmailAndPassword,
+        onAuthStateChanged,
+        signInWithEmailAndPassword, // 💡 (مدمج)
+        signOut,
       } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
       import {
         getFirestore,
         doc,
         getDoc,
       } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 
+      // (إعدادات Firebase كما هي)
       const firebaseConfig = {
         apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
         authDomain: "ecomers-dd329.firebaseapp.com",
@@ -117,9 +134,59 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
+      // (عناصر واجهة المستخدم)
+      const userDisplayName = document.getElementById("user-display-name");
+      const userEmail = document.getElementById("user-email");
+      const authLink = document.getElementById("auth-link");
+      const logoutLink = document.getElementById("logout-link");
+      const cartCountBadge = document.getElementById("cart-count-badge");
+      const menuToggle = document.getElementById("menu-toggle");
+      const mobileMenu = document.getElementById("mobile-menu");
+
+      // (منطق القائمة المنسدلة)
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          const userDocRef = doc(db, "users", user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          let userName = "مستخدم";
+          if (userDocSnap.exists()) {
+            userName = userDocSnap.data().name || userName;
+          }
+          userDisplayName.textContent = "مرحباً " + userName;
+          userEmail.textContent = user.email;
+          authLink.style.display = "none";
+          logoutLink.style.display = "block";
+          logoutLink.onclick = async (e) => {
+            e.preventDefault();
+            await signOut(auth);
+            window.location.href = "index.html";
+          };
+        } else {
+          userDisplayName.textContent = "مرحباً بك";
+          userEmail.textContent = "زائر";
+          authLink.style.display = "block";
+          logoutLink.style.display = "none";
+        }
+      });
+
+      // (منطق السلة والقائمة الجانبية)
+      function loadCartAndUpdateBadge() {
+        const storedCart = localStorage.getItem("shoppingCart") || "[]";
+        const cart = JSON.parse(storedCart);
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        cartCountBadge.textContent = totalItems;
+        cartCountBadge.classList.toggle("visible", totalItems > 0);
+      }
+      document.addEventListener("DOMContentLoaded", () => {
+        loadCartAndUpdateBadge();
+        menuToggle.addEventListener("click", () => {
+          mobileMenu.classList.toggle("active");
+          document.body.classList.toggle("scroll-lock");
+        });
+      });
+
+      // --- (هذا الكود من ملف login.html القديم) ---
       const loginForm = document.getElementById("login-form");
-      const passwordInput = document.getElementById("password");
-      const video = document.getElementById("simpson-video");
 
       loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
@@ -134,9 +201,9 @@
           const user = userCredential.user;
           const userDoc = await getDoc(doc(db, "users", user.uid));
           if (userDoc.exists() && userDoc.data().role === "admin") {
-            window.location.href = "admin.html";
+            window.location.href = "admin.html"; // 💡 توجيه المدير
           } else {
-            window.location.href = "index.html";
+            window.location.href = "index.html"; // 💡 توجيه العميل
           }
         } catch (error) {
           alert("فشل تسجيل الدخول: " + error.message);

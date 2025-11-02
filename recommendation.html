@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>منجرة | مساعد الأثاث الذكي</title>
+    <title>منجرة | النجار الذكي</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -11,8 +11,13 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <style>
-      .recommendation-container {
+      /* 💡 (معدل) أنماط الشات لتطابق الهوية الجديدة */
+      .chat-page-container {
         max-width: 900px;
         margin: 5rem auto;
         padding: 30px;
@@ -23,10 +28,10 @@
       }
       .chat-container {
         max-width: 900px;
-        margin: 2rem auto;
-        padding: 20px;
-        background-color: #f7f5f2;
+        margin: 2rem auto 0 auto;
+        border: 1px solid var(--border-color);
         border-radius: var(--border-radius);
+        overflow: hidden;
       }
       .chat-messages {
         display: flex;
@@ -34,48 +39,63 @@
         gap: 15px;
         max-height: 50vh;
         overflow-y: auto;
-        padding: 10px;
-        border-bottom: 1px solid #ccc;
-        margin-bottom: 15px;
+        padding: 20px;
+        background-color: var(--light-color); /* 💡 (معدل) */
       }
       .chat-message {
-        padding: 10px 15px;
-        border-radius: 18px;
+        padding: 12px 18px;
+        border-radius: var(--border-radius);
         max-width: 75%;
         line-height: 1.6;
+        word-wrap: break-word;
       }
       .user-message {
-        background-color: var(--primary-color);
+        background-color: var(--primary-color); /* 💡 (معدل) */
         color: white;
         align-self: flex-end;
+        border-radius: var(--border-radius) var(--border-radius) 0
+          var(--border-radius);
       }
       .ai-message {
         background-color: var(--white-color);
-        border: 1px solid #ddd;
+        border: 1px solid var(--border-color);
         align-self: flex-start;
+        border-radius: var(--border-radius) var(--border-radius)
+          var(--border-radius) 0;
       }
       .chat-input {
         display: flex;
         gap: 10px;
+        padding: 15px;
+        background-color: var(--white-color);
+        border-top: 1px solid var(--border-color);
       }
       .chat-input input {
         flex-grow: 1;
-        padding: 10px;
-        border-radius: 20px;
-        border: 1px solid #ccc;
+        padding: 12px 18px;
+        border-radius: 50px; /* 💡 (معدل) */
+        border: 1px solid var(--border-color);
         font-family: "Cairo", sans-serif;
+        font-size: 1rem;
+      }
+      .chat-input input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(141, 110, 99, 0.2);
       }
       .chat-input button {
         background-color: var(--primary-color);
         color: white;
         border: none;
         border-radius: 50%;
-        width: 40px;
-        height: 40px;
+        width: 45px;
+        height: 45px;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
+        transition: var(--transition);
+        flex-shrink: 0;
       }
       .chat-input button:hover {
         background-color: var(--dark-color);
@@ -109,6 +129,7 @@
           transform: scale(1);
         }
       }
+      /* 💡 (جديد) تنسيق رابط المنتج داخل الشات */
       .product-link {
         background-color: transparent;
         border: none;
@@ -123,16 +144,22 @@
       .product-link:hover {
         color: var(--dark-color);
       }
+      /* (أنماط المودال الجديد تأتي من style.css) */
+      .price-container {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
       .new-price {
-        color: green;
+        color: var(--primary-color);
         font-size: 1.8rem;
-        font-weight: bold;
+        font-weight: 700;
       }
       .old-price {
         text-decoration: line-through;
-        color: #888;
+        color: var(--accent-color);
         font-size: 1.2rem;
-        margin-right: 10px;
       }
     </style>
   </head>
@@ -142,35 +169,43 @@
         <a href="index.html" class="logo">منجرة</a>
         <div class="nav-items">
           <ul class="desktop-nav">
-            <li><a href="index.html" class="nav-link">الرئيسية</a></li>
             <li>
-              <a href="index.html#products-page" class="nav-link">منتجاتنا</a>
+              <a href="index.html" class="nav-link">الرئيسية</a>
+            </li>
+            <li>
+              <a href="products.html" class="nav-link">منتجاتنا</a>
             </li>
             <li><a href="order-status.html" class="nav-link">حالة الطلب</a></li>
             <li>
-              <a href="recommendation.html" class="nav-link active">المساعد</a>
+              <a href="recommendation.html" class="nav-link active"
+                >النجار الذكي</a
+              >
             </li>
-            <li>
-              <a href="design.html" class="nav-link">صمم منتجك</a>
-            </li>
+            <li><a href="design.html" class="nav-link">صمم منتجك</a></li>
           </ul>
-          <a href="cart.html" class="cart-icon-wrapper">
-            <svg
-              id="cart-icon"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.658-.463 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-              />
-            </svg>
-            <span id="cart-count-badge">0</span>
-          </a>
+
+          <div class="auth-nav">
+            <a href="cart.html" class="cart-icon-wrapper">
+              <i class="fa-solid fa-bag-shopping" id="cart-icon"></i>
+              <span id="cart-count-badge">0</span>
+            </a>
+            <div class="profile-dropdown" id="profile-dropdown">
+              <div class="profile-icon">
+                <i class="fa-solid fa-user"></i>
+              </div>
+              <div class="dropdown-menu">
+                <div class="dropdown-header">
+                  <span id="user-display-name">مرحباً بك</span>
+                  <p id="user-email">زائر</p>
+                </div>
+                <a href="login.html" id="auth-link">تسجيل الدخول</a>
+                <a href="#" id="logout-link" style="display: none"
+                  >تسجيل الخروج</a
+                >
+              </div>
+            </div>
+          </div>
+
           <button class="menu-toggle" id="menu-toggle">
             <div class="hamburger-icon">
               <span></span><span></span><span></span>
@@ -182,24 +217,23 @@
 
     <div class="mobile-menu" id="mobile-menu">
       <a href="index.html" class="nav-link">الرئيسية</a>
-      <a href="index.html#products-page" class="nav-link">منتجاتنا</a>
+      <a href="products.html" class="nav-link">منتجاتنا</a>
       <a href="order-status.html" class="nav-link">حالة الطلب</a>
-      <a href="recommendation.html" class="nav-link">المساعد</a>
+      <a href="recommendation.html" class="nav-link">النجار الذكي</a>
       <a href="design.html" class="nav-link">صمم منتجك</a>
     </div>
-    >
 
     <main>
-      <div class="container recommendation-container">
+      <div class="container chat-page-container">
         <div class="section-title-wrapper" style="margin-bottom: 1rem">
-          <h2>مساعد الأثاث الذكي</h2>
+          <h2>النجار الذكي</h2>
         </div>
         <p
           style="
             text-align: center;
             color: #777;
             max-width: 600px;
-            margin: 0 auto 2rem auto;
+            margin: 0 auto;
           "
         >
           أهلاً بك! صف لي ما تبحث عنه، وسأساعدك في العثور على قطعة الأثاث
@@ -246,18 +280,47 @@
       <div class="modal-content">
         <span class="modal-close">&times;</span>
         <div class="modal-body">
-          <div class="modal-image-container">
+          <div class="modal-image-col">
             <img id="modal-img" src="" alt="صورة المنتج" />
           </div>
-          <div class="modal-details-container">
+          <div class="modal-details-col">
             <h2 id="modal-title"></h2>
             <div class="price-container">
               <span id="modal-new-price" class="new-price"></span>
               <span id="modal-old-price" class="old-price"></span>
             </div>
             <p id="modal-description"></p>
-            <h3>التفاصيل الفنية</h3>
-            <ul id="modal-specs-list"></ul>
+            <hr class="modal-options-separator" />
+            <div class="modal-options">
+              <div id="color-section">
+                <label for="modal-color-select">اختر اللون</label>
+                <select id="modal-color-select"></select>
+              </div>
+              <div>
+                <label for="modal-quantity">الكمية</label>
+                <div id="modal-quantity-selector" class="quantity-selector">
+                  <button
+                    class="quantity-btn quantity-btn-plus"
+                    data-change="1"
+                  >
+                    +
+                  </button>
+                  <input
+                    type="number"
+                    id="modal-quantity"
+                    value="1"
+                    min="1"
+                    readonly
+                  />
+                  <button
+                    class="quantity-btn quantity-btn-minus"
+                    data-change="-1"
+                  >
+                    -
+                  </button>
+                </div>
+              </div>
+            </div>
             <button class="btn" id="add-to-cart-btn">إضافة إلى السلة</button>
           </div>
         </div>
@@ -275,9 +338,16 @@
         query,
         where,
         getDocs,
+        doc,
+        getDoc,
       } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 
-      // ******* إعدادات Firebase *******
+      // (إعدادات Firebase كما هي)
       const firebaseConfig = {
         apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
         authDomain: "ecomers-dd329.firebaseapp.com",
@@ -290,228 +360,221 @@
 
       const app = initializeApp(firebaseConfig);
       const db = getFirestore(app);
+      const auth = getAuth(app);
 
-      // متغير لتخزين المنتجات المجلوبة من Firebase
+      // (إعدادات Gemini كما هي)
+      const API_KEY = "AIzaSyBcFkJsomDYhm1uGqoq3-8mHr0LTu-mZ9s";
+      const genAI = new GoogleGenerativeAI(API_KEY);
+      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
       let allProducts = [];
 
-      document.addEventListener("DOMContentLoaded", () => {
-        // **********************************************
-        // ********** متغيرات Gemini/AI (حافظ على مفتاحك هنا) **********
-        // **********************************************
-        const API_KEY = "AIzaSyBcFkJsomDYhm1uGqoq3-8mHr0LTu-mZ9s";
-        const genAI = new GoogleGenerativeAI(API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-        // **********************************************
+      // 💡 (جديد) عناصر واجهة المستخدم المنسدلة
+      const userDisplayName = document.getElementById("user-display-name");
+      const userEmail = document.getElementById("user-email");
+      const authLink = document.getElementById("auth-link");
+      const logoutLink = document.getElementById("logout-link");
 
-        const chatForm = document.getElementById("chat-form");
-        const chatInput = document.getElementById("chat-input");
-        const chatMessages = document.getElementById("chat-messages");
-        const typingIndicator = document.getElementById("typing-indicator");
-        const modal = document.getElementById("product-modal");
-        const modalClose = document.querySelector(".modal-close");
-        const modalTitle = document.getElementById("modal-title");
-        const modalImg = document.getElementById("modal-img");
-        const modalNewPrice = document.getElementById("modal-new-price");
-        const modalOldPrice = document.getElementById("modal-old-price");
-        const modalDesc = document.getElementById("modal-description");
-        const modalSpecs = document.getElementById("modal-specs-list");
-        const addToCartBtn = document.getElementById("add-to-cart-btn");
-        const cartCountBadge = document.getElementById("cart-count-badge");
+      const chatForm = document.getElementById("chat-form");
+      const chatInput = document.getElementById("chat-input");
+      const chatMessages = document.getElementById("chat-messages");
+      const typingIndicator = document.getElementById("typing-indicator");
+      const modal = document.getElementById("product-modal");
+      const modalClose = document.querySelector(".modal-close");
+      const modalTitle = document.getElementById("modal-title");
+      const modalImg = document.getElementById("modal-img");
+      const modalNewPrice = document.getElementById("modal-new-price");
+      const modalOldPrice = document.getElementById("modal-old-price");
+      const modalDesc = document.getElementById("modal-description");
+      // 💡 (حذف) تم حذف modalSpecs
+      const addToCartBtn = document.getElementById("add-to-cart-btn");
+      const cartCountBadge = document.getElementById("cart-count-badge");
 
-        let cart = JSON.parse(localStorage.getItem("shoppingCart")) || [];
-        let chatHistory = [];
-        let currentProduct = null;
-        let currentDiscountPrice = null;
-        let discountSteps = {};
+      let cart = JSON.parse(localStorage.getItem("shoppingCart")) || [];
+      let chatHistory = [];
+      let currentProduct = null;
+      let currentDiscountPrice = null;
+      let discountSteps = {};
 
-        const updateCartBadge = () => {
-          const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
-          cartCountBadge.textContent = totalItems;
-        };
-        updateCartBadge();
+      const updateCartBadge = () => {
+        const totalItems = cart.reduce((s, i) => s + i.quantity, 0);
+        cartCountBadge.textContent = totalItems;
+        cartCountBadge.classList.toggle("visible", totalItems > 0);
+      };
 
-        const showToast = (message) => {
-          const toast = document.getElementById("toast-notification");
-          toast.textContent = message;
-          toast.classList.add("show");
-          setTimeout(() => toast.classList.remove("show"), 3000);
-        };
+      const showToast = (message) => {
+        const toast = document.getElementById("toast-notification");
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 3000);
+      };
 
-        const appendMessage = (sender, text, isHtml = false) => {
-          typingIndicator.style.display = "none";
-          const el = document.createElement("div");
-          el.className = `chat-message ${sender}-message`;
-          if (isHtml) {
-            el.innerHTML = text;
-          } else {
-            el.textContent = text;
-          }
-
-          if (sender === "ai") {
-            const tempDiv = document.createElement("div");
-            tempDiv.innerHTML = el.innerHTML;
-
-            // استخدام المنتجات المجلوبة ديناميكياً
-            const availableProducts = allProducts.filter(
-              (p) => p.is_available !== false
-            );
-
-            availableProducts.forEach((p) => {
-              const regex = new RegExp(p.name, "g");
-              const link = `<button class="product-link" data-id="${p.id}">
-              ${p.name}
-              </button>`;
-              tempDiv.innerHTML = tempDiv.innerHTML.replace(regex, link);
-            });
-            el.innerHTML = tempDiv.innerHTML;
-          }
-
-          chatMessages.insertBefore(el, typingIndicator);
-          chatMessages.scrollTop = chatMessages.scrollHeight;
-        };
-
-        const openProductModal = (product) => {
-          currentProduct = product;
-
-          // إذا كان المنتج غير متوفر، لا تسمح بإضافته للسلة
-          const isAvailable = product.is_available !== false;
-          addToCartBtn.disabled = !isAvailable;
-          addToCartBtn.textContent = isAvailable
-            ? "إضافة إلى السلة"
-            : "غير متوفر حالياً";
-
-          let priceToUse = product.price;
-          if (discountSteps[product.id]) {
-            const discountPercentage = discountSteps[product.id];
-            // تأكد أن السعر رقم
-            priceToUse =
-              parseFloat(product.price) * (1 - discountPercentage / 100);
-            currentDiscountPrice = priceToUse;
-          } else {
-            currentDiscountPrice = null;
-          }
-
-          modalTitle.textContent = product.name;
-          modalImg.src = `images/${product.id}.png`;
-          modalDesc.textContent = product.description;
-          modalSpecs.innerHTML = "";
-          if (product.measurements)
-            modalSpecs.innerHTML += `<li><strong>القياسات:</strong> ${product.measurements}</li>`;
-          if (product.materials)
-            modalSpecs.innerHTML += `<li><strong>المواد:</strong> ${product.materials}</li>`;
-          if (product.specs)
-            modalSpecs.innerHTML += `<li><strong>المواصفات:</strong> ${product.specs}</li>`;
-
-          if (currentDiscountPrice) {
-            modalNewPrice.textContent = `${parseFloat(
-              currentDiscountPrice
-            ).toFixed(0)} شيكل`;
-            modalOldPrice.textContent = `${parseFloat(product.price).toFixed(
-              0
-            )} شيكل`;
-            modalOldPrice.style.display = "inline";
-          } else {
-            modalNewPrice.textContent = `${parseFloat(product.price).toFixed(
-              0
-            )} شيكل`;
-            modalOldPrice.style.display = "none";
-          }
-
-          modal.classList.add("active");
-        };
-
-        chatMessages.addEventListener("click", (e) => {
-          if (e.target.classList.contains("product-link")) {
-            const productId = e.target.dataset.id;
-            const product = allProducts.find((p) => p.id == productId);
-            if (product) {
-              openProductModal(product);
-            }
-          }
-        });
-
-        addToCartBtn.addEventListener("click", () => {
-          if (!currentProduct || currentProduct.is_available === false) return;
-
-          const priceToUse = currentDiscountPrice || currentProduct.price;
-          const existing = cart.find((i) => i.id === currentProduct.id);
-          if (existing) {
-            existing.quantity += 1;
-            existing.price = priceToUse;
-          } else {
-            const newItem = {
-              id: currentProduct.id,
-              name: currentProduct.name,
-              price: parseFloat(priceToUse),
-              originalPrice: currentDiscountPrice ? currentProduct.price : null,
-              quantity: 1,
-              image: `images/${currentProduct.id}.png`,
-            };
-            cart.push(newItem);
-          }
-          localStorage.setItem("shoppingCart", JSON.stringify(cart));
-
-          currentDiscountPrice = null;
-          delete discountSteps[currentProduct.id];
-
-          updateCartBadge();
-          showToast("✅ تمت إضافة المنتج إلى السلة بنجاح!");
-          modal.classList.remove("active");
-        });
-
-        modalClose.addEventListener("click", () => {
-          modal.classList.remove("active");
-        });
-
-        const initializeChat = () => {
-          const msg = "أهلاً بك 👋 خبرني شو بدك، وأنا بساعدك تختار الأنسب 😉";
-          appendMessage("ai", msg);
-          chatHistory.push({ role: "model", parts: [{ text: msg }] });
-        };
-
-        // ====== الوظيفة الجديدة لجلب المنتجات من Firebase ======
-        async function fetchProductsAndStartChat() {
-          try {
-            // جلب جميع المنتجات (بما في ذلك غير المتوفرة)
-            const productsSnapshot = await getDocs(collection(db, "products"));
-
-            allProducts = productsSnapshot.docs.map((doc) => ({
-              id: parseInt(doc.id),
-              ...doc.data(),
-              price: parseFloat(doc.data().price), // تأكيد تحويل السعر لرقم
-            }));
-
-            // تصفية المنتجات المتوفرة فقط لإرسالها لـ Gemini
-            const availableProducts = allProducts.filter(
-              (p) => p.is_available !== false
-            );
-
-            const productsString = availableProducts
-              .map(
-                (p) =>
-                  `${p.name} (الفئة: ${p.category}, السعر: ${p.price}, الوصف: ${p.description}, المواد: ${p.materials}, ساعات التصنيع: ${p.manufacturing_time_hours}, المكونات: ${p.components})`
-              )
-              .join(", ");
-
-            // بدء المحادثة بعد تحميل المنتجات
-            initializeChat(productsString);
-          } catch (e) {
-            console.error("Error fetching products from Firebase: ", e);
-            // رسالة خطأ إذا فشل جلب المنتجات
-            const msg =
-              "عذراً، لم نتمكن من جلب بيانات المنتجات حالياً. لا يمكن بدء المحادثة.";
-            appendMessage("ai", msg);
-            chatInput.disabled = true;
-            return;
-          }
+      const appendMessage = (sender, text, isHtml = false) => {
+        typingIndicator.style.display = "none";
+        const el = document.createElement("div");
+        el.className = `chat-message ${sender}-message`;
+        if (isHtml) {
+          el.innerHTML = text;
+        } else {
+          el.textContent = text;
         }
 
-        // ********** دالة إرسال المحادثة **********
-        chatForm.addEventListener("submit", async (e) => {
-          e.preventDefault();
+        if (sender === "ai") {
+          const tempDiv = document.createElement("div");
+          tempDiv.innerHTML = el.innerHTML;
 
-          // تأكد من أن allProducts محملة
-          if (allProducts.length === 0) return;
+          const availableProducts = allProducts.filter(
+            (p) => p.is_available !== false
+          );
+
+          availableProducts.forEach((p) => {
+            const regex = new RegExp(p.name, "g");
+            const link = `<button class="product-link" data-id="${p.id}">
+              ${p.name}
+              </button>`;
+            tempDiv.innerHTML = tempDiv.innerHTML.replace(regex, link);
+          });
+          el.innerHTML = tempDiv.innerHTML;
+        }
+
+        chatMessages.insertBefore(el, typingIndicator);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      };
+
+      // 💡 (معدل) دالة فتح المودال الجديد
+      const openProductModal = (product) => {
+        currentProduct = product;
+        const isAvailable = product.is_available !== false;
+        addToCartBtn.disabled = !isAvailable;
+        addToCartBtn.textContent = isAvailable
+          ? "إضافة إلى السلة"
+          : "غير متوفر حالياً";
+
+        let priceToUse = product.price;
+        if (discountSteps[product.id]) {
+          const discountPercentage = discountSteps[product.id];
+          priceToUse =
+            parseFloat(product.price) * (1 - discountPercentage / 100);
+          currentDiscountPrice = priceToUse;
+        } else {
+          currentDiscountPrice = null;
+        }
+
+        modalTitle.textContent = product.name;
+        modalImg.src = `images/${product.id}.png`;
+        modalImg.onerror = function () {
+          this.onerror = null;
+          this.src =
+            "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80";
+        };
+        modalDesc.textContent = product.description;
+
+        // (تعبئة الألوان كما هي)
+        const colorSection = document.getElementById("color-section");
+        const colorSelect = document.getElementById("modal-color-select");
+        colorSelect.innerHTML = "";
+        if (product.specs && product.specs.includes("خيارات الألوان:")) {
+          const colors = product.specs
+            .replace("خيارات الألوان:", "")
+            .split("،")
+            .map((c) => c.trim())
+            .filter(Boolean);
+          colors.forEach((color) => {
+            const option = document.createElement("option");
+            option.value = color;
+            option.textContent = color;
+            colorSelect.appendChild(option);
+          });
+          colorSection.style.display = "block";
+        } else {
+          colorSection.style.display = "none";
+        }
+
+        // (تعبئة السعر الجديد/القديم)
+        if (currentDiscountPrice) {
+          modalNewPrice.textContent = `${parseFloat(
+            currentDiscountPrice
+          ).toFixed(0)} شيكل`;
+          modalOldPrice.textContent = `${parseFloat(product.price).toFixed(
+            0
+          )} شيكل`;
+          modalOldPrice.style.display = "inline";
+        } else {
+          modalNewPrice.textContent = `${parseFloat(product.price).toFixed(
+            0
+          )} شيكل`;
+          modalOldPrice.style.display = "none";
+        }
+
+        modal.classList.add("active");
+        document.body.classList.add("scroll-lock");
+      };
+
+      chatMessages.addEventListener("click", (e) => {
+        if (e.target.classList.contains("product-link")) {
+          const productId = e.target.dataset.id;
+          const product = allProducts.find((p) => p.id == productId);
+          if (product) {
+            openProductModal(product);
+          }
+        }
+      });
+
+      addToCartBtn.addEventListener("click", () => {
+        if (!currentProduct || currentProduct.is_available === false) return;
+        const quantity = parseInt(
+          document.getElementById("modal-quantity").value,
+          10
+        );
+        const colorSelect = document.getElementById("modal-color-select");
+        const color =
+          colorSelect.style.display !== "none" ? colorSelect.value : null;
+
+        const priceToUse = currentDiscountPrice || currentProduct.price;
+        const existing = cart.find(
+          (i) => i.id === currentProduct.id && i.color === color
+        );
+        if (existing) {
+          existing.quantity += quantity;
+          existing.price = priceToUse;
+        } else {
+          const newItem = {
+            id: currentProduct.id,
+            name: currentProduct.name,
+            price: parseFloat(priceToUse),
+            originalPrice: currentDiscountPrice ? currentProduct.price : null,
+            quantity: quantity,
+            color: color,
+            image: `images/${currentProduct.id}.png`,
+          };
+          cart.push(newItem);
+        }
+        localStorage.setItem("shoppingCart", JSON.stringify(cart));
+        currentDiscountPrice = null;
+        delete discountSteps[currentProduct.id];
+        updateCartBadge();
+        showToast("✅ تمت إضافة المنتج إلى السلة بنجاح!");
+        modal.classList.remove("active");
+      });
+
+      modalClose.addEventListener("click", () => {
+        modal.classList.remove("active");
+      });
+
+      const initializeChat = (productsString) => {
+        const msg = "أهلاً بك 👋 خبرني شو بدك، وأنا بساعدك تختار الأنسب 😉";
+        appendMessage("ai", msg);
+        chatHistory.push({ role: "model", parts: [{ text: msg }] });
+      };
+
+      async function fetchProductsAndStartChat() {
+        try {
+          const productsSnapshot = await getDocs(collection(db, "products"));
+          allProducts = productsSnapshot.docs.map((doc) => ({
+            id: parseInt(doc.id),
+            ...doc.data(),
+            price: parseFloat(doc.data().price),
+          }));
 
           const availableProducts = allProducts.filter(
             (p) => p.is_available !== false
@@ -519,84 +582,108 @@
           const productsString = availableProducts
             .map(
               (p) =>
-                `${p.name} (الفئة: ${p.category}, السعر: ${p.price}, الوصف: ${p.description}, المواد: ${p.materials}, ساعات التصنيع: ${p.manufacturing_time_hours}, المكونات: ${p.components})`
+                `${p.name} (الفئة: ${p.category}, السعر: ${p.price}, الوصف: ${
+                  p.description
+                }, ساعات التصنيع: ${p.manufacturing_time_hours || "غير محدد"})`
             )
             .join(", ");
 
-          const userMsg = chatInput.value.trim();
-          if (!userMsg) return;
-          appendMessage("user", userMsg);
-          chatInput.value = "";
-          typingIndicator.style.display = "flex";
-          chatHistory.push({ role: "user", parts: [{ text: userMsg }] });
+          initializeChat(productsString);
+        } catch (e) {
+          console.error("Error fetching products from Firebase: ", e);
+          const msg =
+            "عذراً، لم نتمكن من جلب بيانات المنتجات حالياً. لا يمكن بدء المحادثة.";
+          appendMessage("ai", msg);
+          chatInput.disabled = true;
+          return;
+        }
+      }
 
-          const discountPrompts = [
-            {
-              query: "غالي|السعر مرتفع|ما معي|تخفيض|خصم",
-              discount: 5,
-              minPrice: 1000,
-            },
-            {
-              query: "زيادة خصم|كمان خصم|خصم إضافي|بتقدر أكثر",
-              discount: 10,
-              minPrice: 1000,
-            },
-            {
-              query: "اخر سعر|ماكس خصم|أكبر خصم",
-              discount: 15,
-              minPrice: 1000,
-            },
-          ];
+      chatForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        if (allProducts.length === 0) return;
 
-          let aiResponse = "";
-          let isDiscountApplied = false;
+        const availableProducts = allProducts.filter(
+          (p) => p.is_available !== false
+        );
+        const productsString = availableProducts
+          .map(
+            (p) =>
+              `${p.name} (الفئة: ${p.category}, السعر: ${p.price}, الوصف: ${
+                p.description
+              }, ساعات التصنيع: ${p.manufacturing_time_hours || "غير محدد"})`
+          )
+          .join(", ");
 
-          for (const prompt of discountPrompts) {
-            if (userMsg.match(new RegExp(prompt.query, "i"))) {
-              const lastProductMessage = chatHistory
-                .slice(-2)
-                .find(
-                  (h) =>
-                    h.role === "model" &&
-                    h.parts[0].text.includes("يسعدني أن أقدم لك")
-                );
-              if (lastProductMessage) {
-                // استخدم المنتجات المتاحة فقط
-                const lastProductName = availableProducts.find((p) =>
-                  lastProductMessage.parts[0].text.includes(p.name)
-                );
-                if (
-                  lastProductName &&
-                  lastProductName.price > prompt.minPrice &&
-                  (!discountSteps[lastProductName.id] ||
-                    discountSteps[lastProductName.id] < prompt.discount)
-                ) {
-                  const newPrice =
-                    lastProductName.price * (1 - prompt.discount / 100);
-                  discountSteps[lastProductName.id] = prompt.discount;
-                  aiResponse = `[عرض-خاص: ${lastProductName.name} | ${newPrice}]`;
-                  isDiscountApplied = true;
-                  break;
-                }
+        const userMsg = chatInput.value.trim();
+        if (!userMsg) return;
+        appendMessage("user", userMsg);
+        chatInput.value = "";
+        typingIndicator.style.display = "flex";
+        chatHistory.push({ role: "user", parts: [{ text: userMsg }] });
+
+        const discountPrompts = [
+          {
+            query: "غالي|السعر مرتفع|ما معي|تخفيض|خصم",
+            discount: 5,
+            minPrice: 1000,
+          },
+          {
+            query: "زيادة خصم|كمان خصم|خصم إضافي|بتقدر أكثر",
+            discount: 10,
+            minPrice: 1000,
+          },
+          {
+            query: "اخر سعر|ماكس خصم|أكبر خصم",
+            discount: 15,
+            minPrice: 1000,
+          },
+        ];
+
+        let aiResponse = "";
+        let isDiscountApplied = false;
+
+        for (const prompt of discountPrompts) {
+          if (userMsg.match(new RegExp(prompt.query, "i"))) {
+            const lastProductMessage = chatHistory
+              .slice(-2)
+              .find(
+                (h) =>
+                  h.role === "model" &&
+                  h.parts[0].text.includes("يسعدني أن أقدم لك")
+              );
+            if (lastProductMessage) {
+              const lastProductName = availableProducts.find((p) =>
+                lastProductMessage.parts[0].text.includes(p.name)
+              );
+              if (
+                lastProductName &&
+                lastProductName.price > prompt.minPrice &&
+                (!discountSteps[lastProductName.id] ||
+                  discountSteps[lastProductName.id] < prompt.discount)
+              ) {
+                const newPrice =
+                  lastProductName.price * (1 - prompt.discount / 100);
+                discountSteps[lastProductName.id] = prompt.discount;
+                aiResponse = `[عرض-خاص: ${lastProductName.name} | ${newPrice}]`;
+                isDiscountApplied = true;
+                break;
               }
             }
           }
+        }
 
-          if (!isDiscountApplied) {
-            const chatPrompt = `
-              أنت مساعد مبيعات ودود ومرن لمتجر "منجرة".
+        if (!isDiscountApplied) {
+          const chatPrompt = `
+              أنت "النجار الذكي"، مساعد مبيعات ودود لمتجر "منجرة".
               - كن ودودًا ومرنًا في الحوار.
               - اقترح فقط من المنتجات المتوفرة التالية: ${productsString}.
               - إذا كان السعر عاليًا، يمكنك تقديم خصم يصل حتى 15%.
-              - لا تقدم الخصم الكامل مرة واحدة، فاوض تدريجياً.
-              - في المحاولة الأولى، إذا أشار العميل إلى أن السعر مرتفع، قدم خصمًا بنسبة 5%.
-              - إذا طلب العميل خصمًا إضافيًا، قم بزيادة الخصم إلى 10%.
-              - إذا طلب مرة أخرى، قم بزيادة الخصم إلى 15% كحد أقصى.
+              - لا تقدم الخصم الكامل مرة واحدة، فاوض تدريجياً (5% ثم 10% ثم 15% كحد أقصى).
               - لا تقدم خصمًا على منتج لا يزيد سعره عن 1000 شيكل.
               - **عند تقديم العرض، استخدم التنسيق التالي بدقة: [عرض-خاص: <اسم المنتج> | <السعر الجديد>]**
-              - إذا كان طلب العميل لا يتناسب مع أي منتج من منتجاتنا الموجودة، قم بتوجيهه إلى صفحة "صمم منتجك" بالرسالة التالية ون حاول عرض اقرب منتج الى طلب العميل قبل التوجيه وحتى ولو لم يكن مطابق تماما
-              "يبدو أن طلبك مميز جداً! 🤩 يمكننا صناعة منتج خصيصاً لك. تفضل بالانتقال إلى صفحة "صمم منتجك" لتقديم مواصفاتك، وسيقوم فريقنا بمراجعة طلبك والرد عليك في أسرع وقت.
-              "
+              - إذا كان طلب العميل لا يتناسب مع أي منتج من منتجاتنا، قم بتوجيهه إلى صفحة "صمم منتجك" بالرسالة التالية (بعد محاولة عرض أقرب منتج):
+              "يبدو أن طلبك مميز جداً! 🤩 يمكننا صناعة منتج خصيصاً لك. تفضل بالانتقال إلى صفحة "صمم منتجك" لتقديم مواصفاتك."
               
               المحادثة:
               ${chatHistory
@@ -604,53 +691,86 @@
                 .join("\n")}
             `;
 
-            try {
-              const result = await model.generateContent(chatPrompt);
-              aiResponse = result.response.text();
-            } catch (error) {
-              console.error("AI Response Error:", error);
-              aiResponse = "عذراً، حصل خطأ أثناء الرد 😅 حاول مرة ثانية.";
-            }
+          try {
+            const result = await model.generateContent(chatPrompt);
+            aiResponse = result.response.text();
+          } catch (error) {
+            console.error("AI Response Error:", error);
+            aiResponse = "عذراً، حصل خطأ أثناء الرد 😅 حاول مرة ثانية.";
           }
+        }
 
-          let displayResponse = aiResponse;
-          const offerRegex = /\[عرض-خاص:\s*(.*?)\s*\|\s*([\d.]+)\s*\]/;
-          const offerMatch = aiResponse.match(offerRegex);
+        let displayResponse = aiResponse;
+        const offerRegex = /\[عرض-خاص:\s*(.*?)\s*\|\s*([\d.]+)\s*\]/;
+        const offerMatch = aiResponse.match(offerRegex);
 
-          if (offerMatch && offerMatch[1] && offerMatch[2]) {
-            const productName = offerMatch[1].trim();
-            const newPrice = parseFloat(offerMatch[2]);
-            // استخدم allProducts المجلوبة من Firebase
-            const product = allProducts.find((p) => p.name === productName);
+        if (offerMatch && offerMatch[1] && offerMatch[2]) {
+          const productName = offerMatch[1].trim();
+          const newPrice = parseFloat(offerMatch[2]);
+          const product = allProducts.find((p) => p.name === productName);
 
-            if (product && !isNaN(newPrice)) {
-              currentDiscountPrice = newPrice;
-              discountSteps[product.id] = parseFloat(
-                ((product.price - newPrice) / product.price) * 100
-              ).toFixed(0);
-              const discountPercentage = discountSteps[product.id];
+          if (product && !isNaN(newPrice)) {
+            currentDiscountPrice = newPrice;
+            discountSteps[product.id] = parseFloat(
+              ((product.price - newPrice) / product.price) * 100
+            ).toFixed(0);
+            const discountPercentage = discountSteps[product.id];
 
-              displayResponse = `
+            displayResponse = `
                 <p>${aiResponse.replace(offerMatch[0], "").trim()}</p>
                 <p>يسعدني أن أقدم لك **خصمًا خاصًا** على ${product.name}! ✨</p>
                 <p>الخصم: **${discountPercentage}%**</p>
                 <p>السعر الجديد: **${newPrice.toFixed(0)} شيكل**</p>
               `;
-            } else {
-              console.error("Product not found or new price is invalid.");
-              displayResponse = `
-                <p>${aiResponse}</p>
-              `;
-            }
+          } else {
+            console.error("Product not found or new price is invalid.");
+            displayResponse = `<p>${aiResponse}</p>`;
           }
+        }
 
-          appendMessage("ai", displayResponse, true);
-          chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
-          typingIndicator.style.display = "none";
+        appendMessage("ai", displayResponse, true);
+        chatHistory.push({ role: "model", parts: [{ text: aiResponse }] });
+        typingIndicator.style.display = "none";
+      });
+
+      // ====== بدء تنفيذ السكربت ======
+      document.addEventListener("DOMContentLoaded", () => {
+        // 💡 (جديد) منطق القائمة المنسدلة
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            let userName = "مستخدم";
+            if (userDocSnap.exists()) {
+              userName = userDocSnap.data().name || userName;
+            }
+            userDisplayName.textContent = "مرحباً " + userName;
+            userEmail.textContent = user.email;
+            authLink.style.display = "none";
+            logoutLink.style.display = "block";
+            logoutLink.onclick = async (e) => {
+              e.preventDefault();
+              await signOut(auth);
+              window.location.href = "index.html";
+            };
+          } else {
+            userDisplayName.textContent = "مرحباً بك";
+            userEmail.textContent = "زائر";
+            authLink.style.display = "block";
+            logoutLink.style.display = "none";
+          }
         });
-
-        // تشغيل وظيفة الجلب وبدء المحادثة
+        updateCartBadge();
         fetchProductsAndStartChat();
+
+        // (منطق القائمة الجانبية للموبايل كما هو)
+        const menuToggle = document.getElementById("menu-toggle");
+        const mobileMenu = document.getElementById("mobile-menu");
+        const body = document.body;
+        menuToggle.addEventListener("click", () => {
+          mobileMenu.classList.toggle("active");
+          body.classList.toggle("scroll-lock");
+        });
       });
     </script>
   </body>

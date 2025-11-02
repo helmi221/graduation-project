@@ -16,6 +16,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <style>
+      /* 💡 (معدل) أنماط خاصة بصفحة حالة الطلب */
       .order-check-section {
         max-width: 900px;
         margin: 5rem auto;
@@ -36,7 +37,8 @@
       .order-card {
         background-color: var(--white-color);
         border-radius: var(--border-radius);
-        box-shadow: var(--shadow);
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border-color);
         padding: 25px;
         margin-bottom: 25px;
         position: relative;
@@ -48,9 +50,10 @@
         top: 0;
         right: 0;
         height: 100%;
-        width: 8px;
+        width: 6px;
         background-color: var(--primary-color);
       }
+      /* (ألوان الحالات) */
       .order-card.status-مقبول-العميل::before,
       .order-card.status-مكتمل::before {
         background-color: #27ae60;
@@ -61,18 +64,17 @@
       .order-card.status-قيد-التنفيذ::before {
         background-color: #3498db;
       }
-      .order-card.status-تم-الرفض::before {
-        background-color: #e74c3c;
-      }
+      .order-card.status-تم-الرفض::before,
       .order-card.status-مرفوض-العميل::before {
         background-color: #e74c3c;
       }
+
       .order-card-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         padding-bottom: 15px;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--border-color);
         margin-bottom: 15px;
       }
       .order-id {
@@ -91,9 +93,10 @@
       }
       .status-badge {
         display: inline-block;
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-weight: bold;
+        padding: 6px 14px;
+        border-radius: 50px;
+        font-weight: 700;
+        font-size: 0.9rem;
         color: white;
         text-align: center;
         background-color: #34495e;
@@ -103,7 +106,7 @@
         color: #3e2723;
       }
       .status-badge.مقبول {
-        background-color: #2ecc71; /* مقبول = تمت الموافقة من المدير (جاهز للتنفيذ/مقبول السعر) */
+        background-color: #2ecc71;
       }
       .status-badge.قيد-التصنيع,
       .status-badge.قيد-الطلاء,
@@ -126,7 +129,7 @@
         margin-top: 10px;
       }
       .order-details-list li {
-        padding: 5px 0;
+        padding: 8px 0;
         border-bottom: 1px dashed #eee;
         font-size: 1rem;
         display: flex;
@@ -138,41 +141,56 @@
       .custom-design-details {
         margin-top: 15px;
         padding: 15px;
-        background-color: #fafafa;
-        border-radius: 8px;
-        border: 1px dashed #ddd;
+        background-color: var(--light-color);
+        border-radius: var(--border-radius);
+        border: 1px dashed var(--accent-color);
       }
       .custom-design-details p {
         margin-bottom: 5px;
+        font-size: 0.95rem;
       }
+      /* (معدل) تصميم شريط الوقت */
+      .estimated-time-bar {
+        background-color: var(--light-color);
+        padding: 15px;
+        border-radius: var(--border-radius);
+        margin-top: 15px;
+        border: 1px solid var(--border-color);
+        color: var(--dark-color);
+      }
+      .estimated-time-bar strong {
+        color: var(--primary-color);
+      }
+      /* (معدل) تصميم أزرار القبول والرفض */
       .price-buttons {
         margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border-color);
         display: flex;
         gap: 10px;
         justify-content: center;
         flex-wrap: wrap;
       }
+      .price-buttons p {
+        width: 100%;
+        text-align: center;
+        font-weight: 600;
+      }
       .price-buttons .btn {
         font-family: "Cairo", sans-serif;
         padding: 10px 20px;
       }
-      .price-buttons .btn-accept {
-        background-color: #27ae60;
+      .btn-success {
+        background-color: var(--success-color);
       }
-      .price-buttons .btn-reject {
+      .btn-success:hover {
+        background-color: #388e3c;
+      }
+      .btn-danger {
+        background-color: #e74c3c;
+      }
+      .btn-danger:hover {
         background-color: #c0392b;
-      }
-      /* 💡 نمط شريط الوقت المتوقع */
-      .estimated-time-bar {
-        background-color: var(--light-color);
-        padding: 15px;
-        border-radius: 8px;
-        margin-top: 15px;
-        border: 1px solid var(--info-color);
-        color: var(--dark-color);
-      }
-      .estimated-time-bar strong {
-        color: var(--info-color);
       }
       @media (max-width: 768px) {
         .order-card-header {
@@ -199,35 +217,40 @@
               <a href="index.html" class="nav-link">الرئيسية</a>
             </li>
             <li>
-              <a href="index.html#products-page" class="nav-link">منتجاتنا</a>
+              <a href="products.html" class="nav-link">منتجاتنا</a>
             </li>
             <li>
               <a href="order-status.html" class="nav-link active">حالة الطلب</a>
             </li>
             <li>
-              <a href="recommendation.html" class="nav-link">المساعد</a>
+              <a href="recommendation.html" class="nav-link">النجار الذكي</a>
             </li>
-            <li>
-              <a href="design.html" class="nav-link">صمم منتجك</a>
-            </li>
+            <li><a href="design.html" class="nav-link">صمم منتجك</a></li>
           </ul>
-          <a href="cart.html" class="cart-icon-wrapper">
-            <svg
-              id="cart-icon"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.658-.463 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-              />
-            </svg>
-            <span id="cart-count-badge">0</span>
-          </a>
+
+          <div class="auth-nav">
+            <a href="cart.html" class="cart-icon-wrapper">
+              <i class="fa-solid fa-bag-shopping" id="cart-icon"></i>
+              <span id="cart-count-badge">0</span>
+            </a>
+
+            <div class="profile-dropdown" id="profile-dropdown">
+              <div class="profile-icon">
+                <i class="fa-solid fa-user"></i>
+              </div>
+              <div class="dropdown-menu">
+                <div class="dropdown-header">
+                  <span id="user-display-name">مرحباً بك</span>
+                  <p id="user-email">زائر</p>
+                </div>
+                <a href="login.html" id="auth-link">تسجيل الدخول</a>
+                <a href="#" id="logout-link" style="display: none"
+                  >تسجيل الخروج</a
+                >
+              </div>
+            </div>
+          </div>
+
           <button class="menu-toggle" id="menu-toggle">
             <div class="hamburger-icon">
               <span></span><span></span><span></span>
@@ -239,9 +262,9 @@
 
     <div class="mobile-menu" id="mobile-menu">
       <a href="index.html" class="nav-link">الرئيسية</a>
-      <a href="index.html#products-page" class="nav-link">منتجاتنا</a>
+      <a href="products.html" class="nav-link">منتجاتنا</a>
       <a href="order-status.html" class="nav-link">حالة الطلب</a>
-      <a href="recommendation.html" class="nav-link">المساعد</a>
+      <a href="recommendation.html" class="nav-link">النجار الذكي</a>
       <a href="design.html" class="nav-link">صمم منتجك</a>
     </div>
 
@@ -281,7 +304,10 @@
       import {
         getAuth,
         onAuthStateChanged,
+        signOut,
       } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+      // 💡 (جديد) إضافة getDoc لجلب اسم المستخدم
+      import { getDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
       const firebaseConfig = {
         apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
@@ -297,140 +323,128 @@
       const auth = getAuth(app);
       const orderStatusResult = document.getElementById("order-status-result");
       let cart = [];
-      let allOrdersGlobal = []; // لجميع الطلبات في النظام
-      let allProductsGlobal = []; // لجميع المنتجات في النظام
+      let allOrdersGlobal = [];
+      let allProductsGlobal = [];
 
-      const WORK_HOURS_PER_DAY = 8; // 8 ساعات عمل في اليوم
+      // عناصر الواجهة للقائمة المنسدلة
+      const userDisplayName = document.getElementById("user-display-name");
+      const userEmail = document.getElementById("user-email");
+      const authLink = document.getElementById("auth-link");
+      const logoutLink = document.getElementById("logout-link");
 
-      // --------------------------------------------------------
-      // 💡 دالة حساب وقت الإنتاج المتوقع
-      // --------------------------------------------------------
-      function calculateEstimatedCompletionDays(
-        targetOrder,
-        allOrders,
-        allProducts
-      ) {
-        if (!targetOrder)
-          return { minDays: "---", maxDays: "---", isCalculable: false };
+      // (الثوابت ودوال حساب الوقت كما هي)
+      const WORK_HOURS_PER_DAY = 8;
+      const DEFAULT_HOURS_READY_PRODUCT = 5;
+      const DEFAULT_HOURS_CUSTOM_PRODUCT = 20;
+      const PROCESSING_BUFFER_DAYS = 2;
 
-        let targetOrderHours = 0;
-
-        // 1. حساب ساعات الطلب المستهدف
-        if (targetOrder.type === "ready" && targetOrder.items) {
-          targetOrder.items.forEach((item) => {
-            const product = allProducts.find(
-              (p) => p.id == item.id || p.id == parseInt(item.id)
-            );
-            if (product) {
-              // 💡 نستخدم manufacturing_time_hours من بيانات المنتج
-              targetOrderHours +=
-                (product.manufacturing_time_hours || 0) * (item.quantity || 1);
-            }
-          });
-        } else if (targetOrder.type === "custom") {
-          // تقدير ساعات التصنيع لطلب مخصص (يمكن تحسينها بإضافة حقل ساعات في وثيقة الطلب المخصص)
-          targetOrderHours = 20; // قيمة تقديرية مبدئية لطلب مخصص
+      function getHoursForOrder(order, allProducts) {
+        if (
+          order.manufacturing_time_override &&
+          order.manufacturing_time_override > 0
+        ) {
+          return parseFloat(order.manufacturing_time_override);
         }
-
-        if (targetOrderHours === 0)
-          return { minDays: "---", maxDays: "---", isCalculable: false };
-
-        const targetOrderDate = new Date(targetOrder.order_date);
-
-        let acceptedQueuedHours = 0; // الطلبات المقبولة قبلك في الطابور
-        let pendingReviewHours = 0; // الطلبات قيد المراجعة التي قد تقبل قبلك
-
-        // 2. تصنيف الطلبات الأخرى وحساب أوقاتها
-        allOrders.forEach((order) => {
-          if (order.id === targetOrder.id) return; // استثناء الطلب الحالي
-
-          const orderDate = new Date(order.order_date);
-          let orderManufactureHours = 0;
-
-          // حساب ساعات التصنيع للطلب
+        let totalHours = 0;
+        try {
           if (order.type === "ready" && order.items) {
             order.items.forEach((item) => {
               const product = allProducts.find(
                 (p) => p.id == item.id || p.id == parseInt(item.id)
               );
-              if (product) {
-                orderManufactureHours +=
-                  (product.manufacturing_time_hours || 0) *
-                  (item.quantity || 1);
+              const itemQuantity = item.quantity || 1;
+              if (product && product.manufacturing_time_hours > 0) {
+                totalHours += product.manufacturing_time_hours * itemQuantity;
+              } else {
+                totalHours += DEFAULT_HOURS_READY_PRODUCT * itemQuantity;
               }
             });
-          } else if (order.type === "custom" && order.status !== "تم الرفض") {
-            orderManufactureHours = 20; // تقدير ثابت للمخصص
+          } else if (order.type === "custom") {
+            totalHours = DEFAULT_HOURS_CUSTOM_PRODUCT;
           }
+        } catch (e) {
+          console.error("Error calculating hours for order:", order.id, e);
+          totalHours = DEFAULT_HOURS_READY_PRODUCT;
+        }
+        return totalHours > 0 ? totalHours : DEFAULT_HOURS_READY_PRODUCT;
+      }
 
-          if (orderManufactureHours === 0) return;
+      function calculateEstimatedCompletionDays(
+        targetOrder,
+        allOrders,
+        allProducts
+      ) {
+        if (!targetOrder) {
+          return { minDays: "---", maxDays: "---" };
+        }
+        const targetOrderHours = getHoursForOrder(targetOrder, allProducts);
+        const IN_QUEUE_STATUSES = [
+          "مقبول",
+          "مقبول-العميل",
+          "قيد التصنيع",
+          "قيد الطلاء",
+          "قيد التغليف",
+        ];
+        const PENDING_STATUSES = ["قيد المراجعة"];
+        let acceptedQueueHours = 0;
+        let pendingQueueHours = 0;
 
-          // الطلبات التي تم قبولها قبلك أو قيد التنفيذ (الحد الأدنى تنتظرك)
-          const acceptedStatuses = [
-            "مقبول",
-            "مقبول-العميل",
-            "قيد التصنيع",
-            "قيد الطلاء",
-            "قيد التغليف",
-            "قيد الشحن",
-          ];
-
-          // T_قبل: مجموع ساعات الطلبات المقبولة التي جاءت قبلك في زمن الطلب
-          if (
-            acceptedStatuses.includes(order.status) &&
-            orderDate < targetOrderDate
-          ) {
-            acceptedQueuedHours += orderManufactureHours;
+        allOrders.forEach((order) => {
+          if (order.id === targetOrder.id) return;
+          const orderHours = getHoursForOrder(order, allProducts);
+          if (orderHours === 0) return;
+          if (IN_QUEUE_STATUSES.includes(order.status)) {
+            acceptedQueueHours += orderHours;
           }
-
-          // T_منتظر: الطلبات التي تنتظر المراجعة (قيد المراجعة)
-          if (order.status === "قيد المراجعة") {
-            pendingReviewHours += orderManufactureHours;
+          if (PENDING_STATUSES.includes(order.status)) {
+            const orderDate = new Date(order.order_date);
+            const targetOrderDate = new Date(targetOrder.order_date);
+            if (orderDate < targetOrderDate) {
+              pendingQueueHours += orderHours;
+            }
           }
         });
 
-        // 3. حساب النطاق الزمني
-
-        // وقت التصنيع للطلب الحالي بالايام
+        let minTotalDays, maxTotalDays;
         const targetOrderDays = Math.ceil(
           targetOrderHours / WORK_HOURS_PER_DAY
         );
-
-        // وقت المعالجة الثابت (التغليف والشحن)
-        const processingBufferDays = 2;
-
-        // الأيام التي ستنتظر فيها بسبب الطلبات التي أمامك
         const acceptedQueueDays = Math.ceil(
-          acceptedQueuedHours / WORK_HOURS_PER_DAY
+          acceptedQueueHours / WORK_HOURS_PER_DAY
         );
-        const pendingReviewDays = Math.ceil(
-          pendingReviewHours / WORK_HOURS_PER_DAY
+        const pendingQueueDays = Math.ceil(
+          pendingQueueHours / WORK_HOURS_PER_DAY
         );
 
-        // الحد الأدنى: (وقت الطلبات المقبولة قبلك) + (وقت تصنيع طلبك) + (وقت الشحن)
-        const minTotalDays =
-          acceptedQueueDays + targetOrderDays + processingBufferDays;
-
-        // الحد الأقصى: (الحد الأدنى) + (وقت جميع الطلبات التي تنتظر المراجعة)
-        const maxTotalDays = minTotalDays + pendingReviewDays;
-
+        if (IN_QUEUE_STATUSES.includes(targetOrder.status)) {
+          const totalQueueHours = acceptedQueueHours + targetOrderHours;
+          minTotalDays =
+            Math.ceil(totalQueueHours / WORK_HOURS_PER_DAY) +
+            PROCESSING_BUFFER_DAYS;
+          maxTotalDays = minTotalDays;
+        } else {
+          minTotalDays =
+            acceptedQueueDays + targetOrderDays + PROCESSING_BUFFER_DAYS;
+          maxTotalDays =
+            acceptedQueueDays +
+            pendingQueueDays +
+            targetOrderDays +
+            PROCESSING_BUFFER_DAYS;
+        }
         return {
-          minDays: Math.max(minTotalDays, 3), // لا يمكن أن يكون أقل من 3 أيام عمل
-          maxDays: Math.max(maxTotalDays, minTotalDays),
+          minDays: Math.ceil(minTotalDays),
+          maxDays: Math.ceil(maxTotalDays),
           isCalculable: true,
         };
       }
 
-      // --------------------------------------------------------
-      // الدوال المساعدة لجلب البيانات
-      // --------------------------------------------------------
+      // (دوال جلب البيانات كما هي)
       async function fetchSystemData() {
         const [productsSnap, ordersSnap, customSnap] = await Promise.all([
           getDocs(collection(db, "products")),
           getDocs(collection(db, "orders")),
           getDocs(collection(db, "custom_designs")),
         ]);
-
         allProductsGlobal = productsSnap.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -438,7 +452,6 @@
             doc.data().manufacturing_time_hours || 0
           ),
         }));
-
         const readyOrders = ordersSnap.docs.map((d) => ({
           id: d.id,
           type: "ready",
@@ -449,18 +462,18 @@
           type: "custom",
           ...d.data(),
         }));
-
         allOrdersGlobal = [...readyOrders, ...customOrders];
       }
 
-      // --------------------------------------------------------
-      // منطق تتبع حالة الطلبات
-      // --------------------------------------------------------
+      // (منطق تتبع الطلبات كما هو)
       const handlePriceDecision = async (orderId, collectionName, status) => {
         try {
           const orderRef = doc(db, collectionName, orderId);
-          // 💡 إذا وافق العميل، يتم تغيير الحالة إلى "مقبول-العميل" ليتم الخصم في لوحة المدير لاحقاً.
-          await updateDoc(orderRef, { status: status });
+          let updatePayload = { status: status };
+          if (status === "مقبول-العميل") {
+            updatePayload.acceptance_date = new Date().toISOString();
+          }
+          await updateDoc(orderRef, updatePayload);
           alert(`تم تحديث حالة طلبك إلى: ${status}`);
           location.reload();
         } catch (e) {
@@ -470,14 +483,37 @@
       };
 
       onAuthStateChanged(auth, async (user) => {
+        // 💡 (جديد) تحديث القائمة المنسدلة
         if (user) {
-          await fetchSystemData(); // جلب بيانات المنتجات والطلبات للنظام بأكمله
+          const userDocRef = doc(db, "users", user.uid);
+          const userDocSnap = await getDoc(userDocRef);
+          let userName = "مستخدم";
+          if (userDocSnap.exists()) {
+            userName = userDocSnap.data().name || userName;
+          }
+          userDisplayName.textContent = "مرحباً " + userName;
+          userEmail.textContent = user.email;
+          authLink.style.display = "none";
+          logoutLink.style.display = "block";
+          logoutLink.onclick = async (e) => {
+            e.preventDefault();
+            await signOut(auth);
+            window.location.href = "index.html";
+          };
+        } else {
+          userDisplayName.textContent = "مرحباً بك";
+          userEmail.textContent = "زائر";
+          authLink.style.display = "block";
+          logoutLink.style.display = "none";
+        }
 
+        // (منطق جلب الطلبات)
+        if (user) {
+          await fetchSystemData();
           orderStatusResult.innerHTML =
             "<h2 style='text-align: center;'>طلباتي</h2>";
           const ordersCollection = collection(db, "orders");
           const customDesignsCollection = collection(db, "custom_designs");
-
           const q1 = query(
             ordersCollection,
             where("customer_uid", "==", user.uid)
@@ -486,12 +522,10 @@
             customDesignsCollection,
             where("customer_uid", "==", user.uid)
           );
-
           const [ordersSnapshot, customDesignsSnapshot] = await Promise.all([
             getDocs(q1),
             getDocs(q2),
           ]);
-
           const customerOrders = [];
           ordersSnapshot.forEach((doc) =>
             customerOrders.push({ ...doc.data(), id: doc.id, type: "ready" })
@@ -499,7 +533,6 @@
           customDesignsSnapshot.forEach((doc) =>
             customerOrders.push({ ...doc.data(), id: doc.id, type: "custom" })
           );
-
           customerOrders.sort(
             (a, b) => new Date(b.order_date) - new Date(a.order_date)
           );
@@ -513,13 +546,11 @@
               const statusClass = simplifiedStatus.replace(/\s+/g, "-");
               const orderType =
                 orderData.type === "ready" ? "منتج جاهز" : "تصميم مخصص";
-
               const estimatedTime = calculateEstimatedCompletionDays(
                 orderData,
                 allOrdersGlobal,
                 allProductsGlobal
               );
-
               let timeBarHTML = "";
               const nonFinalStatuses = [
                 "مقبول",
@@ -529,32 +560,28 @@
                 "قيد الطلاء",
                 "قيد التغليف",
                 "قيد الشحن",
+                "قيد التنفيذ",
               ];
-
               if (
-                nonFinalStatuses.includes(orderData.status) &&
+                nonFinalStatuses.includes(simplifiedStatus) &&
                 estimatedTime.isCalculable
               ) {
-                // 💡 عرض شريط الوقت المتوقع فقط للحالات غير النهائية
                 timeBarHTML = `
                     <div class="estimated-time-bar">
                         <p><strong><i class="fa-solid fa-clock"></i> الوقت المتوقع للتسليم:</strong></p>
                         <p>
                             الحد الأدنى: <strong>${estimatedTime.minDays} أيام عمل</strong>
-                            (بافتراض بدء العمل فوراً)
                         </p>
                         <p>
                             الحد الأقصى: <strong>${estimatedTime.maxDays} أيام عمل</strong>
-                            (بافتراض تأخر في مراجعة الطلبات الأخرى)
                         </p>
+                        <p style="font-size: 0.8rem; color: #777; margin-top: 5px;">*هذا وقت تقديري بناءً على ضغط العمل الحالي.</p>
                     </div>
                   `;
               }
-
               let itemsListHTML = "";
               let totalDisplay = "";
               let actionsHtml = "";
-
               if (orderData.type === "ready") {
                 itemsListHTML = orderData.items
                   .map(
@@ -562,9 +589,8 @@
                       `<li><span>${item.name} (العدد: ${item.quantity})</span><span>${item.price} شيكل</span></li>`
                   )
                   .join("");
-                totalDisplay = `<p style="margin-top: 15px;"><strong>الإجمالي:</strong> ${orderData.total} شيكل</p>`;
+                totalDisplay = `<p style="margin-top: 15px; font-weight: 700; font-size: 1.1rem;">الإجمالي: ${orderData.total} شيكل</p>`;
               } else {
-                // طلب مخصص
                 itemsListHTML = `
                       <div class="custom-design-details">
                           <p><strong><i class="fa-solid fa-list-check"></i> وصف التصميم:</strong> ${
@@ -584,31 +610,29 @@
                           }</p>
                       </div>
                   `;
-                // 💡 شرط ظهور أزرار الموافقة/الرفض: فقط إذا كانت الحالة "مقبول" و final_price موجود.
                 if (orderData.status === "مقبول" && orderData.final_price) {
-                  totalDisplay = `<p><strong><i class="fa-solid fa-hand-holding-dollar"></i> السعر النهائي:</strong> <span style="color: green;">${orderData.final_price} شيكل</span></p>`;
+                  totalDisplay = `<p style="font-weight: 700; font-size: 1.1rem;"><i class="fa-solid fa-hand-holding-dollar"></i> السعر النهائي: <span style="color: var(--success-color);">${orderData.final_price} شيكل</span></p>`;
                   actionsHtml = `
                     <div class="price-buttons">
-                      <p style="text-align: center; font-weight: bold; color: #3e2723;">لقد قام المدير بتسعير طلبك. هل توافق على السعر النهائي؟</p>
-                      <button class="btn btn-accept" data-id="${orderData.id}" data-collection="custom_designs" data-status="مقبول-العميل">قبول السعر</button>
-                      <button class="btn btn-reject" data-id="${orderData.id}" data-collection="custom_designs" data-status="مرفوض-العميل">رفض السعر</button>
+                      <p>لقد قام المدير بتسعير طلبك. هل توافق على السعر النهائي؟</p>
+                      <button class="btn btn-success" data-id="${orderData.id}" data-collection="custom_designs" data-status="مقبول-العميل">قبول السعر</button>
+                      <button class="btn btn-danger" data-id="${orderData.id}" data-collection="custom_designs" data-status="مرفوض-العميل">رفض السعر</button>
                     </div>
                   `;
                 } else if (
                   orderData.status === "تم الرفض" &&
                   orderData.rejection_reason
                 ) {
-                  totalDisplay = `<p><strong><i class="fa-solid fa-hand-holding-dollar"></i> السعر الأولي:</strong> ${
+                  totalDisplay = `<p style="font-weight: 700; font-size: 1.1rem;"><i class="fa-solid fa-hand-holding-dollar"></i> السعر الأولي: ${
                     orderData.initial_price || orderData.price
                   }</p>`;
-                  itemsListHTML += `<p style="color:red; margin-top: 10px;"><strong><i class="fa-solid fa-circle-xmark"></i> سبب الرفض:</strong> ${orderData.rejection_reason}</p>`;
+                  itemsListHTML += `<p style="color:red; margin-top: 10px; font-weight: 600;"><i class="fa-solid fa-circle-xmark"></i> سبب الرفض: ${orderData.rejection_reason}</p>`;
                 } else {
-                  totalDisplay = `<p><strong><i class="fa-solid fa-hand-holding-dollar"></i> السعر المقترح:</strong> ${
+                  totalDisplay = `<p style="font-weight: 700; font-size: 1.1rem;"><i class="fa-solid fa-hand-holding-dollar"></i> السعر المقترح: ${
                     orderData.initial_price || orderData.price
                   }</p>`;
                 }
               }
-
               resultHTML += `
                 <div class="order-card status-${statusClass}">
                     <div class="order-card-header">
@@ -627,7 +651,7 @@
                         ${timeBarHTML}
                         ${
                           orderData.type === "ready"
-                            ? `<h4><i class="fa-solid fa-boxes-stacked"></i> المنتجات:</h4>`
+                            ? `<h4 style="margin-top: 15px;"><i class="fa-solid fa-boxes-stacked"></i> المنتجات:</h4>`
                             : ""
                         }
                         <ul class="order-details-list">
@@ -640,7 +664,6 @@
               `;
             });
             orderStatusResult.innerHTML += resultHTML;
-
             document
               .querySelectorAll(".price-buttons .btn")
               .forEach((button) => {
@@ -665,6 +688,7 @@
         return status;
       };
 
+      // (دوال السلة والقائمة الجانبية كما هي)
       function loadCart() {
         const storedCart = localStorage.getItem("shoppingCart");
         cart = storedCart ? JSON.parse(storedCart) : [];

@@ -76,7 +76,7 @@
         font-weight: 600;
         border: 1px solid var(--primary-color);
       }
-      /* 💡 أنماط طي سجل الحركة */
+      /* أنماط طي سجل الحركة */
       .log-toggle-header {
         display: flex;
         justify-content: space-between;
@@ -134,7 +134,12 @@
           </li>
           <li>
             <a href="raw_materials_admin.html" class="active"
-              ><i class="fa-solid fa-hammer"></i> إدارة المواد الخام</a
+              ><i class="fa-solid fa-hammer"></i> المواد الخام (المخزون)</a
+            >
+          </li>
+          <li>
+            <a href="suppliers_admin.html"
+              ><i class="fa-solid fa-truck-fast"></i> الموردين (المشتريات)</a
             >
           </li>
           <li>
@@ -164,10 +169,21 @@
           <button class="btn" id="add-material-btn">
             <i class="fa-solid fa-plus"></i> تعريف مادة جديدة
           </button>
-          <button class="btn btn-secondary" id="open-full-stock-modal-btn">
-            <i class="fa-solid fa-cubes-stacked"></i> تسجيل عملية شراء
-            (بالتكلفة)
+          <button
+            class="btn btn-secondary"
+            id="open-adjustment-modal-btn"
+            style="background-color: var(--warning-color)"
+          >
+            <i class="fa-solid fa-edit"></i> تسوية / تصحيح مخزون
           </button>
+          <a
+            href="suppliers_admin.html?tab=purchase-orders"
+            class="btn"
+            style="background-color: var(--success-color)"
+          >
+            <i class="fa-solid fa-file-invoice-dollar"></i> الذهاب لأوامر الشراء
+            (PO)
+          </a>
         </div>
         <div id="materials-table-container">
           <p class="loading-msg">جارٍ تحميل المواد الخام...</p>
@@ -245,44 +261,45 @@
       </div>
     </div>
 
-    <div id="stock-modal" class="modal-overlay">
+    <div id="adjustment-modal" class="modal-overlay">
       <div class="modal-content">
         <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
-        <h2>تسجيل عملية شراء/تصحيح للمخزون</h2>
-        <form id="stock-form">
+        <h2>تسوية / تصحيح مخزون</h2>
+        <form id="adjustment-form">
           <div class="form-group">
-            <label for="stock-material-select">اختر المادة الخام</label>
-            <select id="stock-material-select" required>
+            <label for="adjustment-material-select">اختر المادة الخام</label>
+            <select id="adjustment-material-select" required>
               <option value="">-- اختر مادة --</option>
             </select>
           </div>
 
-          <div class="form-group">
-            <label for="stock-operation">نوع العملية</label>
-            <select id="stock-operation" class="operation-select" required>
-              <option value="purchase">شراء جديد / إضافة</option>
-              <option value="correction">تصحيح (إضافة أو طرح كمية/قيمة)</option>
-            </select>
-          </div>
+          <input type="hidden" id="adjustment-operation" value="correction" />
           <p class="correction-note" id="correction-tip">
-            * عند اختيار "تصحيح"، يمكنك إدخال قيم سالبة لتخفيض الكمية أو
-            التكلفة.
+            * يمكنك إدخال قيم سالبة لتخفيض الكمية (تلف) أو القيمة.
           </p>
 
           <div class="stock-form-grid">
             <div class="form-group">
-              <label for="stock-quantity"
-                ><span id="qty-label">الكمية المشتراة</span></label
+              <label for="adjustment-quantity"
+                >الكمية المراد إضافتها/طرحها</label
               >
-              <input type="number" id="stock-quantity" step="any" required />
+              <input
+                type="number"
+                id="adjustment-quantity"
+                step="any"
+                required
+              />
             </div>
             <div class="form-group">
-              <label for="stock-total-cost"
-                ><span id="cost-label"
-                  >التكلفة الإجمالية للشراء (شيكل)</span
-                ></label
+              <label for="adjustment-total-cost"
+                >القيمة المراد إضافتها/طرحها (شيكل)</label
               >
-              <input type="number" id="stock-total-cost" step="0.01" required />
+              <input
+                type="number"
+                id="adjustment-total-cost"
+                step="0.01"
+                required
+              />
             </div>
           </div>
 
@@ -300,7 +317,7 @@
 
           <div class="btn-group">
             <button type="submit" class="btn">
-              <i class="fa-solid fa-check"></i> تأكيد العملية
+              <i class="fa-solid fa-check"></i> تأكيد التسوية
             </button>
           </div>
         </form>
@@ -337,7 +354,7 @@
         query,
         orderBy,
         limit,
-        where, // 💡 استيراد where للبحث في السجل
+        where,
       } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
       import {
         getAuth,
@@ -364,14 +381,15 @@
         "materials-table-container"
       );
       const materialModal = document.getElementById("material-modal");
-      const stockModal = document.getElementById("stock-modal");
+      // 💡 (تم التعديل) تغيير اسم مودال المخزون
+      const adjustmentModal = document.getElementById("adjustment-modal");
       const materialForm = document.getElementById("material-form");
-      const stockForm = document.getElementById("stock-form");
+      const adjustmentForm = document.getElementById("adjustment-form");
       const materialIdInput = document.getElementById("material-id");
-      const stockMaterialSelect = document.getElementById(
-        "stock-material-select"
+      const adjustmentMaterialSelect = document.getElementById(
+        "adjustment-material-select"
       );
-      const stockOperationSelect = document.getElementById("stock-operation");
+      // 💡 (تم التعديل) تغيير أسماء العناصر
       const currentUnitCostDisplay =
         document.getElementById("current-unit-cost");
       const currentTotalValueDisplay = document.getElementById(
@@ -380,15 +398,17 @@
       const currentStockValueDisplay = document.getElementById(
         "current-stock-value"
       );
-      const stockQuantityInput = document.getElementById("stock-quantity");
-      const stockTotalCostInput = document.getElementById("stock-total-cost");
-      const qtyLabel = document.getElementById("qty-label");
-      const costLabel = document.getElementById("cost-label");
-      const correctionTip = document.getElementById("correction-tip");
+      const adjustmentQuantityInput = document.getElementById(
+        "adjustment-quantity"
+      );
+      const adjustmentTotalCostInput = document.getElementById(
+        "adjustment-total-cost"
+      );
       const confirmActionBtn = document.getElementById("confirm-action-btn");
       const logoutBtn = document.getElementById("logout-btn");
-      const openFullStockModalBtn = document.getElementById(
-        "open-full-stock-modal-btn"
+      // 💡 (تم التعديل) تغيير اسم الزر
+      const openAdjustmentModalBtn = document.getElementById(
+        "open-adjustment-modal-btn"
       );
 
       const logToggleHeader = document.getElementById("log-toggle-header");
@@ -431,14 +451,13 @@
         }
       });
 
-      // 💡 منطق فتح وطى سجل الحركة
+      // منطق فتح وطى سجل الحركة
       logToggleHeader.addEventListener("click", () => {
         const isExpanded =
           logToggleHeader.getAttribute("aria-expanded") === "true";
         logToggleHeader.setAttribute("aria-expanded", !isExpanded);
         logContentWrapper.classList.toggle("active");
 
-        // إذا تم فتحه لأول مرة، تأكد من تحميل السجل العام
         if (!isExpanded && logContainer.querySelector(".loading-msg")) {
           fetchAndRenderLog();
         }
@@ -476,21 +495,20 @@
           allRawMaterials = snapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
-            // تعيين قيم افتراضية لضمان أن تكون الأرقام جاهزة للحساب
             cost_per_unit: parseFloat(doc.data().cost_per_unit || 0),
             current_stock: parseFloat(doc.data().current_stock || 0),
-            total_cost_value: parseFloat(doc.data().total_cost_value || 0), // القيمة الإجمالية للمخزون
+            total_cost_value: parseFloat(doc.data().total_cost_value || 0),
             reorder_point: parseFloat(doc.data().reorder_point || 0),
             unit: doc.data().unit || "وحدة",
             name_ar: doc.data().name_ar || "---",
           }));
 
-          rawMaterialsMap = new Map(allRawMaterials.map((m) => [m.id, m])); // 💡 تحديث الـ Map
+          rawMaterialsMap = new Map(allRawMaterials.map((m) => [m.id, m]));
 
           renderMaterialsTable(allRawMaterials);
-          fillStockSelect(allRawMaterials);
+          // 💡 (تم التعديل) تعبئة قائمة مودال التسوية
+          fillAdjustmentSelect(allRawMaterials);
 
-          // 💡 إذا كان السجل مفتوحاً، قم بتحميله
           if (logContentWrapper.classList.contains("active")) {
             await fetchAndRenderLog();
           }
@@ -501,14 +519,13 @@
         }
       }
 
-      // 💡 دالة جلب وعرض سجل الحركات (تم تعديلها لتعرض السجل العام فقط)
+      // دالة جلب وعرض سجل الحركات
       async function fetchAndRenderLog() {
         logContainer.innerHTML =
           '<p class="loading-msg">جارٍ تحميل سجل الحركات...</p>';
 
         try {
           const logCollection = collection(db, "raw_materials_log");
-          // سجل عام
           const q = query(logCollection, orderBy("date", "desc"), limit(50));
           const snapshot = await getDocs(q);
 
@@ -563,9 +580,9 @@
           const unit = materialData.unit || "وحدة";
           const typeDisplay =
             entry.operation_type === "purchase"
-              ? "شراء/إضافة"
+              ? "شراء (PO)" // 💡 تمييز الشراء
               : entry.operation_type === "correction"
-              ? "تصحيح"
+              ? "تصحيح/تسوية" // 💡 تمييز التسوية
               : "استهلاك (طلب)";
           const quantityColor =
             entry.change_quantity > 0
@@ -597,7 +614,7 @@
                       <td>${entry.date}</td>
                       <td>${
                         entry.order_id
-                          ? `طلب رقم: ${entry.order_id}`
+                          ? `طلب رقم: ${entry.order_id.substring(0, 8)}...`
                           : "إدارة المخزون"
                       }</td>
                   </tr>
@@ -681,56 +698,31 @@
         });
       }
 
-      function fillStockSelect(materials) {
-        stockMaterialSelect.innerHTML =
+      // 💡 (تم التعديل) دالة تعبئة قائمة مودال التسوية
+      function fillAdjustmentSelect(materials) {
+        adjustmentMaterialSelect.innerHTML =
           '<option value="">-- اختر مادة --</option>';
         materials.forEach((m) => {
           const option = document.createElement("option");
           option.value = m.id;
           option.textContent = `${m.name_ar} (الوحدة: ${m.unit || "---"})`;
-          stockMaterialSelect.appendChild(option);
+          adjustmentMaterialSelect.appendChild(option);
         });
       }
 
       // ------------------------------------
-      // معالجات أحداث المودالات (الأصلية)
+      // معالجات أحداث المودالات (معدلة)
       // ------------------------------------
 
-      openFullStockModalBtn.addEventListener("click", () => {
-        stockForm.reset();
-        stockOperationSelect.value = "purchase";
-        stockOperationSelect.dispatchEvent(new Event("change"));
-        openModal("stock-modal");
+      // 💡 (تم التعديل) فتح مودال التسوية
+      openAdjustmentModalBtn.addEventListener("click", () => {
+        adjustmentForm.reset();
+        openModal("adjustment-modal");
       });
 
-      // تحديث واجهة مودال الشراء عند تغيير العملية
-      stockOperationSelect.addEventListener("change", () => {
-        const isCorrection = stockOperationSelect.value === "correction";
-
-        // تحديث النصائح والحدود الدنيا
-        correctionTip.style.display = isCorrection ? "block" : "none";
-        stockQuantityInput.type = isCorrection ? "number" : "number"; // للحفاظ على النوع
-        stockTotalCostInput.type = isCorrection ? "number" : "number";
-        stockQuantityInput.min = isCorrection ? "" : "0.01";
-        stockTotalCostInput.min = isCorrection ? "" : "0.01";
-        stockQuantityInput.required = true;
-        stockTotalCostInput.required = true;
-
-        // تحديث التسميات
-        qtyLabel.textContent = isCorrection
-          ? "الكمية المراد إضافتها/طرحها"
-          : "الكمية المشتراة";
-        costLabel.textContent = isCorrection
-          ? "القيمة المراد إضافتها/طرحها (شيكل)"
-          : "التكلفة الإجمالية للشراء (شيكل)";
-
-        // تحديث معلومات المراجعة
-        stockMaterialSelect.dispatchEvent(new Event("change"));
-      });
-
-      // عرض سعر الوحدة الحالي في مودال الشراء
-      stockMaterialSelect.addEventListener("change", () => {
-        const selectedId = stockMaterialSelect.value;
+      // عرض سعر الوحدة الحالي في مودال التسوية
+      adjustmentMaterialSelect.addEventListener("change", () => {
+        const selectedId = adjustmentMaterialSelect.value;
 
         if (selectedId) {
           const material = allRawMaterials.find((m) => m.id === selectedId);
@@ -837,14 +829,14 @@
         }
       });
 
-      // حفظ إدارة كمية شراء جديدة (Stock Purchase/Correction)
-      stockForm.addEventListener("submit", async (e) => {
+      // 💡 (تم التعديل) حفظ تسوية المخزون
+      adjustmentForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const materialId = stockMaterialSelect.value;
-        const inputQuantity = parseFloat(stockQuantityInput.value);
-        const inputTotalCost = parseFloat(stockTotalCostInput.value);
-        const operationType = stockOperationSelect.value;
+        const materialId = adjustmentMaterialSelect.value;
+        const inputQuantity = parseFloat(adjustmentQuantityInput.value);
+        const inputTotalCost = parseFloat(adjustmentTotalCostInput.value);
+        const operationType = "correction"; // 💡 القيمة ثابتة الآن
 
         const material = allRawMaterials.find((m) => m.id === materialId);
 
@@ -859,39 +851,25 @@
         let changeQuantity = 0;
         let changeValue = 0;
 
-        if (operationType === "purchase") {
-          if (inputQuantity <= 0 || inputTotalCost <= 0) {
-            alert(
-              "في عملية 'الشراء الجديد'، يجب أن تكون الكمية والتكلفة موجبة وأكبر من الصفر."
-            );
-            return;
-          }
+        // التصحيح: نضيف القيمة المُدخلة (قد تكون سالبة)
+        changeQuantity = inputQuantity;
+        changeValue = inputTotalCost;
+        newTotalStock = currentStock + inputQuantity;
+        newTotalCostValue = currentTotalCostValue + inputTotalCost;
 
-          changeQuantity = inputQuantity;
-          changeValue = inputTotalCost;
-          newTotalCostValue = currentTotalCostValue + inputTotalCost;
-          newTotalStock = currentStock + inputQuantity;
-        } else if (operationType === "correction") {
-          // التصحيح: نضيف القيمة المُدخلة (قد تكون سالبة)
-          changeQuantity = inputQuantity;
-          changeValue = inputTotalCost;
-          newTotalStock = currentStock + inputQuantity;
-          newTotalCostValue = currentTotalCostValue + inputTotalCost;
-
-          if (newTotalStock < 0) {
-            alert(
-              " فشل: الكمية النهائية للمخزون لا يمكن أن تكون سالبة. (المخزون الحالي: " +
-                currentStock.toFixed(2) +
-                ")"
-            );
-            return;
-          }
-          if (newTotalCostValue < 0 && newTotalStock > 0) {
-            alert(
-              " فشل: القيمة الإجمالية للمخزون لا يمكن أن تكون سالبة عندما يكون هناك مخزون فعلي."
-            );
-            return;
-          }
+        if (newTotalStock < 0) {
+          alert(
+            " فشل: الكمية النهائية للمخزون لا يمكن أن تكون سالبة. (المخزون الحالي: " +
+              currentStock.toFixed(2) +
+              ")"
+          );
+          return;
+        }
+        if (newTotalCostValue < 0 && newTotalStock > 0) {
+          alert(
+            " فشل: القيمة الإجمالية للمخزون لا يمكن أن تكون سالبة عندما يكون هناك مخزون فعلي."
+          );
+          return;
         }
 
         // إعادة حساب متوسط التكلفة (Average Costing Method)
@@ -915,12 +893,12 @@
           last_update: new Date().toISOString(),
         });
 
-        // 2. تسجيل حركة الشراء/التصحيح
+        // 2. تسجيل حركة التصحيح
         batch.set(doc(logCollection), {
           material_id: materialId,
           material_name: material.name_ar,
-          change_quantity: changeQuantity, // حفظ القيمة المدخلة كما هي
-          change_value: changeValue, // حفظ القيمة المدخلة كما هي
+          change_quantity: changeQuantity,
+          change_value: changeValue,
           operation_type: operationType,
           order_id: null, // لا يوجد طلب هنا
           date: new Date().toISOString(),
@@ -929,10 +907,10 @@
         try {
           await batch.commit();
 
-          closeModal("stock-modal");
+          closeModal("adjustment-modal");
           fetchAndRenderRawMaterials();
           alert(
-            ` تم تسجيل العملية بنجاح. الكمية الجديدة: ${newTotalStock.toFixed(
+            ` تم تسجيل التسوية بنجاح. الكمية الجديدة: ${newTotalStock.toFixed(
               2
             )}. متوسط التكلفة الجديدة: ${newAverageCostPerUnit.toFixed(
               2

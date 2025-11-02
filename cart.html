@@ -11,65 +11,60 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <style>
+      /* 💡 (معدل) تنسيق نافذة تأكيد الطلب لتطابق الهوية الجديدة */
       #order-confirm-modal .modal-content {
-        max-width: 550px;
+        max-width: 500px;
         text-align: center;
-        padding: 50px 30px;
-        background: linear-gradient(
-          135deg,
-          var(--white-color) 0%,
-          #fefcfb 100%
-        );
-        border: 2px solid var(--primary-color);
+        padding: 40px 30px;
+        flex-direction: column;
       }
       #order-confirm-modal h2 {
-        font-size: 2.5rem;
-        color: var(--primary-color);
-        margin-bottom: 1.5rem;
-        position: relative;
-      }
-      #order-confirm-modal h2::after {
-        content: "✔";
-        display: block;
-        font-size: 3.5rem;
-        color: var(--primary-color);
-        margin-top: -1rem;
+        font-size: 2rem;
+        color: var(--dark-color);
         margin-bottom: 1rem;
+      }
+      #order-confirm-modal .confirm-icon {
+        font-size: 4rem;
+        color: var(--success-color);
+        margin-bottom: 1.5rem;
         line-height: 1;
       }
       #order-confirm-modal p {
-        font-size: 1.2rem;
-        color: var(--dark-color);
+        font-size: 1.1rem;
+        color: #555;
         margin-bottom: 1.5rem;
-        line-height: 1.6;
+        line-height: 1.7;
       }
-      /* إخفاء عرض رمز التتبع لعدم الحاجة إليه */
       #order-confirm-modal .tracking-id-display {
         display: none;
       }
       #order-confirm-modal .modal-close {
         color: #aaa;
-        top: 20px;
-        right: 20px;
-        font-size: 2rem;
-        transition: color 0.2s;
-      }
-      #order-confirm-modal .modal-close:hover {
-        color: var(--dark-color);
+        top: 15px;
+        right: 15px;
+        font-size: 2.5rem;
       }
       .modal-content .modal-close {
         z-index: 10;
       }
-      .modal-body {
-        display: block;
-        text-align: right;
+      /* 💡 (معدل) إصلاح تمرير نافذة إتمام الشراء */
+      #checkout-modal .modal-content {
+        max-width: 550px;
       }
-      .cart-item-color {
-        font-size: 0.9rem;
-        color: #777;
-        margin-top: -5px;
-        margin-bottom: 5px;
+      #checkout-modal .modal-body {
+        padding: 20px 30px;
+        overflow-y: auto; /* 💡 (هذا هو الإصلاح الرئيسي) */
+      }
+      /* 💡 (جديد) نمط الإيميل للقراءة فقط */
+      #email[readonly] {
+        background-color: #f0f0f0;
+        color: #555;
+        cursor: not-allowed;
       }
     </style>
   </head>
@@ -79,31 +74,57 @@
         <a href="index.html" class="logo">منجرة</a>
         <div class="nav-items">
           <ul class="desktop-nav">
-            <li><a href="index.html" class="nav-link">العودة للمتجر</a></li>
+            <li>
+              <a href="index.html" class="nav-link">الرئيسية</a>
+            </li>
+            <li>
+              <a href="products.html" class="nav-link">منتجاتنا</a>
+            </li>
             <li><a href="order-status.html" class="nav-link">حالة الطلب</a></li>
-            <li><a href="recommendation.html" class="nav-link">المساعد</a></li>
+            <li>
+              <a href="recommendation.html" class="nav-link">النجار الذكي</a>
+            </li>
             <li><a href="design.html" class="nav-link">صمم منتجك</a></li>
           </ul>
-          <a href="cart.html" class="cart-icon-wrapper">
-            <svg
-              id="cart-icon"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.658-.463 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-              />
-            </svg>
-            <span id="cart-count-badge">0</span>
-          </a>
+
+          <div class="auth-nav">
+            <a href="cart.html" class="cart-icon-wrapper">
+              <i class="fa-solid fa-bag-shopping" id="cart-icon"></i>
+              <span id="cart-count-badge">0</span>
+            </a>
+            <div class="profile-dropdown" id="profile-dropdown">
+              <div class="profile-icon">
+                <i class="fa-solid fa-user"></i>
+              </div>
+              <div class="dropdown-menu">
+                <div class="dropdown-header">
+                  <span id="user-display-name">مرحباً بك</span>
+                  <p id="user-email">زائر</p>
+                </div>
+                <a href="login.html" id="auth-link">تسجيل الدخول</a>
+                <a href="#" id="logout-link" style="display: none"
+                  >تسجيل الخروج</a
+                >
+              </div>
+            </div>
+          </div>
+
+          <button class="menu-toggle" id="menu-toggle">
+            <div class="hamburger-icon">
+              <span></span><span></span><span></span>
+            </div>
+          </button>
         </div>
       </nav>
     </header>
+
+    <div class="mobile-menu" id="mobile-menu">
+      <a href="index.html" class="nav-link">الرئيسية</a>
+      <a href="products.html" class="nav-link">منتجاتنا</a>
+      <a href="order-status.html" class="nav-link">حالة الطلب</a>
+      <a href="recommendation.html" class="nav-link">النجار الذكي</a>
+      <a href="design.html" class="nav-link">صمم منتجك</a>
+    </div>
 
     <main>
       <section class="section container">
@@ -134,7 +155,7 @@
         <div class="modal-body">
           <div class="checkout-form-container">
             <h2>إتمام الشراء</h2>
-            <p>الرجاء إدخال بياناتك لإكمال الطلب. سيتم تأكيد طلبك لاحقًا.</p>
+            <p>الرجاء إدخال بياناتك لإكمال الطلب. سيتم تأكيد طلبك ومراجعته.</p>
             <form id="checkout-form">
               <div class="form-group">
                 <label for="name">الاسم الكامل</label
@@ -151,28 +172,42 @@
                   required
                 />
               </div>
+
               <div class="form-group">
-                <label for="email">البريد الإلكتروني</label>
-                <input type="email" id="email" name="email" required />
+                <label for="email">البريد الإلكتروني (إيميل الحساب)</label>
+                <input type="email" id="email" name="email" required readonly />
               </div>
 
               <div class="form-group">
-                <label for="city"
-                  >المدينة
-                  <span style="font-weight: normal"
-                    >(يتم إدخال العنوان التفصيلي في الملاحظات)</span
-                  ></label
-                >
+                <label for="city">المدينة</label>
                 <select id="city" name="city" required>
                   <option value="">-- اختر المدينة --</option>
                 </select>
               </div>
 
               <div class="form-group">
-                <label for="notes"
-                  >ملاحظات إضافية (اسم الحي، الشارع، القرب من معلم معين)</label
+                <label for="street-address"
+                  >العنوان التفصيلي (الحي، الشارع، رقم البناية)<span
+                    class="required-field"
+                    >*</span
+                  ></label
                 >
-                <textarea id="notes" name="notes" rows="3"></textarea>
+                <input
+                  type="text"
+                  id="street-address"
+                  name="street-address"
+                  required
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="notes">ملاحظات إضافية (اختياري)</label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  rows="2"
+                  placeholder="مثال: اترك الطلب عند الباب، يرجى الاتصال قبل الوصول..."
+                ></textarea>
               </div>
 
               <button
@@ -191,15 +226,48 @@
     <div id="order-confirm-modal" class="modal-overlay">
       <div class="modal-content">
         <span class="modal-close" data-modal="order-confirm">&times;</span>
+        <div class="confirm-icon">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
         <h2>شكراً لك!</h2>
         <p>تم استلام طلبك بنجاح. سنقوم بمعالجته في أقرب وقت ممكن.</p>
         <p style="margin-top: 1rem; font-size: 0.9rem; color: #888">
-          تم إرسال ملخص الطلب إلى بريدك الإلكتروني. يمكنك متابعة حالة طلبك من
-          خلال صفحة
-          <a href="order-status.html">حالة الطلب</a> في أي وقت.
+          يمكنك متابعة حالة طلبك من خلال صفحة
+          <a
+            href="order-status.html"
+            style="color: var(--primary-color); font-weight: 600"
+            >حالة الطلب</a
+          >
+          في أي وقت.
         </p>
       </div>
     </div>
+
+    <footer>
+      <div class="container footer-content">
+        <div class="footer-col">
+          <a href="index.html" class="footer-logo">منجرة</a>
+          <p>نصنع أثاثاً يروي قصة، مصمم ليبعث الدفء والأناقة في أرجاء منزلك.</p>
+        </div>
+        <div class="footer-col">
+          <h4>روابط سريعة</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">الرئيسية</a></li>
+            <li><a href="products.html">منتجاتنا</a></li>
+            <li><a href="design.html">صمم منتجك</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>خدمة العملاء</h4>
+          <ul class="footer-links">
+            <li><a href="order-status.html">تتبع طلبك</a></li>
+            <li><a href="recommendation.html">النجار الذكي</a></li>
+            <li><a href="#">تواصل معنا</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="copyright">&copy; 2025 جميع الحقوق محفوظة.</div>
+    </footer>
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
@@ -215,6 +283,7 @@
       import {
         getAuth,
         onAuthStateChanged,
+        signOut,
       } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 
       const FORMSPREE_ENDPOINT = "https://formspree.io/f/movkowpy";
@@ -233,7 +302,12 @@
       const auth = getAuth(app);
       let cart = [];
 
-      // قائمة المدن الفلسطينية (الضفة الغربية)
+      // عناصر الواجهة للقائمة المنسدلة
+      const userDisplayName = document.getElementById("user-display-name");
+      const userEmailDisplay = document.getElementById("user-email");
+      const authLink = document.getElementById("auth-link");
+      const logoutLink = document.getElementById("logout-link");
+
       const palestinianCities = [
         "القدس",
         "رام الله والبيرة",
@@ -295,19 +369,16 @@
         const cartContainer = document.getElementById("cart-container");
         updateCartBadge();
         if (!cart || cart.length === 0) {
-          cartContainer.innerHTML = `<div class="cart-empty-msg"><h2>سلتك فارغة!</h2><p>لم تقم بإضافة أي منتجات بعد.</p><a href="index.html" class="btn back-to-shop">العودة للمتجر</a></div>`;
+          cartContainer.innerHTML = `<div class="cart-empty-msg"><h2>سلتك فارغة!</h2><p>لم تقم بإضافة أي منتجات بعد.</p><a href="products.html" class="btn back-to-shop">العودة للمتجر</a></div>`;
           return;
         }
         cartItemsList.innerHTML = "";
         let subtotal = 0;
         cart.forEach((item, index) => {
-          // تأكد من أن السعر رقم قبل الحساب
           const itemPrice = parseFloat(item.price);
           subtotal += itemPrice * item.quantity;
-
           const itemEl = document.createElement("div");
           itemEl.className = "cart-item";
-
           let itemImage = `https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80`;
           let itemDetails = `<h4>${item.name}</h4>`;
           let priceDisplay = `<p class="cart-item-price">${itemPrice.toFixed(
@@ -329,9 +400,9 @@
               ? `<p class="cart-item-color">اللون: ${item.color}</p>`
               : "";
             priceDisplay = item.originalPrice
-              ? `<div><p class="cart-item-price old-price">${
+              ? `<div><p class="cart-item-price" style="text-decoration: line-through; color: #999;">${
                   item.originalPrice
-                } شيكل</p><p class="cart-item-price new-price">${itemPrice.toFixed(
+                } شيكل</p><p class="cart-item-price" style="color: var(--success-color);">${itemPrice.toFixed(
                   0
                 )} شيكل</p></div>`
               : `<p class="cart-item-price">${itemPrice.toFixed(0)} شيكل</p>`;
@@ -366,26 +437,19 @@
         }
       }
 
-      // ------------------------------------------------
-      // 💡 دالة إرسال تأكيد الطلب باستخدام Formspree
-      // ------------------------------------------------
       async function sendOrderConfirmationEmail(
         customerData,
         readyItems,
         customItems
       ) {
         if (!customerData.email) return;
-
         const totalReady = readyItems
           .reduce(
             (sum, item) => sum + parseFloat(item.price) * item.quantity,
             0
           )
           .toFixed(0);
-
         let itemsList = "";
-
-        // تجميع تفاصيل المنتجات الجاهزة
         if (readyItems.length > 0) {
           itemsList += "### المنتجات الجاهزة:\n";
           readyItems.forEach((item) => {
@@ -399,8 +463,6 @@
             }\n`;
           });
         }
-
-        // تجميع تفاصيل الطلبات المخصصة
         if (customItems.length > 0) {
           itemsList += "\n### طلبات التصميم المخصص:\n";
           itemsList +=
@@ -411,19 +473,14 @@
             }\n`;
           });
         }
-
         const finalTotalDisplay =
           customItems.length > 0
             ? "سيتم تحديده لاحقاً (بانتظار تسعيرة المخصص)"
             : `${totalReady} شيكل`;
-
         const emailData = {
-          // ⚠️ يتم استخدام هذا الحقل كـ (Reply-To) ليتمكن الأدمن من الرد على العميل مباشرةً
           _replyto: customerData.email,
-          // ⚠️ البريد الإلكتروني للعميل ليكون واضحاً في السجل
           البريد_الإلكتروني_للعميل: customerData.email,
-          _subject: `✅ طلبك رقم ${customerData.order_uid} (تأكيد من العميل)`, // موضوع خاص بالعميل
-
+          _subject: `✅ طلبك رقم ${customerData.order_uid} (تأكيد من العميل)`,
           الاسم_الكامل: customerData.name,
           رقم_الهاتف: customerData.phone,
           العنوان_الكامل: customerData.address,
@@ -431,7 +488,6 @@
           __الإجمالي_النهائي__: finalTotalDisplay,
           __تفاصيل_الطلبات__: itemsList,
         };
-
         try {
           const response = await fetch(FORMSPREE_ENDPOINT, {
             method: "POST",
@@ -440,7 +496,6 @@
             },
             body: JSON.stringify(emailData),
           });
-
           if (response.ok) {
             console.log("Order confirmation sent via Formspree successfully.");
           } else {
@@ -458,6 +513,33 @@
         updateCartUI();
         fillCityDropdown();
 
+        // 💡 (جديد) منطق القائمة المنسدلة
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            let userName = "مستخدم";
+            if (userDocSnap.exists()) {
+              userName = userDocSnap.data().name || userName;
+            }
+            userDisplayName.textContent = "مرحباً " + userName;
+            userEmailDisplay.textContent = user.email;
+            authLink.style.display = "none";
+            logoutLink.style.display = "block";
+            logoutLink.onclick = async (e) => {
+              e.preventDefault();
+              await signOut(auth);
+              window.location.href = "index.html";
+            };
+          } else {
+            userDisplayName.textContent = "مرحباً بك";
+            userEmailDisplay.textContent = "زائر";
+            authLink.style.display = "block";
+            logoutLink.style.display = "none";
+          }
+        });
+
+        // (بقية المنطق كما هو)
         const checkoutBtn = document.querySelector(".checkout-btn");
         const checkoutModal = document.getElementById("checkout-modal");
         const orderConfirmModal = document.getElementById(
@@ -491,30 +573,35 @@
               if (user) {
                 const userDocRef = doc(db, "users", user.uid);
                 const userDocSnap = await getDoc(userDocRef);
+                const emailInput = document.getElementById("email"); // 💡 (جديد)
+
+                // 💡 (إصلاح الإيميل) تعبئة إيميل الحساب وجعله للقراءة فقط
+                emailInput.value = user.email;
+
                 if (userDocSnap.exists()) {
                   const userData = userDocSnap.data();
-                  // ⚠️ تعبئة حقل الإيميل ببريد المستخدم المسجل
-                  const userEmail = userData.email || user.email || "";
-
                   document.getElementById("name").value = userData.name || "";
                   document.getElementById("phone").value = userData.phone || "";
-                  document.getElementById("email").value = userEmail; // ⚠️ التعبئة التلقائية
 
-                  // محاولة تعبئة المدينة من بيانات العنوان المخزنة
+                  // 💡 (معدل) منطق تعبئة العنوان التفصيلي
                   const userAddress = userData.address || "";
                   const cityMatch = palestinianCities.find((c) =>
-                    userAddress.includes(c)
+                    userAddress.startsWith(c)
                   );
                   if (cityMatch) {
                     document.getElementById("city").value = cityMatch;
-                    // وضع بقية العنوان في الملاحظات
-                    document.getElementById("notes").value = userAddress
+                    const streetOnly = userAddress
                       .replace(cityMatch, "")
                       .replace(",", "")
                       .trim();
+                    document.getElementById("street-address").value =
+                      streetOnly;
                   } else {
-                    document.getElementById("notes").value = userAddress;
+                    document.getElementById("street-address").value =
+                      userAddress;
                   }
+                  // 💡 (جديد) تعبئة الملاحظات
+                  document.getElementById("notes").value = userData.notes || "";
                 }
                 checkoutModal.classList.add("active");
                 document.body.classList.add("scroll-lock");
@@ -534,11 +621,8 @@
 
         checkoutForm.addEventListener("submit", async (e) => {
           e.preventDefault();
-
           const phoneInput = document.getElementById("phone");
           const emailInput = document.getElementById("email");
-
-          // التحقق النهائي من نمط رقم الهاتف الفلسطيني
           const phonePattern = /^(05[69][0-9]{7})$/;
           if (!phonePattern.test(phoneInput.value)) {
             alert(
@@ -546,7 +630,7 @@
             );
             return;
           }
-          // التحقق من الإيميل (إلزامي الآن)
+          // 💡 (الإيميل مضمون الآن لأنه readonly)
           if (!emailInput.value) {
             alert("الرجاء إدخال البريد الإلكتروني.");
             return;
@@ -555,17 +639,17 @@
           onAuthStateChanged(auth, async (user) => {
             if (user) {
               const selectedCity = document.getElementById("city").value;
+              const streetAddress =
+                document.getElementById("street-address").value;
               const notes = document.getElementById("notes").value;
-              const fullAddress = `${selectedCity}, ${notes}`
-                .replace(", ,", ",")
-                .trim();
+              const fullAddress = `${selectedCity}, ${streetAddress}`;
 
               const customerData = {
                 customer_uid: user.uid,
-                order_uid: "ORD-" + Date.now(), // ⚠️ إضافة رقم طلب وهمي لرسالة الإيميل
+                order_uid: "ORD-" + Date.now(),
                 name: document.getElementById("name").value,
                 phone: phoneInput.value,
-                email: emailInput.value, // استخدام القيمة المدخلة/المعبأة تلقائيًا
+                email: emailInput.value, // 💡 (معدل) القيمة هي إيميل الحساب الآن
                 address: fullAddress,
                 city: selectedCity,
                 notes: notes,
@@ -574,14 +658,15 @@
               };
 
               try {
-                // 1. تحديث بيانات المستخدم في Firestore
+                // 💡 (معدل) تحديث بيانات المستخدم مع الحقول الجديدة
                 const userDocRef = doc(db, "users", user.uid);
                 await updateDoc(userDocRef, {
                   name: customerData.name,
                   phone: customerData.phone,
                   address: customerData.address,
                   city: customerData.city,
-                  email: customerData.email, // حفظ الإيميل في وثيقة المستخدم
+                  // 💡 لا نحدث الإيميل هنا لأنه ثابت
+                  notes: customerData.notes,
                 });
 
                 const batch = writeBatch(db);
@@ -618,22 +703,15 @@
                   });
                 }
 
-                // 2. تنفيذ الحفظ
                 await batch.commit();
-
-                // 3. 💡 إرسال الإيميل عبر Formspree
                 sendOrderConfirmationEmail(
                   customerData,
                   readyItems,
                   customItems
                 );
-
                 closeModal("checkout-modal");
-
-                // 4. عرض المودال النهائي وتفريغ السلة
                 orderConfirmModal.classList.add("active");
                 document.body.classList.add("scroll-lock");
-
                 cart = [];
                 saveCart();
                 updateCartUI();
@@ -645,6 +723,15 @@
               alert("يرجى تسجيل الدخول قبل إرسال الطلب.");
             }
           });
+        });
+
+        // (منطق القائمة الجانبية للموبايل كما هو)
+        const menuToggle = document.getElementById("menu-toggle");
+        const mobileMenu = document.getElementById("mobile-menu");
+        const body = document.body;
+        menuToggle.addEventListener("click", () => {
+          mobileMenu.classList.toggle("active");
+          body.classList.toggle("scroll-lock");
         });
       });
     </script>

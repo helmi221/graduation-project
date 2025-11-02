@@ -16,135 +16,30 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
     <style>
-      .design-page-section {
-        max-width: 900px;
-        margin: 5rem auto;
-        padding: 40px;
-        background-color: var(--white-color);
-        border-radius: var(--border-radius);
-        box-shadow: var(--shadow);
-        text-align: right;
-      }
-      .design-form {
-        margin-top: 2rem;
-      }
-      .design-form .form-group {
-        margin-bottom: 1.5rem;
-      }
-      .design-form .form-group label {
-        display: block;
-        font-weight: 700;
-        margin-bottom: 0.75rem;
-        font-size: 1.1rem;
-      }
-      .design-form .form-group input,
-      .design-form .form-group select,
-      .design-form .form-group textarea {
+      .loading-bar-container {
+        display: none;
         width: 100%;
-        padding: 12px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        font-size: 1rem;
-        font-family: "Cairo", sans-serif;
-        transition: border-color 0.2s, box-shadow 0.2s;
+        background-color: #eee;
+        border-radius: 4px;
+        margin-top: 20px;
       }
-      .design-form .form-group input:focus,
-      .design-form .form-group select:focus,
-      .design-form .form-group textarea:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(121, 85, 72, 0.2);
+      .loading-bar {
+        width: 0%;
+        height: 10px;
+        background-color: var(--primary-color);
+        border-radius: 4px;
+        animation: loading-anim 2s infinite linear;
       }
-      .design-form .btn {
-        display: block;
-        width: 100%;
-        margin-top: 2.5rem;
-      }
-      .required-field {
-        color: var(--danger-color);
-        margin-right: 5px;
-      }
-      .loading-msg {
-        text-align: center;
-        font-size: 1.1rem;
-        color: #999;
-        padding: 40px;
-      }
-      .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-      }
-      @media (max-width: 600px) {
-        .form-row {
-          grid-template-columns: 1fr;
+      @keyframes loading-anim {
+        0% {
+          width: 0%;
         }
-      }
-      .design-result-section.show {
-        display: block;
-      }
-
-      /* 💡 أنماط عرض المعاينة */
-      #material-preview-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin-bottom: 2rem;
-        padding-top: 15px;
-      }
-      .preview-card {
-        text-align: center;
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
-        padding: 15px;
-        background-color: var(--light-color);
-      }
-      .preview-box {
-        height: 120px;
-        border-radius: 8px;
-        margin-top: 10px;
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        transition: background-image 0.5s;
-        border: 1px solid #ddd;
-      }
-      .preview-card p {
-        font-weight: 600;
-        color: var(--primary-color);
-        margin-top: 10px;
-      }
-      /* 💡 أنماط الإضافات */
-      #addons-list {
-        list-style: none;
-        padding: 0;
-        margin-top: 10px;
-        border: 1px solid #eee;
-        border-radius: 8px;
-        max-height: 150px;
-        overflow-y: auto;
-      }
-      #addons-list li {
-        padding: 8px 15px;
-        border-bottom: 1px solid #eee;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 0.95rem;
-      }
-      #addons-list li:last-child {
-        border-bottom: none;
-      }
-
-      /* 💡 نمط الخيارات غير المتوفرة أو المنخفضة */
-      #material-select option[disabled] {
-        color: #aaa;
-        background-color: #f7f7f7;
-      }
-      /* 💡 نمط خاص للمخزون المنخفض */
-      #material-select .low-stock-option {
-        color: #f39c12; /* لون تحذيري (أصفر/برتقالي) */
-        font-weight: bold;
+        50% {
+          width: 100%;
+        }
+        100% {
+          width: 0%;
+        }
       }
     </style>
   </head>
@@ -158,35 +53,39 @@
               <a href="index.html" class="nav-link">الرئيسية</a>
             </li>
             <li>
-              <a href="index.html#products-page" class="nav-link">منتجاتنا</a>
+              <a href="products.html" class="nav-link">منتجاتنا</a>
             </li>
+            <li><a href="order-status.html" class="nav-link">حالة الطلب</a></li>
             <li>
-              <a href="order-status.html" class="nav-link">حالة الطلب</a>
-            </li>
-            <li>
-              <a href="recommendation.html" class="nav-link">المساعد</a>
+              <a href="recommendation.html" class="nav-link">النجار الذكي</a>
             </li>
             <li>
               <a href="design.html" class="nav-link active">صمم منتجك</a>
             </li>
           </ul>
-          <a href="cart.html" class="cart-icon-wrapper">
-            <svg
-              id="cart-icon"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="1.5"
-              stroke="currentColor"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.658-.463 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"
-              />
-            </svg>
-            <span id="cart-count-badge">0</span>
-          </a>
+
+          <div class="auth-nav">
+            <a href="cart.html" class="cart-icon-wrapper">
+              <i class="fa-solid fa-bag-shopping" id="cart-icon"></i>
+              <span id="cart-count-badge">0</span>
+            </a>
+            <div class="profile-dropdown" id="profile-dropdown">
+              <div class="profile-icon">
+                <i class="fa-solid fa-user"></i>
+              </div>
+              <div class="dropdown-menu">
+                <div class="dropdown-header">
+                  <span id="user-display-name">مرحباً بك</span>
+                  <p id="user-email">زائر</p>
+                </div>
+                <a href="login.html" id="auth-link">تسجيل الدخول</a>
+                <a href="#" id="logout-link" style="display: none"
+                  >تسجيل الخروج</a
+                >
+              </div>
+            </div>
+          </div>
+
           <button class="menu-toggle" id="menu-toggle">
             <div class="hamburger-icon">
               <span></span><span></span><span></span>
@@ -198,18 +97,18 @@
 
     <div class="mobile-menu" id="mobile-menu">
       <a href="index.html" class="nav-link">الرئيسية</a>
-      <a href="index.html#products-page" class="nav-link">منتجاتنا</a>
+      <a href="products.html" class="nav-link">منتجاتنا</a>
       <a href="order-status.html" class="nav-link">حالة الطلب</a>
-      <a href="recommendation.html" class="nav-link">المساعد</a>
+      <a href="recommendation.html" class="nav-link">النجار الذكي</a>
       <a href="design.html" class="nav-link">صمم منتجك</a>
     </div>
 
     <main>
       <section class="section container design-page-section">
-        <div class="section-title-wrapper">
+        <div class="section-title-wrapper" style="margin-bottom: 1rem">
           <h2>صمم منتجك الخاص</h2>
         </div>
-        <p style="text-align: center; color: #777">
+        <p style="text-align: center; color: #777; margin-bottom: 1.5rem">
           صف لنا فكرتك في خطوات بسيطة وسنقوم بتحويلها إلى تصميم مقترح.
         </p>
 
@@ -248,14 +147,7 @@
                   ><span class="required-field">*</span> مكان وضع المنتج</label
                 >
                 <select id="room-placement" name="room-placement" required>
-                  <option value="">-- اختر المكان --</option>
-                  <option value="غرفة المعيشة">غرفة المعيشة</option>
-                  <option value="غرفة الطعام">غرفة الطعام</option>
-                  <option value="غرفة النوم">غرفة النوم</option>
-                  <option value="المطبخ">المطبخ</option>
-                  <option value="المكتب">المكتب</option>
-                  <option value="غرفة الأطفال">غرفة الأطفال</option>
-                  <option value="خارجي">خارجي</option>
+                  <option value="">-- اختر نوع المنتج أولاً --</option>
                 </select>
               </div>
             </div>
@@ -321,6 +213,10 @@
                   type="button"
                   class="btn btn-secondary btn-sm"
                   id="add-addon-btn"
+                  style="
+                    background: var(--accent-color);
+                    color: var(--dark-color);
+                  "
                 >
                   <i class="fa-solid fa-plus"></i> إضافة
                 </button>
@@ -357,7 +253,14 @@
 
         <div id="processing-message" class="loading-bar-container">
           <div class="loading-bar"></div>
-          <p style="text-align: center; font-weight: bold; padding-top: 5px">
+          <p
+            style="
+              text-align: center;
+              font-weight: bold;
+              padding-top: 5px;
+              color: var(--dark-color);
+            "
+          >
             جارٍ معالجة طلبك...
           </p>
         </div>
@@ -373,11 +276,7 @@
             <button class="btn" id="submit-design-btn">
               <i class="fa-solid fa-cart-plus"></i> أضف إلى السلة للمراجعة
             </button>
-            <button
-              class="btn"
-              id="regenerate-design-btn"
-              style="background-color: var(--accent-color)"
-            >
+            <button class="btn btn-secondary" id="regenerate-design-btn">
               اقتراح آخر
             </button>
           </div>
@@ -401,6 +300,9 @@
     <div id="design-confirm-modal" class="modal-overlay">
       <div class="modal-content">
         <span class="modal-close" data-modal="design-confirm">&times;</span>
+        <div class="confirm-icon">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
         <h2>شكراً لك!</h2>
         <p>
           تم استلام طلبك للتصميم المخصص بنجاح. سنقوم بمراجعته والرد عليك خلال
@@ -414,12 +316,13 @@
         </p>
       </div>
     </div>
+
     <div id="toast-notification" class="toast"></div>
 
     <div id="design-checkout-modal" class="modal-overlay">
-      <div class="modal-content">
+      <div class="modal-content" style="max-width: 550px">
         <span class="modal-close" data-modal="design-checkout">&times;</span>
-        <div class="modal-body">
+        <div class="modal-body" style="padding: 20px 30px">
           <div class="checkout-form-container">
             <h2>إرسال طلب التصميم</h2>
             <p>
@@ -428,19 +331,19 @@
             </p>
             <form id="design-checkout-form">
               <div class="form-group">
-                <label for="name">الاسم الكامل</label>
+                <label for="design-name">الاسم الكامل</label>
                 <input type="text" id="design-name" name="name" required />
               </div>
               <div class="form-group">
-                <label for="phone">رقم الهاتف</label>
+                <label for="design-phone">رقم الهاتف</label>
                 <input type="tel" id="design-phone" name="phone" required />
               </div>
               <div class="form-group">
-                <label for="email">البريد الإلكتروني (اختياري)</label>
+                <label for="design-email">البريد الإلكتروني (اختياري)</label>
                 <input type="email" id="design-email" name="email" />
               </div>
               <div class="form-group">
-                <label for="address">العنوان</label>
+                <label for="design-address">العنوان</label>
                 <textarea
                   id="design-address"
                   name="address"
@@ -457,6 +360,32 @@
       </div>
     </div>
 
+    <footer>
+      <div class="container footer-content">
+        <div class="footer-col">
+          <a href="index.html" class="footer-logo">منجرة</a>
+          <p>نصنع أثاثاً يروي قصة، مصمم ليبعث الدفء والأناقة في أرجاء منزلك.</p>
+        </div>
+        <div class="footer-col">
+          <h4>روابط سريعة</h4>
+          <ul class="footer-links">
+            <li><a href="index.html">الرئيسية</a></li>
+            <li><a href="products.html">منتجاتنا</a></li>
+            <li><a href="design.html">صمم منتجك</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>خدمة العملاء</h4>
+          <ul class="footer-links">
+            <li><a href="order-status.html">تتبع طلبك</a></li>
+            <li><a href="recommendation.html">النجار الذكي</a></li>
+            <li><a href="#">تواصل معنا</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="copyright">&copy; 2025 جميع الحقوق محفوظة.</div>
+    </footer>
+
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
       import {
@@ -472,9 +401,10 @@
       import {
         getAuth,
         onAuthStateChanged,
+        signOut,
       } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 
-      // ******* إعدادات Firebase و Gemini *******
+      // (إعدادات Firebase و Gemini كما هي)
       const firebaseConfig = {
         apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
         authDomain: "ecomers-dd329.firebaseapp.com",
@@ -492,14 +422,20 @@
       const genAI = new GoogleGenerativeAI(API_KEY);
       const textModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-      // متغيرات تخزين البيانات
+      // (متغيرات وعناصر الواجهة كما هي)
       let allProducts = [];
       let allRawMaterials = [];
       let currentUser = null;
       let currentDesign = null;
       let currentAddons = [];
 
-      // 💡 خريطة لربط الألوان العربية بأسماء ملفات الصور الإنجليزية في مجلد 'colers'
+      const userDisplayName = document.getElementById("user-display-name");
+      const userEmail = document.getElementById("user-email");
+      const authLink = document.getElementById("auth-link");
+      const logoutLink = document.getElementById("logout-link");
+      const menuToggle = document.getElementById("menu-toggle");
+      const mobileMenu = document.getElementById("mobile-menu");
+
       const colorFileMap = {
         أبيض: "white.png",
         أسود: "black.png",
@@ -511,8 +447,6 @@
         "أحمر ساطع": "red.png",
         "بني طبيعي": "normal.png",
       };
-
-      // 💡 خريطة لربط أنواع الأخشاب بمسارات صور التكستشر المحلية (wood/)
       const woodTextureMap = {
         "خشب زان": "wood/Beech Wood.jpg",
         "خشب بلوط": "wood/Oak Wood.webp",
@@ -521,7 +455,6 @@
         "خشب صنوبر": "wood/Pine Wood.webp",
         "خشب صور": "colers/braw.png",
       };
-
       const standardColors = [
         "أبيض",
         "أسود",
@@ -532,7 +465,6 @@
         "بني غامق",
         "أحمر ساطع",
       ];
-
       const productDimensions = {
         "طاولة سفرة": [
           "مقاس صغير (2-4 أشخاص)",
@@ -553,7 +485,29 @@
         آخر: ["مقاس صغير", "مقاس متوسط", "مقاس كبير"],
       };
 
-      // عناصر الواجهة
+      // 💡 (جديد) قائمة الأماكن الرئيسية
+      const allPlacements = [
+        "غرفة المعيشة",
+        "غرفة الطعام",
+        "غرفة النوم",
+        "المطبخ",
+        "المكتب",
+        "غرفة الأطفال",
+        "خارجي",
+      ];
+      // 💡 (جديد) خريطة ربط المنتج بالمكان
+      const productPlacementMap = {
+        "طاولة سفرة": ["غرفة الطعام", "غرفة المعيشة", "المطبخ"],
+        كرسي: allPlacements, // الكرسي يمكن أن يكون في أي مكان
+        "طقم كنب": ["غرفة المعيشة", "المكتب"],
+        "غرفة نوم": ["غرفة النوم"],
+        مطبخ: ["المطبخ"],
+        "طاولة وسط": ["غرفة المعيشة"],
+        خزانة: ["غرفة النوم", "غرفة المعيشة", "المكتب", "غرفة الأطفال"],
+        "طاولة تلفاز": ["غرفة المعيشة"],
+        آخر: allPlacements,
+      };
+
       const productTypeSelect = document.getElementById("product-type");
       const colorSelect = document.getElementById("color");
       const materialSelect = document.getElementById("material");
@@ -562,24 +516,17 @@
       const processMessage = document.getElementById("processing-message");
       const designResultSection = document.getElementById("design-result");
       const designForm = document.getElementById("design-form");
-
-      // 💡 عناصر المعاينة
       const previewMaterialBox = document.getElementById(
         "preview-material-box"
       );
       const previewColorBox = document.getElementById("preview-color-box");
       const materialLabel = document.getElementById("material-label");
       const colorLabel = document.getElementById("color-label");
-
-      // 💡 عناصر الإضافات
       const addonInput = document.getElementById("addon-input");
       const addAddonBtn = document.getElementById("add-addon-btn");
       const addonsList = document.getElementById("addons-list");
 
-      // ====================================================================
-      // 1. وظائف المساعدة العامة وتهيئة البيانات
-      // ====================================================================
-
+      // (بقية دوال الجافاسكربت كما هي)
       function showToast(message, isError = false) {
         toast.textContent = message;
         toast.className = `toast show ${isError ? "error" : "success"}`;
@@ -622,7 +569,7 @@
             ...doc.data(),
             cost_per_unit: parseFloat(doc.data().cost_per_unit || 0),
             current_stock: parseFloat(doc.data().current_stock || 0),
-            reorder_point: parseFloat(doc.data().reorder_point || 0), // 💡 جلب نقطة إعادة الطلب
+            reorder_point: parseFloat(doc.data().reorder_point || 0),
             type: doc.data().type || "أخرى",
             name_ar: doc.data().name_ar,
           }));
@@ -637,7 +584,6 @@
         }
       }
 
-      // 💡 دالة لملء القائمة المنسدلة للأخشاب مع التحقق من التوفر والمخزون المنخفض
       function fillMaterialsDropdown() {
         const woodMaterials = allRawMaterials.filter((m) => m.type === "خشب");
         let materialOptions = '<option value="">-- اختر مادة --</option>';
@@ -655,23 +601,19 @@
             disabledAttr = "disabled";
             availabilityText = " (نفذ المخزون)";
           } else if (isLowStock) {
-            // 💡 المخزون منخفض: يتم تعطيله وإضافة كلاس للعرض بلون مختلف
             disabledAttr = "disabled";
             availabilityText = " (مخزون منخفض - يرجى الانتظار)";
             customClass = "low-stock-option";
           }
-          // إذا كان المخزون متوفراً (isAvailable = true): لا يوجد disabled
 
           materialOptions += `<option value="${m.name_ar}" ${disabledAttr} class="${customClass}">${m.name_ar}${availabilityText}</option>`;
         });
         materialSelect.innerHTML = materialOptions;
       }
 
+      // 💡 (معدل) دالة تعبئة القوائم المنسدلة
       function fillDropdowns() {
-        // 1. تعبئة الأخشاب مع التحقق من التوفر
         fillMaterialsDropdown();
-
-        // 2. تعبئة الألوان (محدثة)
         let colorOptions = `<option value="">-- اختر لون --</option>`;
         colorOptions += `<option value="بني طبيعي (ورنيش)">بني طبيعي (ورنيش/normal)</option>`;
         standardColors.forEach((color) => {
@@ -682,12 +624,15 @@
         });
         colorSelect.innerHTML = colorOptions;
 
-        // 3. ربط الأحداث
+        // ربط الأحداث
         productTypeSelect.addEventListener("change", updateDimensionsOptions);
+        productTypeSelect.addEventListener("change", updatePlacementOptions); // 💡 (جديد) ربط دالة الأماكن
         materialSelect.addEventListener("change", updateMaterialPreview);
         colorSelect.addEventListener("change", updateMaterialPreview);
 
+        // تحديث الحالة الأولية
         updateDimensionsOptions();
+        updatePlacementOptions(); // 💡 (جديد) استدعاء دالة الأماكن
         updateMaterialPreview();
       }
 
@@ -697,18 +642,43 @@
           productDimensions[selectedType] || productDimensions["آخر"];
 
         let optionsHTML = `<option value="">-- اختر مقاساً تقريبياً --</option>`;
-        options.forEach((dim) => {
-          optionsHTML += `<option value="${dim}">${dim}</option>`;
-        });
+
+        if (selectedType === "") {
+          optionsHTML = `<option value="">-- اختر نوع المنتج أولاً --</option>`;
+          dimensionsSelect.disabled = true;
+        } else {
+          options.forEach((dim) => {
+            optionsHTML += `<option value="${dim}">${dim}</option>`;
+          });
+          dimensionsSelect.disabled = false;
+        }
         dimensionsSelect.innerHTML = optionsHTML;
       }
 
-      // 💡 وظيفة تحديث معاينة الصورة المحدثة والمُصححة
-      function updateMaterialPreview() {
-        const selectedMaterial = materialSelect.value.trim();
-        const selectedColorOption = colorSelect.value.split("(")[0].trim(); // جلب اسم اللون فقط
+      // 💡 (جديد) دالة تحديث أماكن المنتج
+      function updatePlacementOptions() {
+        const selectedType = productTypeSelect.value;
+        const placementSelect = document.getElementById("room-placement");
+        const options = productPlacementMap[selectedType] || allPlacements;
 
-        // 1. تحديث معاينة الخشب (التكستشر)
+        let optionsHTML = `<option value="">-- اختر المكان --</option>`;
+
+        if (selectedType === "") {
+          optionsHTML = `<option value="">-- اختر نوع المنتج أولاً --</option>`;
+          placementSelect.disabled = true;
+        } else {
+          options.forEach((placement) => {
+            optionsHTML += `<option value="${placement}">${placement}</option>`;
+          });
+          placementSelect.disabled = false;
+        }
+        placementSelect.innerHTML = optionsHTML;
+      }
+
+      function updateMaterialPreview() {
+        // (الدالة كما هي - لم تتغير)
+        const selectedMaterial = materialSelect.value.trim();
+        const selectedColorOption = colorSelect.value.split("(")[0].trim();
         const woodTexturePath = woodTextureMap[selectedMaterial];
 
         if (woodTexturePath) {
@@ -716,31 +686,26 @@
           previewMaterialBox.style.backgroundColor = "transparent";
           materialLabel.textContent = `الخشب: ${selectedMaterial}`;
         } else if (selectedMaterial) {
-          // إذا لم نجد المسار في الخريطة، نستخدم صورة بـ 'colers/braw.png' كافتراضي
           previewMaterialBox.style.backgroundImage = `url('colers/braw.png')`;
           previewMaterialBox.style.backgroundColor = "transparent";
           materialLabel.textContent = `الخشب: ${selectedMaterial}`;
         } else {
-          // لا يوجد اختيار
           previewMaterialBox.style.backgroundImage = "none";
           previewMaterialBox.style.backgroundColor = "var(--light-color)";
           materialLabel.textContent = "الخشب: لم يُختر";
         }
 
-        // 2. تحديث معاينة اللون
         if (selectedColorOption) {
           const fileName = colorFileMap[selectedColorOption];
           if (fileName) {
             previewColorBox.style.backgroundImage = `url('colers/${fileName}')`;
             previewColorBox.style.backgroundColor = "transparent";
           } else {
-            // إذا لم نجد اسم الملف، نستخدم خلفية بيضاء
             previewColorBox.style.backgroundImage = "none";
             previewColorBox.style.backgroundColor = "var(--white-color)";
           }
           colorLabel.textContent = `اللون: ${selectedColorOption}`;
         } else {
-          // لا يوجد اختيار
           previewColorBox.style.backgroundImage = "none";
           previewColorBox.style.backgroundColor = "var(--white-color)";
           colorLabel.textContent = "اللون: لم يُختر";
@@ -753,6 +718,7 @@
         productType,
         addons
       ) {
+        // (الدالة كما هي - لم تتغير)
         let baseCost = 0;
         let woodVolumeFactor = 1;
         let paintVolumeFactor = 1;
@@ -768,7 +734,6 @@
           m.name_ar.includes("ورنيش")
         );
 
-        // تحديد معامل حجم الخشب التقريبي
         if (productType.includes("طاولة")) woodVolumeFactor = 0.75;
         else if (productType.includes("كنب")) woodVolumeFactor = 1.0;
         else if (productType.includes("خزانة")) woodVolumeFactor = 1.2;
@@ -780,7 +745,6 @@
           baseCost += 1500 * woodVolumeFactor;
         }
 
-        // تكلفة التشطيب
         if (color.includes("ورنيش") && varnishMaterial) {
           baseCost +=
             (varnishMaterial.cost_per_unit || 200) * paintVolumeFactor;
@@ -791,25 +755,20 @@
         }
 
         baseCost += accessoryCost;
-
-        // 💡 إضافة تكلفة تقديرية للإضافات
         baseCost += addons.length * 100;
-
         return Math.round(baseCost);
       }
 
       function addToCartAsCustom(design) {
+        // (الدالة كما هي - لم تتغير)
         let cart = loadCartAndUpdateBadge();
-
         const tempId = `CUSTOM-${Date.now()}`;
-
         const newItem = {
           id: tempId,
           name: design.title,
           price: design.price_value,
           quantity: 1,
           isCustom: true,
-          // حفظ جميع تفاصيل التصميم داخل حقل 'details'
           details: {
             type: design.type,
             dimensions: design.dimensions,
@@ -824,24 +783,19 @@
             title: design.title,
           },
         };
-
         cart.push(newItem);
         saveCart(cart);
         showToast(`✅ تمت إضافة التصميم (${design.title}) إلى السلة للمراجعة!`);
       }
 
-      // ====================================================================
-      // 2. منطق الإضافات (Add-ons)
-      // ====================================================================
-
       function renderAddonsList() {
+        // (الدالة كما هي - لم تتغير)
         addonsList.innerHTML = "";
         if (currentAddons.length === 0) {
           addonsList.innerHTML =
             '<li style="text-align: center; color: #777;">لا توجد إضافات بعد</li>';
           return;
         }
-
         currentAddons.forEach((addon, index) => {
           const li = document.createElement("li");
           li.innerHTML = `
@@ -852,7 +806,6 @@
               `;
           addonsList.appendChild(li);
         });
-
         document.querySelectorAll("#addons-list button").forEach((btn) => {
           btn.addEventListener("click", (e) => {
             const index = parseInt(e.currentTarget.dataset.index);
@@ -861,29 +814,27 @@
             updateNotesWithAddons();
           });
         });
-
         updateNotesWithAddons();
       }
 
       function updateNotesWithAddons() {
+        // (الدالة كما هي - لم تتغير)
         const notesTextarea = document.getElementById("notes");
         let currentNotes = notesTextarea.value.split("\n");
-
         currentNotes = currentNotes.filter(
           (line) => !line.startsWith("الإضافات المطلوبة:")
         );
-
         if (currentAddons.length > 0) {
           const addonsString = `الإضافات المطلوبة: ${currentAddons.join("، ")}`;
           currentNotes.push(addonsString);
         }
-
         notesTextarea.value = currentNotes
           .filter((line) => line.trim() !== "")
           .join("\n");
       }
 
       addAddonBtn.addEventListener("click", () => {
+        // (الدالة كما هي - لم تتغير)
         const addonText = addonInput.value.trim();
         if (addonText && currentAddons.length < 5) {
           currentAddons.push(addonText);
@@ -894,19 +845,13 @@
         }
       });
 
-      // ====================================================================
-      // 3. منطق توليد التصميم (Gemini Logic) - تم التعديل لنطاق السعر
-      // ====================================================================
-
       designForm.addEventListener("submit", async (e) => {
+        // 💡 (تم الإصلاح) الكود الخاص بإرسال الطلب للـ AI
         e.preventDefault();
-
-        // 💡 التحقق من أن الخشب المختار غير معطل (لضمان توفره)
         if (materialSelect.selectedOptions[0]?.disabled) {
           alert("لا يمكن إرسال طلب تصميم باستخدام مادة خام غير متوفرة حالياً.");
           return;
         }
-
         if (!designForm.checkValidity()) {
           showToast("الرجاء ملء جميع الحقول المطلوبة بشكل صحيح.", true);
           designForm.reportValidity();
@@ -939,7 +884,6 @@
         const filteredProducts = allProducts.filter(
           (p) => p.category === productType && p.is_available !== false
         );
-
         const productOptionsForAI = filteredProducts
           .map((p) => `- ${p.name} (Price: ${p.price} ISK)`)
           .join(", ");
@@ -969,7 +913,8 @@
 
         try {
           const textResult = await textModel.generateContent(promptText);
-          const textResponse = result.response.text();
+          // 💡 (هذا هو الإصلاح)
+          const textResponse = textResult.response.text();
 
           const titleMatch = textResponse.match(/العنوان:\s*(.*)/);
           const descriptionMatch = textResponse.match(/الوصف:\s*(.*)/);
@@ -1046,37 +991,54 @@
         }
       });
 
-      // ====================================================================
-      // 4. منطق الإرسال (إضافة للسلة)
-      // ====================================================================
-
       document
         .getElementById("submit-design-btn")
         .addEventListener("click", () => {
           if (!currentDesign) return;
-
           addToCartAsCustom(currentDesign);
           designResultSection.style.display = "none";
           designForm.reset();
           updateDimensionsOptions();
+          updatePlacementOptions(); // 💡 (جديد) إعادة تعيين قائمة الأماكن
           currentAddons = [];
           renderAddonsList();
           updateMaterialPreview();
         });
 
-      // ====================================================================
-      // 5. بدء التشغيل
-      // ====================================================================
+      // ====== بدء تنفيذ السكربت ======
       document.addEventListener("DOMContentLoaded", () => {
         loadCartAndUpdateBadge();
         initializeData();
 
-        onAuthStateChanged(auth, (user) => {
+        // 💡 (جديد) منطق القائمة المنسدلة
+        onAuthStateChanged(auth, async (user) => {
           currentUser = user;
+          if (user) {
+            const userDocRef = doc(db, "users", user.uid);
+            const userDocSnap = await getDoc(userDocRef);
+            let userName = "مستخدم";
+            if (userDocSnap.exists()) {
+              userName = userDocSnap.data().name || userName;
+            }
+            userDisplayName.textContent = "مرحباً " + userName;
+            userEmail.textContent = user.email;
+            authLink.style.display = "none";
+            logoutLink.style.display = "block";
+            logoutLink.onclick = async (e) => {
+              e.preventDefault();
+              await signOut(auth);
+              window.location.href = "index.html";
+            };
+          } else {
+            userDisplayName.textContent = "مرحباً بك";
+            userEmail.textContent = "زائر";
+            authLink.style.display = "block";
+            logoutLink.style.display = "none";
+          }
         });
 
         document
-          .gسetElementById("regenerate-design-btn")
+          .getElementById("regenerate-design-btn")
           .addEventListener("click", () => {
             designForm.dispatchEvent(
               new Event("submit", { cancelable: true, bubbles: true })
@@ -1084,6 +1046,12 @@
           });
 
         renderAddonsList();
+
+        // (منطق القائمة الجانبية للموبايل كما هو)
+        menuToggle.addEventListener("click", () => {
+          mobileMenu.classList.toggle("active");
+          document.body.classList.toggle("scroll-lock");
+        });
       });
     </script>
   </body>

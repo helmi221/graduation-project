@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>منجرة | الرئيسية</title>
+    <title>منجرة | منتجاتنا</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -23,10 +23,10 @@
         <div class="nav-items">
           <ul class="desktop-nav">
             <li>
-              <a href="index.html" class="nav-link active">الرئيسية</a>
+              <a href="index.html" class="nav-link">الرئيسية</a>
             </li>
             <li>
-              <a href="products.html" class="nav-link">منتجاتنا</a>
+              <a href="products.html" class="nav-link active">منتجاتنا</a>
             </li>
             <li><a href="order-status.html" class="nav-link">حالة الطلب</a></li>
             <li>
@@ -76,130 +76,30 @@
     </div>
 
     <main>
-      <section class="hero-section">
-        <div class="hero-background-image"></div>
-        <div class="container hero-content">
-          <h1>فن الخشب، في كل قطعة</h1>
-          <p>
-            نصنع أثاثاً يروي قصة، مصمم ليبعث الدفء والأناقة في أرجاء منزلك.
-            اكتشف قطعاً فريدة صُنعت لتدوم.
-          </p>
-          <a href="products.html" class="btn">تصفح أعمالنا الآن</a>
-        </div>
-      </section>
-
-      <section class="our-promise-section">
-        <div class="container promise-grid">
-          <div class="promise-card">
-            <i class="fa-solid fa-hammer"></i>
-            <h3>صناعة يدوية دقيقة</h3>
-            <p>كل قطعة تُصنع بعناية فائقة لضمان أعلى مستويات الجودة.</p>
-          </div>
-          <div class="promise-card">
-            <i class="fa-solid fa-tree"></i>
-            <h3>أجود الأخشاب الطبيعية</h3>
-            <p>نستخدم فقط الأخشاب الصلبة والمستدامة التي تعيش طويلاً.</p>
-          </div>
-          <div class="promise-card">
-            <i class="fa-solid fa-ruler-combined"></i>
-            <h3>تصميم مخصص حسب رؤيتك</h3>
-            <p>حوّل فكرتك إلى واقع ملموس مع خدمة التصميم حسب الطلب.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="container about-us-new">
-        <div class="about-us-new-text">
-          <div class="section-title-wrapper" style="margin-bottom: 2rem">
-            <h2 style="text-align: right; margin-bottom: 0">قصة حرفية وجودة</h2>
-          </div>
-          <p>
-            في منجرة، نؤمن بأن الأثاث ليس مجرد قطع خشبية، بل هو جزء من قصة
-            منزلك. نكرس شغفنا ومهارتنا اليدوية لصناعة قطع فريدة تعكس شخصيتك
-            وتضفي الدفء على مساحتك.
-          </p>
-          <p>
-            كل قطعة نصنعها مصممة لتدوم، وتجمع بين الجودة العالية والجمال الخالد.
-          </p>
-          <a href="design.html" class="btn btn-secondary">ابدأ تصميمك المخصص</a>
-        </div>
-        <div class="about-us-new-image">
-          <img
-            src="https://images.unsplash.com/photo-1595267256616-7d0e5a96096a?q=80&w=1770&auto=format&fit=crop"
-            alt="نجار يعمل في ورشة"
-          />
-        </div>
-      </section>
-
-      <section class="section container" style="padding-top: 40px">
+      <section class="section container">
         <div class="section-title-wrapper">
-          <h2>مختاراتنا</h2>
+          <h2>جميع منتجاتنا</h2>
         </div>
-        <div class="product-grid" id="featured-products-grid"></div>
-      </section>
-
-      <section class="testimonials-section">
-        <div class="container">
-          <div class="section-title-wrapper">
-            <h2>ماذا يقول عملاؤنا</h2>
-          </div>
-          <div class="testimonials-grid">
-            <div class="testimonial-card">
-              <i class="fa-solid fa-quote-right"></i>
-              <p>
-                "جودة لا تُعلى عليها. طلبت طاولة طعام وأبهرتني دقة التفاصيل
-                والمتانة. شكراً لكم!"
-              </p>
-              <h4>- محمد أحمد</h4>
-            </div>
-            <div class="testimonial-card">
-              <i class="fa-solid fa-quote-right"></i>
-              <p>
-                "كان لدي تصميم مخصص لغرفة نومي، وفريق المنجرة حوله إلى حقيقة
-                أجمل مما تخيلت. خدمة رائعة."
-              </p>
-              <h4>- سارة خليل</h4>
-            </div>
-            <div class="testimonial-card">
-              <i class="fa-solid fa-quote-right"></i>
-              <p>
-                "التعامل معكم كان مريحاً جداً. 'النجار الذكي' ساعدني في اختيار
-                القطعة المناسبة لميزانيتي."
-              </p>
-              <h4>- يوسف علي</h4>
-            </div>
-          </div>
+        <div class="filters">
+          <button class="filter-btn active" data-filter="all">الكل</button>
+          <button class="filter-btn" data-filter="طاولة سفرة">
+            طاولات سفرة
+          </button>
+          <button class="filter-btn" data-filter="كرسي">كراسي</button>
+          <button class="filter-btn" data-filter="طقم كنب">أطقم كنب</button>
+          <button class="filter-btn" data-filter="غرفة نوم">غرف نوم</button>
+          <button class="filter-btn" data-filter="مطبخ">أثاث مطبخ</button>
+          <button class="filter-btn" data-filter="طاولة وسط">طاولات وسط</button>
+          <button class="filter-btn" data-filter="خزانة">خزائن</button>
+          <button class="filter-btn" data-filter="طاولة تلفاز">
+            طاولات تلفاز
+          </button>
         </div>
-      </section>
-
-      <section
-        class="section container cta-section"
-        style="background: none; padding-bottom: 80px"
-      >
         <div
-          class="container"
-          style="
-            background-color: var(--dark-color);
-            color: var(--white-color);
-            padding: 60px 40px;
-            border-radius: var(--border-radius);
-            text-align: center;
-          "
-        >
-          <h2 style="color: var(--white-color)">صمم أثاثك الخاص!</h2>
-          <p
-            style="
-              color: #eee;
-              max-width: 600px;
-              margin: 0 auto 2rem auto;
-              opacity: 0.9;
-            "
-          >
-            هل لديك فكرة فريدة في ذهنك؟ دعنا نحولها إلى حقيقة. في منجرة، نقدم
-            خدمة التصميم المخصص لنصنع لك قطعة أثاث تناسب ذوقك واحتياجاتك تماماً.
-          </p>
-          <a href="design.html" class="btn">ابدأ الآن</a>
-        </div>
+          class="product-grid"
+          id="product-grid-container"
+          style="margin-top: 4rem"
+        ></div>
       </section>
     </main>
 
@@ -295,13 +195,14 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
-      // 💡 (معدل) عناصر الواجهة للقائمة المنسدلة
+      // (عناصر الواجهة كما هي)
       const userDisplayName = document.getElementById("user-display-name");
       const userEmail = document.getElementById("user-email");
       const authLink = document.getElementById("auth-link");
       const logoutLink = document.getElementById("logout-link");
 
-      const featuredGrid = document.getElementById("featured-products-grid");
+      const productGrid = document.getElementById("product-grid-container");
+      const filterButtons = document.querySelectorAll(".filter-btn");
       const modal = document.getElementById("product-modal");
       const modalClose = document.querySelector(".modal-close");
       const addToCartBtn = document.getElementById("add-to-cart-btn");
@@ -515,7 +416,21 @@
         body.classList.toggle("scroll-lock");
       });
 
-      featuredGrid.addEventListener("click", handleGridClick);
+      // (جديد) ربط أزرار الفلاتر
+      filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          filterButtons.forEach((btn) => btn.classList.remove("active"));
+          button.classList.add("active");
+          const filter = button.dataset.filter;
+          const filteredProducts =
+            filter === "all"
+              ? allProducts
+              : allProducts.filter((p) => p.category === filter);
+          displayProducts(filteredProducts, productGrid);
+        });
+      });
+
+      productGrid.addEventListener("click", handleGridClick);
       modalClose.addEventListener("click", closeModal);
       modal.addEventListener("click", (e) => {
         if (e.target === modal) closeModal();
@@ -525,7 +440,7 @@
         if (e.key === "Escape") closeModal();
       });
 
-      // (دالة جلب المنتجات (للصفحة الرئيسية) كما هي)
+      // (معدل) دالة جلب المنتجات (لصفحة المنتجات)
       async function fetchProductsAndRender() {
         try {
           const productsSnapshot = await getDocs(collection(db, "products"));
@@ -536,16 +451,12 @@
             price: parseFloat(doc.data().price),
           }));
 
-          const featuredIds = [3, 15, 43, 40];
-          const featuredProducts = allProducts.filter((p) =>
-            featuredIds.includes(p.id)
-          );
-
-          displayProducts(featuredProducts, featuredGrid);
+          // (معدل) عرض جميع المنتجات افتراضياً
+          displayProducts(allProducts, productGrid);
         } catch (e) {
           console.error("Error fetching products from Firebase: ", e);
-          featuredGrid.innerHTML =
-            "<p>عذراً، لم نتمكن من جلب المنتجات حالياً.</p>";
+          productGrid.innerHTML =
+            "<p>عذراً، لم نتمكن من جلب المنتجات حالياً. يرجى المحاولة لاحقاً.</p>";
         }
       }
 
@@ -553,7 +464,7 @@
       document.addEventListener("DOMContentLoaded", () => {
         loadCart();
         updateCartBadge();
-        fetchProductsAndRender();
+        fetchProductsAndRender(); // جلب جميع المنتجات وعرضها
       });
     </script>
   </body>
