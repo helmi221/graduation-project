@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>منجرة | لوحة المدير</title>
+    <title>FurnAI | لوحة المدير</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -332,7 +332,7 @@
   </head>
   <body>
     <header class="main-header">
-      <div class="logo">منجرة</div>
+      <div class="logo">FurnAI</div>
       <nav>
         <ul>
           <li>
@@ -497,7 +497,7 @@
       </div>
     </div>
 
-    <button class="ai-fab" id="ai-analyst-fab" title="اسأل محلل المنجرة">
+    <button class="ai-fab" id="ai-analyst-fab" title="اسأل محلل الFurnAI">
       <i class="fa-solid fa-brain"></i>
     </button>
 
@@ -506,7 +506,7 @@
         <span class="modal-close" id="ai-analyst-close"
           ><i class="fa-solid fa-xmark"></i
         ></span>
-        <h2><i class="fa-solid fa-brain"></i> محلل المنجرة</h2>
+        <h2><i class="fa-solid fa-brain"></i> محلل الFurnAI</h2>
         <div class="ai-chat-messages" id="ai-analyst-messages"></div>
         <form class="ai-chat-input" id="ai-analyst-form">
           <input
@@ -921,7 +921,7 @@
           ];
 
           const prompt = `
-            أنت مستشار مالي خبير لمنجرة أثاث تقع في فلسطين.
+            أنت مستشار مالي خبير لFurnAI أثاث تقع في فلسطين.
             بياناتي الداخلية الحالية هي: إجمالي الإيرادات (المكتملة): ${currentTotalRevenue.toFixed(
               0
             )} شيكل، وهامش الربح الإجمالي: ${currentGrossProfit.toFixed(
@@ -1001,7 +1001,7 @@
           if (aiAnalystChatHistory.length === 0) {
             appendAiAnalystMessage(
               "ai",
-              "أهلاً بك يا مدير! أنا 'محلل المنجرة'. لدي اطلاع كامل على بياناتك الداخلية وصلاحية للبحث في الويب. اسألني أي شيء."
+              "أهلاً بك يا مدير! أنا 'محلل الFurnAI'. لدي اطلاع كامل على بياناتك الداخلية وصلاحية للبحث في الويب. اسألني أي شيء."
             );
           }
         });
@@ -1080,7 +1080,7 @@
 
         // 2. إعداد الـ Prompt (معدل)
         const prompt = `
-          أنت "محلل المنجرة"، مساعد ذكاء اصطناعي خبير. مهمتك هي الإجابة على أسئلتي وتقديم نصائح لتحسين العمل.
+          أنت "محلل الFurnAI"، مساعد ذكاء اصطناعي خبير. مهمتك هي الإجابة على أسئلتي وتقديم نصائح لتحسين العمل.
           لديك صلاحية الوصول إلى بيانات العمل الداخلية (المزودة أدناه) ولديك أيضاً صلاحية البحث في الويب ("google_search") عن أي معلومات خارجية قد تحتاجها.
 
           **مهم جداً:**

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>منجرة | إدارة المنتجات</title>
+    <title>FurnAI | إدارة المنتجات</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -80,7 +80,7 @@
   </head>
   <body>
     <header class="main-header">
-      <div class="logo">منجرة</div>
+      <div class="logo">FurnAI</div>
       <nav>
         <ul>
           <li>
@@ -219,7 +219,7 @@
             </div>
 
             <div class="form-group">
-              <label for="product-is-available">الحالة</label>
+              <label for="product-is-available">الحالة (التحكم اليدوي)</label>
               <select id="product-is-available" required>
                 <option value="true">متوفر للبيع (يدوي)</option>
                 <option value="false">غير متوفر (يدوي)</option>
@@ -1060,43 +1060,25 @@
             0,
         };
         const costs = calculateProductCosts(productDataForCheck);
-        const checkedAvailability = costs.availabilityCheck;
 
+        // 💡 (الكود المعدل يبدأ هنا)
         // 2. تحديد حالة التوفر النهائية للوثيقة
-        let finalAvailabilityStatus;
-        const manualStatusInput =
+        // حالة التوفر المخزنة (is_available) يجب أن تعكس فقط الاختيار اليدوي للمدير.
+        // سيقوم منطق العرض (render) في صفحة العميل بإخفاء المنتج تلقائياً إذا كانت المواد ناقصة.
+        const finalAvailabilityStatus =
           document.getElementById("product-is-available").value === "true";
 
-        // جلب الحالة المخزنة مسبقًا
-        const existingProduct = isNew
-          ? null
-          : allProducts.find((p) => p.id == id);
-
-        // 💡 الحالة السابقة: هل كان المنتج غير متوفر يدوياً (مهم لتحديد تجاوز الإلزامية)
-        const wasPreviouslyManualUnavailable =
-          existingProduct &&
-          existingProduct.is_available === false &&
-          checkedAvailability === "Available";
-
-        if (checkedAvailability === "Unavailable_Auto") {
-          // ⚠️ نقص مواد خام: يتم تحويله إجبارياً إلى غير متوفر (false)
-          finalAvailabilityStatus = false;
-          if (manualStatusInput) {
-            alert(
-              "⚠️ تم تعيين حالة المنتج إلى 'غير متوفر' تلقائياً بسبب نقص المواد الخام. يرجى توفير المخزون."
-            );
-          }
-        } else {
-          // ✅ توفرت المواد الخام (Available):
-
-          if (manualStatusInput === false) {
-            // 💡 المدير اختار 'غير متوفر' يدوياً في المودال الحالي (Manual Override)
-            finalAvailabilityStatus = false;
-          } else {
-            // 💡 المواد متوفرة، والمدير لم يختر 'غير متوفر' يدوياً، لذا يكون 'متوفر'
-            finalAvailabilityStatus = true;
-          }
+        // فحص منفصل للتحذير فقط
+        const checkedAvailability = costs.availabilityCheck;
+        if (
+          checkedAvailability === "Unavailable_Auto" &&
+          finalAvailabilityStatus === true
+        ) {
+          alert(
+            "⚠️ تنبيه: لقد حفظت المنتج كـ 'متوفر (يدوي)'، ولكنه سيظهر للعملاء كـ 'غير متوفر' بسبب نقص المواد الخام. سيتم تحديث حالته تلقائياً عند توفر المواد."
+          );
         }
+        // 💡 (الكود المعدل ينتهي هنا)
 
         const productData = {
           id: idNumber,
@@ -1109,7 +1091,7 @@
           description:
             document.getElementById("product-description").value || null,
           specs: document.getElementById("product-specs").value || null,
-          // 💡 استخدام الحالة المحسوبة
+          // 💡 استخدام الحالة اليدوية فقط
           is_available: finalAvailabilityStatus,
           required_materials: requiredMaterials,
           // حفظ التكلفة أيضاً (للسرعة)

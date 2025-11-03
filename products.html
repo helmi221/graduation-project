@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>منجرة | منتجاتنا</title>
+    <title>FurnAI | منتجاتنا</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -19,7 +19,7 @@
   <body>
     <header>
       <nav class="container">
-        <a href="index.html" class="logo">منجرة</a>
+        <a href="index.html" class="logo">FurnAI</a>
         <div class="nav-items">
           <ul class="desktop-nav">
             <li>
@@ -105,7 +105,7 @@
 
     <footer>
       <div class="container footer-content">
-        <a href="index.html" class="footer-logo">منجرة</a>
+        <a href="index.html" class="footer-logo">FurnAI</a>
         <div class="footer-links">
           <a href="#">من نحن</a> <a href="#">تواصل معنا</a>
         </div>
@@ -217,6 +217,8 @@
 
       let allProducts = [];
       let cart = [];
+      // 💡 (جديد) متغير لخريطة المواد الخام
+      let allRawMaterialsMap = new Map();
 
       // 💡 (معدل) دالة المصادقة لتحديث القائمة المنسدلة
       onAuthStateChanged(auth, async (user) => {
@@ -440,19 +442,69 @@
         if (e.key === "Escape") closeModal();
       });
 
-      // (معدل) دالة جلب المنتجات (لصفحة المنتجات)
+      // 💡 (معدل بالكامل) دالة جلب المنتجات (لصفحة المنتجات)
       async function fetchProductsAndRender() {
         try {
-          const productsSnapshot = await getDocs(collection(db, "products"));
+          // 1. (جديد) جلب المواد الخام أولاً
+          const materialsSnapshot = await getDocs(
+            collection(db, "raw_materials")
+          );
+          allRawMaterialsMap.clear();
+          materialsSnapshot.docs.forEach((doc) => {
+            allRawMaterialsMap.set(doc.id, {
+              ...doc.data(),
+              current_stock: parseFloat(doc.data().current_stock || 0),
+            });
+          });
 
+          // 2. جلب المنتجات
+          const productsSnapshot = await getDocs(collection(db, "products"));
           allProducts = productsSnapshot.docs.map((doc) => ({
             id: parseInt(doc.id),
             ...doc.data(),
             price: parseFloat(doc.data().price),
           }));
 
-          // (معدل) عرض جميع المنتجات افتراضياً
-          displayProducts(allProducts, productGrid);
+          // 3. (جديد) حساب التوفر الحقيقي وتحديث مصفوفة allProducts
+          allProducts.forEach((product) => {
+            const manualAvailable = product.is_available !== false;
+
+            // إذا كان المدير أطفأه يدوياً، فهو غير متوفر.
+            if (!manualAvailable) {
+              product.is_available = false;
+              return;
+            }
+
+            // إذا كان متاحاً يدوياً، افحص المواد الخام
+            const requiredMats = product.required_materials || [];
+            if (requiredMats.length === 0) {
+              product.is_available = true; // متاح ولا يحتاج مواد
+              return;
+            }
+
+            let materialsAvailable = true;
+            for (const reqMat of requiredMats) {
+              const material = allRawMaterialsMap.get(reqMat.id);
+              if (!material || material.current_stock < reqMat.quantity) {
+                materialsAvailable = false; // المواد ناقصة
+                break;
+              }
+            }
+            product.is_available = materialsAvailable; // التوفر النهائي يعتمد على المواد
+          });
+
+          // 4. (معدل) العرض بناءً على الفلتر والمصفوفة المحدثة
+          const activeFilterBtn = document.querySelector(".filter-btn.active");
+          const filter = activeFilterBtn
+            ? activeFilterBtn.dataset.filter
+            : "all";
+
+          const productsToDisplay =
+            filter === "all"
+              ? allProducts // ستقوم دالة createProductCard بالباقي
+              : allProducts.filter((p) => p.category === filter);
+
+          displayProducts(productsToDisplay, productGrid);
         } catch (e) {
           console.error("Error fetching products from Firebase: ", e);
           productGrid.innerHTML =

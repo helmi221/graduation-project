@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>منجرة | الرئيسية</title>
+    <title>FurnAI | الرئيسية</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -19,7 +19,7 @@
   <body>
     <header>
       <nav class="container">
-        <a href="index.html" class="logo">منجرة</a>
+        <a href="index.html" class="logo">FurnAI</a>
         <div class="nav-items">
           <ul class="desktop-nav">
             <li>
@@ -114,7 +114,7 @@
             <h2 style="text-align: right; margin-bottom: 0">قصة حرفية وجودة</h2>
           </div>
           <p>
-            في منجرة، نؤمن بأن الأثاث ليس مجرد قطع خشبية، بل هو جزء من قصة
+            في FurnAI، نؤمن بأن الأثاث ليس مجرد قطع خشبية، بل هو جزء من قصة
             منزلك. نكرس شغفنا ومهارتنا اليدوية لصناعة قطع فريدة تعكس شخصيتك
             وتضفي الدفء على مساحتك.
           </p>
@@ -155,7 +155,7 @@
             <div class="testimonial-card">
               <i class="fa-solid fa-quote-right"></i>
               <p>
-                "كان لدي تصميم مخصص لغرفة نومي، وفريق المنجرة حوله إلى حقيقة
+                "كان لدي تصميم مخصص لغرفة نومي، وفريق الFurnAI حوله إلى حقيقة
                 أجمل مما تخيلت. خدمة رائعة."
               </p>
               <h4>- سارة خليل</h4>
@@ -195,7 +195,7 @@
               opacity: 0.9;
             "
           >
-            هل لديك فكرة فريدة في ذهنك؟ دعنا نحولها إلى حقيقة. في منجرة، نقدم
+            هل لديك فكرة فريدة في ذهنك؟ دعنا نحولها إلى حقيقة. في FurnAI، نقدم
             خدمة التصميم المخصص لنصنع لك قطعة أثاث تناسب ذوقك واحتياجاتك تماماً.
           </p>
           <a href="design.html" class="btn">ابدأ الآن</a>
@@ -205,7 +205,7 @@
 
     <footer>
       <div class="container footer-content">
-        <a href="index.html" class="footer-logo">منجرة</a>
+        <a href="index.html" class="footer-logo">FurnAI</a>
         <div class="footer-links">
           <a href="#">من نحن</a> <a href="#">تواصل معنا</a>
         </div>
@@ -316,6 +316,8 @@
 
       let allProducts = [];
       let cart = [];
+      // 💡 (جديد) متغير لخريطة المواد الخام
+      let allRawMaterialsMap = new Map();
 
       // 💡 (معدل) دالة المصادقة لتحديث القائمة المنسدلة
       onAuthStateChanged(auth, async (user) => {
@@ -525,17 +527,56 @@
         if (e.key === "Escape") closeModal();
       });
 
-      // (دالة جلب المنتجات (للصفحة الرئيسية) كما هي)
+      // 💡 (معدل بالكامل) دالة جلب المنتجات (للصفحة الرئيسية)
       async function fetchProductsAndRender() {
         try {
-          const productsSnapshot = await getDocs(collection(db, "products"));
+          // 1. (جديد) جلب المواد الخام أولاً
+          const materialsSnapshot = await getDocs(
+            collection(db, "raw_materials")
+          );
+          allRawMaterialsMap.clear();
+          materialsSnapshot.docs.forEach((doc) => {
+            allRawMaterialsMap.set(doc.id, {
+              ...doc.data(),
+              current_stock: parseFloat(doc.data().current_stock || 0),
+            });
+          });
 
+          // 2. جلب المنتجات
+          const productsSnapshot = await getDocs(collection(db, "products"));
           allProducts = productsSnapshot.docs.map((doc) => ({
             id: parseInt(doc.id),
             ...doc.data(),
             price: parseFloat(doc.data().price),
           }));
 
+          // 3. (جديد) حساب التوفر الحقيقي وتحديث مصفوفة allProducts
+          allProducts.forEach((product) => {
+            const manualAvailable = product.is_available !== false;
+
+            if (!manualAvailable) {
+              product.is_available = false;
+              return;
+            }
+
+            const requiredMats = product.required_materials || [];
+            if (requiredMats.length === 0) {
+              product.is_available = true;
+              return;
+            }
+
+            let materialsAvailable = true;
+            for (const reqMat of requiredMats) {
+              const material = allRawMaterialsMap.get(reqMat.id);
+              if (!material || material.current_stock < reqMat.quantity) {
+                materialsAvailable = false;
+                break;
+              }
+            }
+            product.is_available = materialsAvailable;
+          });
+
+          // 4. (معدل) عرض المنتجات المميزة
           const featuredIds = [3, 15, 43, 40];
           const featuredProducts = allProducts.filter((p) =>
             featuredIds.includes(p.id)
