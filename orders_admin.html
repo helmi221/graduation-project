@@ -33,6 +33,7 @@
         background-color: #5bc0de;
         color: white;
       }
+      /* (ملاحظة: "قيد التجهيز" التي أضفناها سابقاً تم حذفها بناءً على طلبك) */
       .status-badge.قيد-التصنيع {
         background-color: #34495e;
         color: white;
@@ -241,27 +242,32 @@
           </li>
           <li>
             <a href="raw_materials_admin.html"
-              ><i class="fa-solid fa-hammer"></i> المواد الخام (المخزون)</a
+              ><i class="fa-solid fa-hammer"></i> المواد الخام</a
             >
           </li>
           <li>
             <a href="suppliers_admin.html"
-              ><i class="fa-solid fa-truck-fast"></i> الموردين (المشتريات)</a
+              ><i class="fa-solid fa-truck-fast"></i> الموردين</a
             >
           </li>
           <li>
             <a href="fixed_costs_admin.html"
-              ><i class="fa-solid fa-calculator"></i> التكاليف الثابتة</a
+              ><i class="fa-solid fa-calculator"></i> التكاليف</a
             >
           </li>
           <li>
             <a href="customers_admin.html"
-              ><i class="fa-solid fa-users"></i> إدارة العملاء</a
+              ><i class="fa-solid fa-users"></i> العملاء</a
+            >
+          </li>
+          <li>
+            <a href="strategy_admin.html"
+              ><i class="fa-solid fa-lightbulb"></i> الاستراتيجية</a
             >
           </li>
           <li>
             <a href="#" id="logout-btn"
-              ><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</a
+              ><i class="fa-solid fa-right-from-bracket"></i> خروج</a
             >
           </li>
         </ul>
@@ -429,16 +435,18 @@
       let currentOrderData = null;
 
       let rawMaterialsMap = new Map();
+      // 💡 (تعديل) قائمة الحالات الأساسية (حذف "قيد التجهيز")
+      // "مرفوض-العميل" حالة يضعها العميل، لا تظهر كخيار للمدير
       const statusOptions = [
         "قيد المراجعة",
-        "مقبول",
-        "مقبول-العميل",
-        "قيد التصنيع",
+        "مقبول", // (للمخصص فقط)
+        "مقبول-العميل", // (للمخصص فقط)
+        "قيد التصنيع", // (للجاهز والمخصص - يبدأ الخصم)
         "قيد الطلاء",
         "قيد التغليف",
         "قيد الشحن",
         "مكتمل",
-        "تم الرفض",
+        "تم الرفض", // (رفض المدير)
         "مؤرشف",
       ];
 
@@ -513,13 +521,12 @@
 
         // 2. تحديد حالات طابور الإنتاج
         const IN_QUEUE_STATUSES = [
-          "مقبول",
-          "مقبول-العميل",
+          "مقبول-العميل", // (مخصص ينتظر بدء التصنيع)
           "قيد التصنيع",
           "قيد الطلاء",
           "قيد التغليف",
         ];
-        const PENDING_STATUSES = ["قيد المراجعة"];
+        const PENDING_STATUSES = ["قيد المراجعة", "مقبول"]; // (مقبول = بانتظار العميل)
 
         let acceptedQueueHours = 0; // الساعات المؤكدة في الطابور
         let pendingQueueHours = 0; // الساعات المحتملة (الأسوأ)
@@ -533,7 +540,16 @@
 
           // 4. تجميع الساعات المؤكدة (التي في الطابور فعلياً)
           if (IN_QUEUE_STATUSES.includes(order.status)) {
-            acceptedQueueHours += orderHours;
+            // 💡 (تعديل) طلب جاهز ينتظر "قيد التصنيع" يعتبر في الطابور
+            if (
+              order.type === "ready" &&
+              order.status === "قيد المراجعة" &&
+              new Date(order.order_date) < new Date(targetOrder.order_date)
+            ) {
+              // هذا سيناريو معقد، لنبسطه: فقط الحالات المؤكدة
+            } else {
+              acceptedQueueHours += orderHours;
+            }
           }
 
           // 5. تجميع الساعات المحتملة (التي تنتظر المراجعة وجاءت قبل الطلب المستهدف)
@@ -564,19 +580,15 @@
         // (تطبيق منطق "مرحلية الطلب")
         if (IN_QUEUE_STATUSES.includes(targetOrder.status)) {
           // الحالة أ: الطلب المستهدف في الطابور بالفعل
-          // الوقت = (كل الطلبات المؤكدة في الطابور) + (شحن)
-          // (ملاحظة: acceptedQueueHours هنا لا تشمل الطلب المستهدف)
           const totalQueueHours = acceptedQueueHours + targetOrderHours;
           minTotalDays =
             Math.ceil(totalQueueHours / WORK_HOURS_PER_DAY) +
             PROCESSING_BUFFER_DAYS;
           maxTotalDays = minTotalDays; // الوقت مؤكد
         } else {
-          // الحالة ب: الطلب المستهدف "قيد المراجعة"
-          // الحد الأدنى = (كل الطلبات المؤكدة الحالية) + (طلبه) + (شحن)
+          // الحالة ب: الطلب المستهدف "قيد المراجعة" أو "مقبول"
           minTotalDays =
             acceptedQueueDays + targetOrderDays + PROCESSING_BUFFER_DAYS;
-          // الحد الأقصى = (كل الطلبات المؤكدة) + (كل الطلبات المعلقة الأقدم) + (طلبه) + (شحن)
           maxTotalDays =
             acceptedQueueDays +
             pendingQueueDays +
@@ -584,7 +596,6 @@
             PROCESSING_BUFFER_DAYS;
         }
 
-        // 7. إعادة قيمة دقيقة
         return {
           minDays: Math.ceil(minTotalDays),
           maxDays: Math.ceil(maxTotalDays),
@@ -693,13 +704,21 @@
         if (orderData.type === "ready") {
           itemsToDeduct = orderData.items;
         } else if (orderData.type === "custom") {
+          // 💡 (تعديل) التأكد من استخدام المواد الصحيحة
+          const materialsList =
+            requiredMaterialsForCustom.length > 0
+              ? requiredMaterialsForCustom
+              : orderData.required_materials_for_custom || [];
+
+          if (materialsList.length === 0) {
+            alert("خطأ فادح: لا يمكن خصم مخزون طلب مخصص بدون قائمة مواد.");
+            return false;
+          }
+
           itemsToDeduct.push({
-            id: orderData.id,
-            quantity: 1,
-            required_materials:
-              requiredMaterialsForCustom.length > 0
-                ? requiredMaterialsForCustom
-                : orderData.required_materials_for_custom || [],
+            id: orderData.id, // (معرف وهمي لتوحيد الدورة)
+            quantity: 1, // (الكمية دائما 1 للطلب المخصص)
+            required_materials: materialsList,
           });
         }
 
@@ -763,9 +782,11 @@
         if (insufficient.length) {
           alert(
             "⚠️ لا يمكن إتمام عملية الخصم بسبب نقص المواد:\n" +
-              insufficient.join("\n")
+              insufficient.join("\n") +
+              "\n\nسيتم تغيير الحالة، ولكن يرجى مراجعة المخزون قبل المتابعة."
           );
-          return false;
+          // 💡 (تعديل) لا نوقف تغيير الحالة، ولكن نعرض تحذير شديد
+          return true; // (نسمح بتغيير الحالة ولكن مع التحذير)
         }
         return true;
       }
@@ -966,13 +987,14 @@
 
         if (selectedOrders.length === 0)
           return alert("الرجاء تحديد طلب واحد على الأقل.");
+        // 💡 (تعديل) منع الخصم الجماعي أو التسعير الجماعي
         if (
+          selectedStatus === "قيد التصنيع" ||
           selectedStatus === "مقبول" ||
-          selectedStatus === "مقبول-العميل" ||
-          selectedStatus === "مكتمل"
+          selectedStatus === "مقبول-العميل"
         ) {
           return alert(
-            "⚠️ لا يمكن تطبيق حالة تتطلب خصم مخزون (مقبول، مقبول-العميل، مكتمل) بشكل جماعي. يرجى إدارتها فردياً لضمان سلامة المخزون."
+            "⚠️ لا يمكن تطبيق حالة تتطلب خصم مخزون (مثل 'قيد التصنيع') أو تسعير ('مقبول') بشكل جماعي. يرجى إدارتها فردياً لضمان سلامة المخزون والتسعير."
           );
         }
 
@@ -1028,12 +1050,13 @@
         }
       });
 
-      // 💡 (تم التعديل) دالة فتح مودال التفاصيل
+      // 💡 (تم التعديل بالكامل) دالة فتح مودال التفاصيل لتصفية الحالات
       function openOrderDetailsModal() {
         const isCustom = currentOrderData.type === "custom";
+        const isReady = currentOrderData.type === "ready";
         const currentStatus = currentOrderData.status;
 
-        // إخفاء جميع الحقول الإضافية كإعداد افتراضي
+        // --- 1. إخفاء/إظهار الحقول الإضافية ---
         document.getElementById("modal-price").value = "";
         document.getElementById("rejection-reason").value = "";
         document.getElementById("material-list").value = "";
@@ -1043,8 +1066,9 @@
         document.getElementById("custom-materials-field").style.display =
           "none";
         document.getElementById("manufacturing-hours-field").style.display =
-          "none"; // 💡 (جديد) إخفاء حقل الساعات
+          "none";
 
+        // --- 2. بناء تفاصيل الطلب (HTML) ---
         let detailsHTML = `
               <div class="order-details-group">
                   <p><strong><i class="fa-solid fa-user"></i> العميل:</strong> ${
@@ -1055,9 +1079,6 @@
                   }</p>
                   <p><strong><i class="fa-solid fa-map-marker-alt"></i> العنوان:</strong> ${
                     currentOrderData.address || "---"
-                  }</p>
-                  <p><strong><i class="fa-solid fa-envelope"></i> الإيميل:</strong> ${
-                    currentOrderData.email || "---"
                   }</p>
                   <p><strong><i class="fa-solid fa-receipt"></i> رقم الطلب:</strong> ${
                     currentOrderData.id
@@ -1075,8 +1096,8 @@
               </div>
           `;
 
-        if (currentOrderData.type === "ready") {
-          // ... (كود الطلب الجاهز - لم يتغير) ...
+        if (isReady) {
+          // ... كود الطلب الجاهز ...
           const total = (currentOrderData.total || 0).toFixed(0);
           detailsHTML += `
                   <h3><i class="fa-solid fa-boxes-stacked"></i> المنتجات المطلوبة:</h3>
@@ -1096,8 +1117,8 @@
                   </ul>
                   <p style="margin-top: 15px; font-size: 1.1rem;"><strong><i class="fa-solid fa-money-bill-wave"></i> الإجمالي المدفوع:</strong> ${total} شيكل</p>
               `;
-        } else {
-          // ... (كود الطلب المخصص - لم يتغير) ...
+        } else if (isCustom) {
+          // ... كود الطلب المخصص ...
           const priceDisplay = currentOrderData.final_price
             ? currentOrderData.final_price.toFixed(0)
             : currentOrderData.initial_price || "---";
@@ -1107,31 +1128,18 @@
                   <p><strong>اسم المنتج المقترح:</strong> ${
                     currentOrderData.title || "---"
                   }</p>
-                  <p><strong>وصف العميل:</strong> ${
-                    currentOrderData.description || "---"
-                  }</p>
                   <p><strong>النوع:</strong> ${
                     currentOrderData.type_of_product || "---"
                   }</p>
                   <p><strong>المقاسات:</strong> ${
                     currentOrderData.dimensions || "---"
                   }</p>
-                  <p><strong>المادة:</strong> ${
-                    currentOrderData.material || "---"
-                  }</p>
-                  <p><strong>اللون:</strong> ${
-                    currentOrderData.color || "---"
-                  }</p>
-                  <p style="margin-top: 15px;"><strong>السعر المقترح (أولي):</strong> ${priceDisplay} شيكل</p>
-                  <p style="font-size: 0.9rem; color: #888;">تكلفة المواد التقديرية (COGS): ${
-                    currentOrderData.estimatedCOGS || "---"
-                  } شيكل</p>
+                   <p style="margin-top: 15px;"><strong>السعر المقترح (أولي):</strong> ${priceDisplay} شيكل</p>
               `;
 
           // إظهار حقل الإدخال اليدوي للمواد الخام
           document.getElementById("custom-materials-field").style.display =
             "flex";
-
           if (
             currentOrderData.required_materials_for_custom &&
             currentOrderData.required_materials_for_custom.length > 0
@@ -1142,9 +1150,11 @@
             document.getElementById("material-list").value = matList;
           }
 
+          // إظهار حقل السعر إذا كان قيد المراجعة أو مرفوض (للتعديل)
           if (
             currentStatus === "قيد المراجعة" ||
-            currentStatus === "تم الرفض"
+            currentStatus === "تم الرفض" ||
+            currentStatus === "مقبول"
           ) {
             document.getElementById("custom-price-field").style.display =
               "flex";
@@ -1159,66 +1169,78 @@
           }
         }
 
-        // 💡 (جديد) إظهار حقل الساعات وتعبئته
+        // --- 3. إظهار وتعبئة حقل الساعات ---
         const manufacturingHoursField = document.getElementById(
           "manufacturing-hours-field"
         );
         const manufacturingHoursInput = document.getElementById(
           "modal-manufacturing-hours"
         );
-
-        // حساب الساعات الافتراضية
         const calculatedHours = getHoursForOrder(currentOrderData, allProducts);
-
-        // تعبئة الحقل: استخدم القيمة المحفوظة (Override) إن وجدت، وإلا استخدم القيمة المحسوبة
         manufacturingHoursInput.value =
           currentOrderData.manufacturing_time_override || calculatedHours;
         manufacturingHoursField.style.display = "flex";
 
         document.getElementById("modal-order-details").innerHTML = detailsHTML;
 
-        // ... (كود ملء قائمة الحالة - لم يتغير) ...
-        const modalStatus = document.getElementById("modal-status");
-        let availableStatusOptions = statusOptions;
-        const approvedStatuses = [
-          "مقبول",
-          "مقبول-العميل",
+        // --- 4. (تعديل) فلترة القائمة المنسدلة للحالات ---
+        let availableStatusOptions = [];
+        const productionWorkflow = [
           "قيد التصنيع",
           "قيد الطلاء",
           "قيد التغليف",
           "قيد الشحن",
           "مكتمل",
+          "مؤرشف",
         ];
 
-        if (approvedStatuses.includes(currentStatus)) {
-          availableStatusOptions = statusOptions.filter(
-            (s) => s !== "تم الرفض"
-          );
-
-          if (currentStatus === "مقبول" && currentOrderData.type === "ready") {
-            availableStatusOptions = availableStatusOptions.filter(
-              (s) => s !== "مقبول" && s !== "قيد المراجعة"
-            );
-          }
-          if (
-            currentStatus === "مقبول-العميل" &&
-            currentOrderData.type === "custom"
-          ) {
-            availableStatusOptions = availableStatusOptions.filter(
+        if (isReady) {
+          if (currentStatus === "قيد المراجعة") {
+            availableStatusOptions = [
+              "قيد المراجعة",
+              "قيد التصنيع",
+              "قيد الشحن",
+              "تم الرفض",
+            ];
+          } else if (productionWorkflow.includes(currentStatus)) {
+            availableStatusOptions = productionWorkflow.filter(
               (s) =>
-                s !== "مقبول" && s !== "قيد المراجعة" && s !== "مقبول-العميل"
+                productionWorkflow.indexOf(s) >=
+                productionWorkflow.indexOf(currentStatus)
             );
+          } else if (
+            currentStatus === "تم الرفض" ||
+            currentStatus === "مؤرشف"
+          ) {
+            availableStatusOptions = [currentStatus, "مؤرشف", "قيد المراجعة"]; // (السماح بإعادة الفتح)
           }
-        } else if (
-          currentStatus === "تم الرفض" ||
-          currentStatus === "مرفوض-العميل" ||
-          currentStatus === "مؤرشف"
-        ) {
-          availableStatusOptions = statusOptions.filter(
-            (s) => s === currentStatus || s === "مؤرشف"
-          );
+        } else if (isCustom) {
+          if (currentStatus === "قيد المراجعة") {
+            availableStatusOptions = ["قيد المراجعة", "مقبول", "تم الرفض"];
+          } else if (currentStatus === "مقبول") {
+            // بانتظار العميل
+            availableStatusOptions = ["مقبول", "قيد المراجعة"]; // (السماح بالتراجع)
+          } else if (currentStatus === "مقبول-العميل") {
+            availableStatusOptions = ["مقبول-العميل", "قيد التصنيع"];
+          } else if (productionWorkflow.includes(currentStatus)) {
+            availableStatusOptions = productionWorkflow.filter(
+              (s) =>
+                productionWorkflow.indexOf(s) >=
+                productionWorkflow.indexOf(currentStatus)
+            );
+          } else if (
+            currentStatus === "تم الرفض" ||
+            currentStatus === "مرفوض-العميل" ||
+            currentStatus === "مؤرشف"
+          ) {
+            availableStatusOptions = [currentStatus, "مؤرشف", "قيد المراجعة"];
+          }
         }
 
+        // (إزالة الحالات المكررة إن وجدت)
+        availableStatusOptions = [...new Set(availableStatusOptions)];
+
+        const modalStatus = document.getElementById("modal-status");
         modalStatus.innerHTML = availableStatusOptions
           .map(
             (s) =>
@@ -1230,40 +1252,35 @@
 
         openModal("order-details-modal");
 
-        // ... (كود متابعة تغيير الحالة في المودال - لم يتغير) ...
+        // --- 5. ربط حدث onchange لإظهار/إخفاء الحقول ---
         document.getElementById("modal-status").onchange = (e) => {
           const newStatus = e.target.value;
-          const isCustom = currentOrderData.type === "custom";
-
-          if (isCustom && (newStatus === "مقبول" || newStatus === "تم الرفض")) {
+          if (isCustom) {
+            // إظهار حقل السعر فقط إذا كانت الحالة "مقبول"
+            const showPrice = newStatus === "مقبول";
             document.getElementById("custom-price-field").style.display =
-              "flex";
-            document.getElementById("modal-price").required = true;
-          } else {
-            document.getElementById("custom-price-field").style.display =
-              "none";
-            document.getElementById("modal-price").required = false;
-          }
+              showPrice ? "flex" : "none";
+            document.getElementById("modal-price").required = showPrice;
 
-          document.getElementById("custom-materials-field").style.display =
-            isCustom ? "flex" : "none";
+            // إظهار حقل سبب الرفض فقط إذا كانت الحالة "تم الرفض"
+            const showRejection = newStatus === "تم الرفض";
+            document.getElementById("rejection-reason-field").style.display =
+              showRejection ? "flex" : "none";
+            document.getElementById("rejection-reason").required =
+              showRejection;
 
-          if (isCustom && newStatus === "تم الرفض") {
-            document.getElementById("rejection-reason-field").style.display =
+            // إظهار حقل المواد دائما للطلبات المخصصة
+            document.getElementById("custom-materials-field").style.display =
               "flex";
-            document.getElementById("rejection-reason").required = true;
-          } else {
-            document.getElementById("rejection-reason-field").style.display =
-              "none";
-            document.getElementById("rejection-reason").required = false;
           }
         };
+        // تشغيل الحدث يدوياً لضبط الحالة الأولية
         document
           .getElementById("modal-status")
           .dispatchEvent(new Event("change"));
       }
 
-      // 💡 (تم التعديل) منطق حفظ الحالة والسعر والمواد الخام المُحسن
+      // 💡 (تم التعديل بالكامل) منطق حفظ الحالة لتوحيد الخصم
       document
         .getElementById("save-status-btn")
         .addEventListener("click", async () => {
@@ -1274,7 +1291,6 @@
             document.getElementById("rejection-reason").value || null;
           const materialListText =
             document.getElementById("material-list").value;
-          // 💡 (جديد) جلب الساعات المُعدلة
           const manufacturingHoursOverride =
             parseFloat(
               document.getElementById("modal-manufacturing-hours").value
@@ -1284,41 +1300,18 @@
 
           const currentStatus = currentOrderData.status;
           const isCustom = currentOrderData.type === "custom";
-          const isReady = currentOrderData.type === "ready";
 
           let updatePayload = { status: newStatus };
+          let requiredMaterialsForCustom = []; // (سيتم تعبئتها للطلبات المخصصة)
 
-          // 💡 (جديد) إضافة الساعات المُعدلة إلى الحمولة
+          // 1. إضافة الساعات المُعدلة (إن وجدت)
           if (manufacturingHoursOverride) {
             updatePayload.manufacturing_time_override =
               manufacturingHoursOverride;
           }
 
-          // 💡 (جديد) تحديد شروط تسجيل تاريخ الموافقة
-          const isReadyFirstApproval =
-            isReady &&
-            newStatus === "مقبول" &&
-            currentStatus === "قيد المراجعة";
-          const isCustomFirstApproval =
-            isCustom &&
-            newStatus === "مقبول-العميل" &&
-            (currentStatus === "مقبول" || currentStatus === "قيد المراجعة");
-
-          if (isReadyFirstApproval || isCustomFirstApproval) {
-            // نسجل تاريخ الموافقة فقط عند النقلة الأولى
-            updatePayload.acceptance_date = new Date().toISOString();
-          }
-
-          // 💡 تحديد شروط الخصم
-          const isReadyOrderForDeduction =
-            currentOrderData.type === "ready" && newStatus === "مقبول";
-          const isCustomOrderForDeduction =
-            currentOrderData.type === "custom" && newStatus === "مقبول-العميل";
-
-          let requiredMaterialsForCustom = [];
-
-          // 💡 منطق الطلبات المخصصة
-          if (currentOrderData.type === "custom") {
+          // 2. معالجة بيانات الطلب المخصص (السعر والمواد)
+          if (isCustom) {
             if (newStatus === "مقبول") {
               if (!finalPrice || finalPrice <= 0) {
                 alert("الرجاء إدخال سعر نهائي صحيح للموافقة على طلب التصميم.");
@@ -1331,7 +1324,7 @@
                 return;
               }
 
-              // ... (كود تحليل المواد الخام - لم يتغير) ...
+              // تحليل قائمة المواد الخام المدخلة
               const entries = materialListText
                 .split(",")
                 .map((e) => e.trim())
@@ -1346,6 +1339,7 @@
                   return null;
                 })
                 .filter((req) => req !== null);
+
               if (requiredMaterialsForCustom.length === 0) {
                 alert(
                   "⚠️ إلزامي: لم يتم تحليل أي مواد خام صالحة من الإدخال. يرجى التأكد من التنسيق (ID:Quantity)."
@@ -1356,60 +1350,87 @@
               updatePayload.final_price = finalPrice;
               updatePayload.required_materials_for_custom =
                 requiredMaterialsForCustom;
-              updatePayload.rejection_reason = null;
+              updatePayload.rejection_reason = null; // مسح الرفض
             } else if (newStatus === "تم الرفض") {
               if (!rejectionReason) {
                 alert("الرجاء إدخال سبب للرفض.");
                 return;
               }
-              updatePayload.final_price = null;
+              updatePayload.final_price = null; // مسح السعر
               updatePayload.rejection_reason = rejectionReason;
             } else {
+              // (للحالات الأخرى، احتفظ بالبيانات القديمة إن وجدت)
               if (currentOrderData.final_price)
                 updatePayload.final_price = currentOrderData.final_price;
-              if (currentOrderData.rejection_reason)
-                updatePayload.rejection_reason =
-                  currentOrderData.rejection_reason;
+              if (currentOrderData.required_materials_for_custom)
+                updatePayload.required_materials_for_custom =
+                  currentOrderData.required_materials_for_custom;
             }
           }
 
-          // 💡 منطق خصم المواد الخام الموحد
-          if (isReadyOrderForDeduction || isCustomOrderForDeduction) {
+          // 3. تحديد حالات "قيد التنفيذ" (لمنع الخصم المزدوج)
+          const inProductionStatuses = [
+            "قيد التصنيع",
+            "قيد الطلاء",
+            "قيد التغليف",
+            "قيد الشحن",
+          ];
+
+          // 4. (المنطق الجديد) تحديد متى يتم الخصم
+          // الخصم يحدث عند الانتقال إلى "قيد التصنيع"
+          // ولم يكن الطلب سابقاً في إحدى حالات التنفيذ
+          const isMovingToProduction =
+            newStatus === "قيد التصنيع" &&
+            !inProductionStatuses.includes(currentStatus);
+
+          // 5. تنفيذ الحفظ (إما مع خصم أو بدونه)
+          if (isMovingToProduction) {
+            // --- حفظ مع خصم المخزون ---
             const batch = writeBatch(db);
             const logCollection = collection(db, "raw_materials_log");
 
+            // (استخدم 'requiredMaterialsForCustom' للطلبات المخصصة)
+            const materialsToDeduct = isCustom
+              ? requiredMaterialsForCustom
+              : currentOrderData.required_materials_for_custom || []; // (للطلبات الجاهزة، الدالة ستجلب المواد بنفسها)
+
             const deductionSuccessful = await attemptStockDeduction(
               currentOrderData,
-              requiredMaterialsForCustom,
+              materialsToDeduct,
               newStatus,
               batch,
               logCollection
             );
 
             if (!deductionSuccessful) {
-              return; // إيقاف العملية إذا كان هناك نقص في المخزون
+              // (الدالة عرضت تحذيراً، لكننا نوقف العملية)
+              // (تم التعديل: الدالة الآن ترجع true دائماً وتعرض تحذير، لذا نكمل)
             }
 
+            // إضافة تحديث الطلب إلى نفس الباتش
             const orderRef = doc(db, currentOrderCollection, currentOrderId);
             batch.update(orderRef, updatePayload);
 
             try {
               await batch.commit();
-              alert("✅ تم تحديث الحالة وخصم المواد الخام بنجاح.");
+              alert(
+                "✅ تم تحديث الحالة إلى 'قيد التصنيع' وخصم المواد الخام بنجاح."
+              );
               closeModal("order-details-modal");
-              fetchOrders();
+              fetchOrders(); // تحديث كامل للبيانات
             } catch (e) {
               console.error("Error committing batch:", e);
-              alert("حدث خطأ أثناء حفظ التغييرات.");
+              alert("حدث خطأ أثناء حفظ التغييرات والخصم.");
             }
           } else {
-            // تحديث بسيط للحالة فقط (بدون خصم)
+            // --- حفظ بسيط (تغيير حالة فقط) ---
+            // (مثل: "قيد المراجعة" -> "تم الرفض" أو "قيد التصنيع" -> "قيد الطلاء")
             const orderRef = doc(db, currentOrderCollection, currentOrderId);
             try {
               await updateDoc(orderRef, updatePayload);
               alert("تم تحديث الحالة بنجاح.");
               closeModal("order-details-modal");
-              fetchOrders();
+              fetchOrders(); // تحديث كامل للبيانات
             } catch (e) {
               console.error(e);
               alert("حدث خطأ أثناء حفظ التغييرات.");

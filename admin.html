@@ -328,6 +328,79 @@
         width: 20px;
         height: 20px;
       }
+
+      /* 💡 (جديد) أنماط الفلتر والأكورديون */
+      .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 1.5rem;
+      }
+      .dashboard-header h1 {
+        margin-bottom: 0;
+      }
+      .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .filter-group label {
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
+      #period-filter {
+        padding: 10px 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        background-color: var(--white-color);
+        font-family: "Cairo", sans-serif;
+      }
+      .log-toggle-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        background-color: var(--white-color);
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-top: 30px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow);
+      }
+      .log-toggle-header h2 {
+        margin: 0;
+        font-size: 1.4rem;
+        text-align: right;
+        color: var(--primary-color);
+      }
+      .log-content-wrapper {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out;
+        /* (جديد) إضافة خلفية وحدود للتمييز */
+        background-color: #fcfcfc;
+        border: 1px solid var(--border-color);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        padding: 0 20px;
+      }
+      .log-content-wrapper.active {
+        display: block;
+        max-height: 5000px; /* قيمة كبيرة بما يكفي */
+        transition: max-height 0.6s ease-in;
+        padding: 20px 20px;
+      }
+      .log-toggle-icon {
+        transition: transform 0.3s;
+        font-size: 1.2rem;
+      }
+      .log-toggle-header[aria-expanded="true"] .log-toggle-icon {
+        transform: rotate(90deg);
+      }
     </style>
   </head>
   <body>
@@ -352,27 +425,32 @@
           </li>
           <li>
             <a href="raw_materials_admin.html"
-              ><i class="fa-solid fa-hammer"></i> المواد الخام (المخزون)</a
+              ><i class="fa-solid fa-hammer"></i> المواد الخام</a
             >
           </li>
           <li>
             <a href="suppliers_admin.html"
-              ><i class="fa-solid fa-truck-fast"></i> الموردين (المشتريات)</a
+              ><i class="fa-solid fa-truck-fast"></i> الموردين</a
             >
           </li>
           <li>
             <a href="fixed_costs_admin.html"
-              ><i class="fa-solid fa-calculator"></i> التكاليف الثابتة</a
+              ><i class="fa-solid fa-calculator"></i> التكاليف</a
             >
           </li>
           <li>
             <a href="customers_admin.html"
-              ><i class="fa-solid fa-users"></i> إدارة العملاء</a
+              ><i class="fa-solid fa-users"></i> العملاء</a
+            >
+          </li>
+          <li>
+            <a href="strategy_admin.html"
+              ><i class="fa-solid fa-lightbulb"></i> الاستراتيجية</a
             >
           </li>
           <li>
             <a href="#" id="logout-btn"
-              ><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</a
+              ><i class="fa-solid fa-right-from-bracket"></i> خروج</a
             >
           </li>
         </ul>
@@ -380,7 +458,19 @@
     </header>
 
     <div class="main-content container-fluid">
-      <h1>لوحة التحكم وذكاء الأعمال</h1>
+      <div class="dashboard-header">
+        <h1>لوحة التحكم وذكاء الأعمال</h1>
+        <div class="filter-group">
+          <label for="period-filter">
+            <i class="fa-solid fa-calendar-days"></i> عرض مقاييس:
+          </label>
+          <select id="period-filter">
+            <option value="monthly" selected>هذا الشهر</option>
+            <option value="quarterly">هذا الربع</option>
+            <option value="all">كل الوقت</option>
+          </select>
+        </div>
+      </div>
 
       <div class="smart-alert" id="smart-alert-box" style="display: none">
         <i class="fa-solid fa-circle-info" id="smart-alert-icon"></i>
@@ -415,7 +505,11 @@
             <p>هامش الربح الإجمالي (الإيرادات - COGS)</p>
           </div>
         </div>
-        <div class="stat-card" style="border-left-color: var(--info-color)">
+        <div
+          class="stat-card"
+          style="border-left-color: var(--info-color)"
+          id="net-profit-container"
+        >
           <div class="stat-icon" style="color: var(--info-color)">
             <i class="fa-solid fa-money-bill-trend-up"></i>
           </div>
@@ -426,8 +520,8 @@
         </div>
       </div>
 
-      <div class="dashboard-grid">
-        <div class="grid-span-2">
+      <div class="dashboard-grid" style="grid-template-columns: 1fr">
+        <div class="grid-span-1">
           <div class="data-card" id="tasks-card">
             <h3><i class="fa-solid fa-triangle-exclamation"></i> مهام عاجلة</h3>
             <ul class="tasks-list">
@@ -451,47 +545,69 @@
               </li>
             </ul>
           </div>
+        </div>
+      </div>
 
-          <div class="data-card" id="forecast-card">
-            <h3>
-              <i class="fa-solid fa-brain"></i> توقعات الأرباح (الربع القادم)
-            </h3>
-            <p style="color: #555; margin-bottom: 15px">
-              استخدم الذكاء الاصطناعي لتحليل العوامل الخارجية (الاقتصاد،
-              السياسة، المواسم) وتأثيرها المتوقع على أرباحك.
-            </p>
-            <button class="btn btn-secondary" id="run-forecast-btn">
-              <i class="fa-solid fa-wand-magic-sparkles"></i> بدء تحليل التوقعات
-            </button>
-            <div id="forecast-results" style="display: none">
-              <p class="loading-msg" id="forecast-loading">
-                <i class="fa-solid fa-spinner fa-spin"></i>
-                جارٍ البحث وتحليل العوامل...
+      <div
+        class="log-toggle-header"
+        id="analytics-toggle-header"
+        aria-expanded="false"
+      >
+        <h2>
+          <i class="fa-solid fa-chart-pie"></i> التحليلات التفصيلية والرسوم
+          البيانية
+        </h2>
+        <i class="fa-solid fa-chevron-left log-toggle-icon"></i>
+      </div>
+      <div
+        id="analytics-content-wrapper"
+        class="log-content-wrapper"
+        aria-expanded="false"
+      >
+        <div class="dashboard-grid">
+          <div class="grid-span-2">
+            <div class="data-card" id="forecast-card">
+              <h3>
+                <i class="fa-solid fa-brain"></i> توقعات الأرباح (الربع القادم)
+              </h3>
+              <p style="color: #555; margin-bottom: 15px">
+                استخدم الذكاء الاصطناعي لتحليل العوامل الخارجية (الاقتصاد،
+                السياسة، المواسم) وتأثيرها المتوقع على أرباحك.
               </p>
-              <div id="forecast-content" style="display: none"></div>
+              <button class="btn btn-secondary" id="run-forecast-btn">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> بدء تحليل
+                التوقعات
+              </button>
+              <div id="forecast-results" style="display: none">
+                <p class="loading-msg" id="forecast-loading">
+                  <i class="fa-solid fa-spinner fa-spin"></i>
+                  جارٍ البحث وتحليل العوامل...
+                </p>
+                <div id="forecast-content" style="display: none"></div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="grid-span-1">
-          <div class="data-card">
-            <h3><i class="fa-solid fa-star"></i> أفضل 5 منتجات مبيعاً</h3>
-            <ul class="data-list" id="top-products-list"></ul>
-          </div>
-          <div class="data-card">
-            <h3><i class="fa-solid fa-user-check"></i> أفضل 5 عملاء</h3>
-            <ul class="data-list" id="top-customers-list"></ul>
-          </div>
+          <div class="grid-span-1">
+            <div class="data-card">
+              <h3><i class="fa-solid fa-star"></i> أفضل 5 منتجات مبيعاً</h3>
+              <ul class="data-list" id="top-products-list"></ul>
+            </div>
+            <div class="data-card">
+              <h3><i class="fa-solid fa-user-check"></i> أفضل 5 عملاء</h3>
+              <ul class="data-list" id="top-customers-list"></ul>
+            </div>
 
-          <div class="data-card">
-            <h3><i class="fa-solid fa-chart-pie"></i> توزيع حالات الطلبات</h3>
-            <canvas id="orderStatusChart"></canvas>
-          </div>
-          <div class="data-card">
-            <h3>
-              <i class="fa-solid fa-chart-bar"></i> الربح حسب الفئة (مكتمل)
-            </h3>
-            <canvas id="categoryProfitChart"></canvas>
+            <div class="data-card">
+              <h3><i class="fa-solid fa-chart-pie"></i> توزيع حالات الطلبات</h3>
+              <canvas id="orderStatusChart"></canvas>
+            </div>
+            <div class="data-card">
+              <h3>
+                <i class="fa-solid fa-chart-bar"></i> الربح حسب الفئة (مكتمل)
+              </h3>
+              <canvas id="categoryProfitChart"></canvas>
+            </div>
           </div>
         </div>
       </div>
@@ -600,6 +716,15 @@
       let currentTopCustomers = [];
       let aiAnalystChatHistory = [];
 
+      // 💡 (جديد) عناصر التحكم بالفلتر والأكورديون
+      const periodFilter = document.getElementById("period-filter");
+      const analyticsToggleHeader = document.getElementById(
+        "analytics-toggle-header"
+      );
+      const analyticsContentWrapper = document.getElementById(
+        "analytics-content-wrapper"
+      );
+
       // --------------------------------------------------------
       // التحقق من الصلاحيات والتحميل
       // --------------------------------------------------------
@@ -614,11 +739,10 @@
                 );
               }
               await fetchCoreData();
-              fetchStats();
-              document
-                .getElementById("run-forecast-btn")
-                .addEventListener("click", runProfitForecast);
-              setupAiAnalyst();
+              // 💡 (جديد) تشغيل الفلتر الافتراضي عند التحميل
+              fetchStats(periodFilter.value);
+              // 💡 (جديد) ربط المستمعات
+              setupListeners();
             } else {
               alert("غير مصرح لك بالوصول إلى هذه الصفحة.");
               window.location.href = "login.html";
@@ -639,8 +763,30 @@
           window.location.href = "login.html";
         });
 
+      // 💡 (جديد) دالة لربط المستمعات
+      function setupListeners() {
+        // ربط مستمع الفلتر
+        periodFilter.addEventListener("change", (e) => {
+          fetchStats(e.target.value);
+        });
+
+        // ربط مستمع الأكورديون
+        analyticsToggleHeader.addEventListener("click", () => {
+          const isExpanded =
+            analyticsToggleHeader.getAttribute("aria-expanded") === "true";
+          analyticsToggleHeader.setAttribute("aria-expanded", !isExpanded);
+          analyticsContentWrapper.classList.toggle("active");
+        });
+
+        // (المستمعات القديمة)
+        document
+          .getElementById("run-forecast-btn")
+          .addEventListener("click", runProfitForecast);
+        setupAiAnalyst();
+      }
+
       // --------------------------------------------------------
-      // دالة جلب البيانات الأساسية
+      // دالة جلب البيانات الأساسية (كما هي)
       // --------------------------------------------------------
       async function fetchCoreData() {
         const [materialsSnap, productsSnap, customersSnap] = await Promise.all([
@@ -671,10 +817,12 @@
       async function fetchFixedCosts() {
         try {
           const costsSnapshot = await getDocs(collection(db, "fixed_costs"));
-          return costsSnapshot.docs.reduce(
+          // 💡 (معدل) تخزين التكاليف الثابتة الشهرية في المتغير الجلوبال
+          currentFixedCosts = costsSnapshot.docs.reduce(
             (sum, doc) => sum + parseFloat(doc.data().amount || 0),
             0
           );
+          return currentFixedCosts;
         } catch (e) {
           console.error("Error fetching fixed costs: ", e);
           return 0;
@@ -682,13 +830,16 @@
       }
 
       // --------------------------------------------------------
-      // (معدل) وظيفة جلب الإحصائيات
+      // (معدل) وظيفة جلب الإحصائيات مع الفلترة
       // --------------------------------------------------------
-      async function fetchStats() {
+      async function fetchStats(filterPeriod = "monthly") {
         const totalRevenueDisplay = document.getElementById("total-revenue");
         const totalCogsDisplay = document.getElementById("total-cogs");
         const grossProfitDisplay = document.getElementById("gross-profit");
         const netProfitDisplay = document.getElementById("net-profit");
+        const netProfitContainer = document.getElementById(
+          "net-profit-container"
+        ); // 💡 (جديد)
         const pendingOrdersCount = document.getElementById(
           "pending-orders-count"
         );
@@ -702,7 +853,22 @@
         );
 
         try {
-          const totalFixedCosts = await fetchFixedCosts();
+          // جلب التكاليف الثابتة (شهرية)
+          const monthlyFixedCosts = await fetchFixedCosts();
+          let periodFixedCosts = 0;
+          let fixedCostMultiplier = 1;
+
+          // 💡 (جديد) تحديد التكاليف الثابتة للفترة
+          if (filterPeriod === "monthly") {
+            periodFixedCosts = monthlyFixedCosts;
+          } else if (filterPeriod === "quarterly") {
+            fixedCostMultiplier = 3;
+            periodFixedCosts = monthlyFixedCosts * fixedCostMultiplier;
+          } else {
+            // "all"
+            periodFixedCosts = 0; // لا يمكن حساب الربح الصافي الإجمالي
+          }
+
           const ordersCollection = collection(db, "orders");
           const customDesignsCollection = collection(db, "custom_designs");
 
@@ -716,6 +882,28 @@
             ...customDesignsSnapshot.docs.map((doc) => doc.data()),
           ];
 
+          // 💡 (جديد) تحديد نطاق التواريخ للفلتر
+          const now = new Date();
+          let startDate,
+            endDate = new Date(
+              now.getFullYear(),
+              now.getMonth(),
+              now.getDate(),
+              23,
+              59,
+              59
+            );
+
+          if (filterPeriod === "monthly") {
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          } else if (filterPeriod === "quarterly") {
+            const currentQuarter = Math.floor(now.getMonth() / 3);
+            startDate = new Date(now.getFullYear(), currentQuarter * 3, 1);
+          } else {
+            // "all"
+            startDate = new Date(0); // بداية الزمن
+          }
+
           let pendingReviewCount = 0;
           let inProgressCount = 0;
           let completedCount = 0;
@@ -728,29 +916,44 @@
 
           allOrders.forEach((o) => {
             const status = o.status;
+            // 💡 (جديد) جلب تاريخ الطلب للفلترة
+            const orderDate = o.order_date ? new Date(o.order_date) : null;
+
+            // 💡 (معدل) حساب المهام العاجلة (دائماً real-time، لا تخضع للفلتر)
             if (status === "قيد المراجعة" || status === "مقبول") {
               pendingReviewCount++;
-            } else if (
-              [
-                "مقبول-العميل",
-                "قيد التصنيع",
-                "قيد الطلاء",
-                "قيد التغليف",
-                "قيد الشحن",
-              ].includes(status)
-            ) {
-              inProgressCount++;
-            } else if (status === "مكتمل") {
-              completedCount++;
-            } else if (
-              status === "تم الرفض" ||
-              status === "مرفوض-العميل" ||
-              status === "مؤرشف"
-            ) {
-              rejectedCount++;
             }
 
-            if (status === "مكتمل") {
+            // 💡 (معدل) حساب الرسوم البيانية (يخضع للفلتر)
+            if (orderDate && orderDate >= startDate && orderDate <= endDate) {
+              if (
+                [
+                  "مقبول-العميل",
+                  "قيد التصنيع",
+                  "قيد الطلاء",
+                  "قيد التغليف",
+                  "قيد الشحن",
+                ].includes(status)
+              ) {
+                inProgressCount++;
+              } else if (status === "مكتمل") {
+                completedCount++;
+              } else if (
+                status === "تم الرفض" ||
+                status === "مرفوض-العميل" ||
+                status === "مؤرشف"
+              ) {
+                rejectedCount++;
+              }
+            }
+
+            // 💡 (معدل) حساب المقاييس المالية (يخضع للفلتر)
+            if (
+              status === "مكتمل" &&
+              orderDate &&
+              orderDate >= startDate &&
+              orderDate <= endDate
+            ) {
               const orderRevenue = parseFloat(o.total || o.final_price || 0);
               totalRevenue += orderRevenue;
               let orderCOGS = 0;
@@ -788,14 +991,22 @@
           });
 
           const grossProfit = totalRevenue - totalCOGS;
-          const netProfit = grossProfit - totalFixedCosts;
+          let netProfit = 0;
+
+          // 💡 (جديد) التحكم بعرض الربح الصافي
+          if (filterPeriod === "all") {
+            netProfitContainer.style.display = "none";
+          } else {
+            netProfit = grossProfit - periodFixedCosts;
+            netProfitContainer.style.display = "block";
+          }
 
           // 💡 (إصلاح) تخزين البيانات لاستخدامها في التوقعات والتحليل
           currentTotalRevenue = totalRevenue;
           currentGrossProfit = grossProfit;
           currentTotalCOGS = totalCOGS; // 💡 (إصلاح)
           currentNetProfit = netProfit;
-          currentFixedCosts = totalFixedCosts;
+          // currentFixedCosts تم تخزينها بـ fetchFixedCosts()
           currentPendingOrders = pendingReviewCount;
           currentLowStock = allRawMaterials.filter(
             (m) => m.current_stock <= m.reorder_point && m.reorder_point > 0
@@ -824,36 +1035,43 @@
           netProfitDisplay.textContent = netProfit.toFixed(0);
 
           smartAlertBox.style.display = "flex";
-          if (netProfit < 0) {
+          // 💡 (معدل) منطق التنبيه الذكي
+          if (filterPeriod === "all") {
+            smartAlertBox.className = "smart-alert info";
+            smartAlertIcon.className = "fa-solid fa-circle-info";
+            smartAlertMessage.innerHTML = `<strong>عرض كل الوقت:</strong> يتم عرض إجمالي الإيرادات وهامش الربح الإجمالي التاريخي. (الربح الصافي غير متاح في هذا العرض).`;
+          } else if (netProfit < 0) {
             const breakeven = Math.abs(netProfit);
             if (grossProfit <= 0 && totalRevenue > 0) {
               smartAlertBox.className = "smart-alert danger";
               smartAlertIcon.className = "fa-solid fa-circle-xmark";
-              smartAlertMessage.innerHTML = `<strong>تحذير أداء حرج:</strong> إجمالي تكلفة البضاعة المباعة (COGS) أعلى من إيراداتك. <strong>أنت تبيع بخسارة!</strong>`;
+              smartAlertMessage.innerHTML = `<strong>تحذير أداء حرج (لهذه الفترة):</strong> إجمالي تكلفة البضاعة المباعة (COGS) أعلى من إيراداتك. <strong>أنت تبيع بخسارة!</strong>`;
             } else if (totalRevenue === 0) {
               smartAlertBox.className = "smart-alert warning";
               smartAlertIcon.className = "fa-solid fa-triangle-exclamation";
-              smartAlertMessage.innerHTML = `<strong>تنبيه:</strong> لم تسجل أي إيرادات (طلبات مكتملة) حتى الآن. الربح الصافي سالب بسبب وجود تكاليف ثابتة بقيمة <strong>${totalFixedCosts.toFixed(
+              smartAlertMessage.innerHTML = `<strong>تنبيه (لهذه الفترة):</strong> لم تسجل أي إيرادات (طلبات مكتملة) حتى الآن. الربح الصافي سالب بسبب وجود تكاليف ثابتة بقيمة <strong>${periodFixedCosts.toFixed(
                 0
               )} شيكل</strong>.`;
             } else {
               smartAlertBox.className = "smart-alert warning";
               smartAlertIcon.className = "fa-solid fa-circle-info";
-              smartAlertMessage.innerHTML = `<strong>ملاحظة أداء:</strong> هامش ربحك الإجمالي إيجابي، لكنه لا يغطي تكاليفك الثابتة. تحتاج إلى ربح إضافي بقيمة <strong>${breakeven.toFixed(
+              smartAlertMessage.innerHTML = `<strong>ملاحظة أداء (لهذه الفترة):</strong> هامش ربحك الإجمالي إيجابي، لكنه لا يغطي تكاليفك الثابتة. تحتاج إلى ربح إضافي بقيمة <strong>${breakeven.toFixed(
                 0
               )} شيكل</strong> للوصول لنقطة التعادل.`;
             }
           } else {
             smartAlertBox.className = "smart-alert success";
             smartAlertIcon.className = "fa-solid fa-circle-check";
-            smartAlertMessage.innerHTML = `<strong>أداء ممتاز:</strong> تهانينا! أرباحك الصافية <strong>${netProfit.toFixed(
+            smartAlertMessage.innerHTML = `<strong>أداء ممتاز (لهذه الفترة):</strong> تهانينا! أرباحك الصافية ${netProfit.toFixed(
               0
-            )} شيكل</strong> تغطي جميع تكاليفك الثابتة.`;
+            )} شيكل تغطي جميع تكاليفك.`;
           }
 
+          // 💡 (معدل) المهام العاجلة (دائماً real-time)
           pendingOrdersCount.textContent = currentPendingOrders;
           lowStockCount.textContent = currentLowStock;
 
+          // 💡 (معدل) القوائم والرسوم (تخضع للفلتر)
           topProductsList.innerHTML = "";
           currentTopProducts.forEach((p, i) => {
             topProductsList.innerHTML += `
@@ -864,7 +1082,7 @@
           });
           if (currentTopProducts.length === 0) {
             topProductsList.innerHTML =
-              '<p style="text-align: center; color: #999;">لا توجد مبيعات بعد.</p>';
+              '<p style="text-align: center; color: #999;">لا توجد مبيعات مكتملة لهذه الفترة.</p>';
           }
 
           topCustomersList.innerHTML = "";
@@ -877,11 +1095,11 @@
           });
           if (currentTopCustomers.length === 0) {
             topCustomersList.innerHTML =
-              '<p style="text-align: center; color: #999;">لا توجد مبيعات بعد.</p>';
+              '<p style="text-align: center; color: #999;">لا توجد مبيعات مكتملة لهذه الفترة.</p>';
           }
 
           renderOrderStatusChart(
-            pendingReviewCount,
+            pendingReviewCount, // 💡 (معدل) إظهار الطلبات قيد المراجعة دائماً
             inProgressCount,
             completedCount,
             rejectedCount
@@ -920,13 +1138,15 @@
             "furniture market trends Palestine 2025",
           ];
 
+          // 💡 (معدل) استخدام بيانات الفترة الحالية للذكاء الاصطناعي
+          const currentPeriodText =
+            periodFilter.options[periodFilter.selectedIndex].text;
+
           const prompt = `
             أنت مستشار مالي خبير لFurnAI أثاث تقع في فلسطين.
-            بياناتي الداخلية الحالية هي: إجمالي الإيرادات (المكتملة): ${currentTotalRevenue.toFixed(
-              0
-            )} شيكل، وهامش الربح الإجمالي: ${currentGrossProfit.toFixed(
+            بياناتي الداخلية الحالية (لفترة: ${currentPeriodText}) هي: إجمالي الإيرادات (المكتملة): ${currentTotalRevenue.toFixed(
             0
-          )} شيكل.
+          )} شيكل، وهامش الربح الإجمالي: ${currentGrossProfit.toFixed(0)} شيكل.
             
             مهمتك:
             1.  قم أولاً بإجراء بحث في الويب ("google_search") باستخدام هذه الاستعلامات: ${JSON.stringify(
@@ -1048,20 +1268,34 @@
         );
 
         // 1. تجميع ملخص البيانات (السياق)
-        // 💡 (إصلاح) تم استبدال المتغيرات غير المعرفة بالمتغيرات الجلوبال
+        // 💡 (معدل) استخدام بيانات الفترة الحالية
+        const currentPeriodText =
+          periodFilter.options[periodFilter.selectedIndex].text;
+        const netProfitText =
+          periodFilter.value === "all"
+            ? "غير محسوب (عرض كل الوقت)"
+            : `${currentNetProfit.toFixed(0)} شيكل`;
+
         const dataSnapshot = `
-          - **الأداء المالي (الشهر الحالي):**
+          - **الأداء المالي (الفترة المحددة: ${currentPeriodText}):**
             - إجمالي الإيرادات (المكتملة): ${currentTotalRevenue.toFixed(
               0
             )} شيكل
             - إجمالي تكلفة البضاعة (COGS): ${currentTotalCOGS.toFixed(0)} شيكل
             - هامش الربح الإجمالي: ${currentGrossProfit.toFixed(0)} شيكل
-            - التكاليف الثابتة الشهرية: ${currentFixedCosts.toFixed(0)} شيكل
-            - الربح الصافي: ${currentNetProfit.toFixed(0)} شيكل
-          - **المهام التشغيلية:**
+            - التكاليف الثابتة (للفترة): ${
+              periodFilter.value === "all"
+                ? "N/A"
+                : (
+                    currentFixedCosts *
+                    (periodFilter.value === "quarterly" ? 3 : 1)
+                  ).toFixed(0)
+            } شيكل
+            - الربح الصافي: ${netProfitText}
+          - **المهام التشغيلية (Real-time):**
             - طلبات قيد المراجعة: ${currentPendingOrders}
             - مواد خام تحتاج إعادة طلب: ${currentLowStock}
-          - **الأفضل أداءً (مبيعات مكتملة):**
+          - **الأفضل أداءً (الفترة المحددة: ${currentPeriodText}):**
             - أفضل 5 منتجات (بالكمية): ${
               currentTopProducts.length > 0
                 ? currentTopProducts
@@ -1084,12 +1318,12 @@
           لديك صلاحية الوصول إلى بيانات العمل الداخلية (المزودة أدناه) ولديك أيضاً صلاحية البحث في الويب ("google_search") عن أي معلومات خارجية قد تحتاجها.
 
           **مهم جداً:**
-          1.  أجب دائماً بناءً على **البيانات الداخلية أولاً**.
+          1.  أجب دائماً بناءً على **البيانات الداخلية أولاً** (التي تغطي الفترة: ${currentPeriodText}).
           2.  استخدم "google_search" **فقط** إذا كان السؤال يتطلب معلومات خارجية (مثل: "ما هي أسعار الخشب اليوم؟" أو "ما هي اتجاهات التصميم الجديدة في فلسطين؟").
           3.  إذا كان السؤال داخلياً (مثل: "ما هو المنتج الأكثر ربحية؟")، أجب مباشرة من البيانات الداخلية ولا تستخدم البحث.
           4.  قم بتنسيق إجابتك باستخدام HTML (مثل <ul>, <li>, <strong>) لجعلها سهلة القراءة.
 
-          --- بيانات العمل الحالية ---
+          --- بيانات العمل الحالية (الفترة: ${currentPeriodText}) ---
           ${dataSnapshot}
           --- نهاية بيانات العمل ---
 
@@ -1143,6 +1377,7 @@
         rejected
       ) {
         const ctx = document.getElementById("orderStatusChart");
+        // 💡 (جديد) تدمير المخطط القديم قبل رسم الجديد
         if (Chart.getChart(ctx)) {
           Chart.getChart(ctx).destroy();
         }
@@ -1177,6 +1412,7 @@
 
       function renderCategoryProfitChart(categoryProfits) {
         const ctx = document.getElementById("categoryProfitChart");
+        // 💡 (جديد) تدمير المخطط القديم قبل رسم الجديد
         if (Chart.getChart(ctx)) {
           Chart.getChart(ctx).destroy();
         }

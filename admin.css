@@ -68,11 +68,13 @@ h1 {
 
 /* -------------------------------------- */
 /* 2. الهيدر والتنقل (Nav Bar) */
+/* 💡 (هنا التعديلات الرئيسية) */
 /* -------------------------------------- */
 .main-header {
   background-color: var(--white-color);
   border-bottom: 1px solid var(--border-color);
-  padding: 15px 30px;
+  /* (جديد) تقليل بسيط للحاشية الجانبية للهيدر */
+  padding: 15px 25px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -88,17 +90,24 @@ h1 {
 }
 .main-header nav ul {
   display: flex;
-  gap: 10px;
+  /* (جديد) تقليل الفجوة بين الروابط */
+  gap: 5px;
   list-style: none;
+  align-items: center;
 }
 .main-header nav a {
   color: var(--dark-color);
   font-weight: 500;
-  padding: 8px 12px;
+  /* (جديد) تقليل الحاشية الداخلية للرابط */
+  padding: 8px 10px;
   border-radius: 6px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  /* (جديد) تقليل الفجوة بين الأيقونة والنص */
+  gap: 5px;
+  /* (جديد) تقليل حجم الخط قليلاً */
+  font-size: 0.95rem;
+  white-space: nowrap; /* (جديد) منع التفاف النص */
 }
 .main-header nav a:hover {
   background-color: var(--light-color);
@@ -122,8 +131,20 @@ h1 {
 .main-header nav ul li:nth-child(5) a.active {
   background-color: var(--accent-1);
 }
+/* (جديد) تنسيق الألوان لبقية الروابط */
+.main-header nav ul li:nth-child(6) a.active {
+  background-color: #6a1b9a; /* (بنفسجي للتكاليف) */
+}
+.main-header nav ul li:nth-child(7) a.active {
+  background-color: #00897b; /* (أخضر مزرق للعملاء) */
+}
+.main-header nav ul li:nth-child(8) a.active {
+  background-color: #ad1457; /* (وردي غامق للاستراتيجية) */
+}
+
 .main-header nav a i {
-  font-size: 1rem;
+  /* (جديد) تقليل حجم الأيقونة قليلاً */
+  font-size: 0.95rem;
 }
 .main-content {
   flex-grow: 1;
@@ -616,3 +637,7 @@ h1 {
   font-size: 0.9rem;
   line-height: 1.5;
 }
+
+/* -------------------------------------- */
+/* 9. (محذوف) تم حذف أنماط القائمة المنسدلة القديمة */
+/* -------------------------------------- */

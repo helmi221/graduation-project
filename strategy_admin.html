@@ -1,0 +1,2450 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FurnAI | التحليل الاستراتيجي</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <link rel="stylesheet" href="admin.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+
+    <style>
+      /* 💡 ستايل مخصص لصفحة التحليل بناءً على admin.css */
+
+      /* 1. نظام التبويبات (Tabs) */
+      .tab-navigation {
+        display: flex;
+        gap: 5px;
+        border-bottom: 2px solid var(--border-color);
+        margin-bottom: 25px;
+        flex-wrap: wrap; /* للسماح بالالتفاف في الشاشات الصغيرة */
+      }
+      .tab-btn {
+        padding: 10px 15px;
+        font-size: 0.95rem; /* تصغير الخط قليلاً لكثرة التبويبات */
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        background-color: transparent;
+        border-bottom: 3px solid transparent;
+        transition: all 0.2s;
+        color: #777;
+      }
+      .tab-btn:hover {
+        background-color: #f7f5f2;
+      }
+      .tab-btn.active {
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+      }
+      .tab-content {
+        display: none;
+      }
+      .tab-content.active {
+        display: block;
+        animation: fadeIn 0.5s;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* 2. تنسيق البطاقات والنماذج */
+      .card {
+        background-color: var(--card-bg, #ffffff);
+        border-radius: var(--border-radius, 8px);
+        box-shadow: var(--shadow, 0 4px 12px rgba(0, 0, 0, 0.05));
+        padding: 25px;
+        margin-bottom: 25px;
+        overflow-x: auto;
+      }
+      .card h2 {
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+        color: var(--primary-color);
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .form-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .form-group label {
+        font-weight: 600;
+        flex-basis: 150px;
+      }
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+      input[type="text"],
+      input[type="number"],
+      select,
+      textarea {
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 0.95rem;
+        flex-grow: 1;
+        font-family: "Cairo", sans-serif;
+      }
+      textarea {
+        width: 100%;
+        min-height: 80px;
+      }
+      /* استخدام ستايل الجداول من admin.css */
+      table.matrix-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+        min-width: 600px;
+      }
+      .matrix-table th,
+      .matrix-table td {
+        border: 1px solid var(--border-color);
+        padding: 12px;
+        text-align: right;
+        vertical-align: middle;
+      }
+      .matrix-table th {
+        background-color: var(--light-color);
+      }
+      .matrix-table td input[type="number"] {
+        width: 80px;
+        padding: 8px;
+      }
+      .totals {
+        margin-top: 25px;
+        padding: 20px;
+        background: #fdfdfd;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+      }
+      .totals .analysis-result {
+        font-weight: normal;
+        font-size: 1rem;
+        color: var(--text-dark);
+        margin-top: 10px;
+        border-top: 1px dashed var(--border-color);
+        padding-top: 10px;
+      }
+      .swot-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+      }
+      .qspm-table input[type="number"] {
+        width: 60px;
+      }
+      .qspm-table .tas {
+        font-weight: bold;
+        background-color: #f8f9fa;
+      }
+
+      /* 3. تنسيق مخرجات التقرير */
+      #ai-report-output {
+        white-space: pre-wrap;
+        background-color: #f8f9fa;
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        padding: 20px;
+        min-height: 200px;
+        line-height: 1.6;
+        text-align: right;
+      }
+      .loader {
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid var(--primary-color);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+        display: none;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* 4. تنسيق المودال (Info Modal) */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 2000; /* يجب أن يكون أعلى من الهيدر */
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.6);
+        animation: fadeIn 0.3s;
+      }
+      .modal-content {
+        /* استخدام نفس كلاس المودال من admin.css */
+        background-color: var(--white-color);
+        border-radius: var(--border-radius);
+        width: 90%;
+        max-width: 700px;
+        max-height: 90vh;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        position: relative;
+        text-align: right;
+        overflow-y: auto;
+        margin: 5% auto;
+        animation: slideIn 0.3s;
+      }
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+      }
+      .modal-header h2 {
+        color: var(--primary-color);
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+      }
+      .close-btn {
+        font-size: 2rem;
+        color: #aaa;
+        cursor: pointer;
+        line-height: 1;
+      }
+      .close-btn:hover {
+        color: var(--danger-color);
+      }
+      .arabic-note {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
+      }
+
+      /* شريط الحفظ التلقائي */
+      #autosave-status {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        background-color: var(--success-color);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        z-index: 1001;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.5s ease;
+      }
+      #autosave-status.saving {
+        opacity: 1;
+        visibility: visible;
+        background-color: var(--warning-color);
+        color: #333;
+      }
+      #autosave-status.saved {
+        opacity: 1;
+        visibility: visible;
+        background-color: var(--success-color);
+        color: white;
+      }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateY(-50px);
+        }
+        to {
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="main-header">
+      <div class="logo">FurnAI</div>
+      <nav>
+        <ul>
+          <li>
+            <a href="admin.html"
+              ><i class="fa-solid fa-gauge-high"></i> لوحة التحكم</a
+            >
+          </li>
+          <li>
+            <a href="orders_admin.html"
+              ><i class="fa-solid fa-box-open"></i> إدارة الطلبات</a
+            >
+          </li>
+          <li>
+            <a href="inventory.html"
+              ><i class="fa-solid fa-warehouse"></i> إدارة المنتجات</a
+            >
+          </li>
+          <li>
+            <a href="raw_materials_admin.html"
+              ><i class="fa-solid fa-hammer"></i> المواد الخام</a
+            >
+          </li>
+          <li>
+            <a href="suppliers_admin.html"
+              ><i class="fa-solid fa-truck-fast"></i> الموردين</a
+            >
+          </li>
+          <li>
+            <a href="fixed_costs_admin.html"
+              ><i class="fa-solid fa-calculator"></i> التكاليف</a
+            >
+          </li>
+          <li>
+            <a href="customers_admin.html"
+              ><i class="fa-solid fa-users"></i> العملاء</a
+            >
+          </li>
+          <li>
+            <a href="strategy_admin.html" class="active"
+              ><i class="fa-solid fa-lightbulb"></i> الاستراتيجية</a
+            >
+          </li>
+          <li>
+            <a href="#" id="logout-btn"
+              ><i class="fa-solid fa-right-from-bracket"></i> خروج</a
+            >
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <div class="main-content container-fluid">
+      <header
+        class="page-header"
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <h1 id="page-title">التحليل الاستراتيجي</h1>
+        <button
+          class="btn btn-secondary"
+          id="info-btn"
+          style="font-size: 1.1rem; padding: 8px 15px; min-width: 50px"
+        >
+          <i class="fa-solid fa-info-circle"></i> شرح
+        </button>
+      </header>
+
+      <div class="tab-navigation" id="main-nav"></div>
+
+      <div class="admin-panel" style="padding: 10px">
+        <section id="page-welcome" class="tool-page tab-content active">
+          <div class="card">
+            <h2><i class="fa-solid fa-building"></i> معلومات الشركة</h2>
+            <p>
+              ابدأ بإدخال معلومات شركتك الأساسية. يتم حفظ جميع البيانات تلقائياً
+              في Firebase.
+            </p>
+            <div class="form-grid" style="margin-top: 20px">
+              <div
+                class="form-group"
+                style="flex-direction: column; align-items: stretch"
+              >
+                <label for="company-name">اسم الشركة</label>
+                <input
+                  type="text"
+                  id="company-name"
+                  placeholder="مثال: FurnAI"
+                  oninput="app.debouncedSave()"
+                />
+              </div>
+              <div
+                class="form-group"
+                style="flex-direction: column; align-items: stretch"
+              >
+                <label for="company-industry">الصناعة</label>
+                <input
+                  type="text"
+                  id="company-industry"
+                  placeholder="مثال: صناعة الأثاث"
+                  oninput="app.debouncedSave()"
+                />
+              </div>
+              <div
+                class="form-group"
+                style="flex-direction: column; align-items: stretch"
+              >
+                <label for="company-country">الدولة / المنطقة</label>
+                <input
+                  type="text"
+                  id="company-country"
+                  placeholder="مثال: فلسطين"
+                  oninput="app.debouncedSave()"
+                />
+              </div>
+              <div
+                class="form-group"
+                style="flex-direction: column; align-items: stretch"
+              >
+                <label for="company-notes">ملاحظات أخرى</label>
+                <input
+                  type="text"
+                  id="company-notes"
+                  placeholder="مثال: شركة ناشئة، تركز على التصميم المخصص"
+                  oninput="app.debouncedSave()"
+                />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-ife" class="tool-page tab-content">
+          <div class="card">
+            <h2>
+              <i class="fa-solid fa-plus-circle"></i> إضافة عامل داخلي جديد
+            </h2>
+            <div class="form-group">
+              <select id="ife-type" style="flex-basis: 200px">
+                <option value="strength">نقطة قوة (تقييم 3 أو 4)</option>
+                <option value="weakness">نقطة ضعف (تقييم 1 أو 2)</option>
+              </select>
+              <input
+                type="text"
+                id="ife-text"
+                placeholder="وصف العامل (مثال: 'سمعة قوية للعلامة التجارية')"
+                style="flex-grow: 2"
+              />
+              <input
+                type="number"
+                id="ife-weight"
+                placeholder="الوزن (0.01 - 1.0)"
+                step="0.01"
+              />
+              <input
+                type="number"
+                id="ife-rating"
+                placeholder="التقييم (1-4)"
+                min="1"
+                max="4"
+              />
+              <button onclick="app.ife.add()">
+                <i class="fa-solid fa-plus"></i> إضافة
+              </button>
+            </div>
+          </div>
+          <div class="card">
+            <h2>مصفوفة العوامل الداخلية (IFE)</h2>
+            <table id="ife-table" class="matrix-table">
+              <thead>
+                <tr>
+                  <th>وصف العامل</th>
+                  <th>النوع</th>
+                  <th>الوزن</th>
+                  <th>التقييم</th>
+                  <th>النتيجة الموزونة</th>
+                  <th>إجراءات</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <div class="totals" id="ife-totals"></div>
+          </div>
+        </section>
+
+        <section id="page-efe" class="tool-page tab-content">
+          <div class="card">
+            <h2>
+              <i class="fa-solid fa-plus-circle"></i> إضافة عامل خارجي جديد
+            </h2>
+            <div class="form-group">
+              <select id="efe-type" style="flex-basis: 200px">
+                <option value="opportunity">فرصة (تقييم 3 أو 4)</option>
+                <option value="threat">تهديد (تقييم 1 أو 2)</option>
+              </select>
+              <input
+                type="text"
+                id="efe-text"
+                placeholder="وصف العامل (مثال: 'زيادة الطلب على الأثاث المخصص')"
+                style="flex-grow: 2"
+              />
+              <input
+                type="number"
+                id="efe-weight"
+                placeholder="الوزن (0.01 - 1.0)"
+                step="0.01"
+              />
+              <input
+                type="number"
+                id="efe-rating"
+                placeholder="التقييم (1-4)"
+                min="1"
+                max="4"
+              />
+              <button onclick="app.efe.add()">
+                <i class="fa-solid fa-plus"></i> إضافة
+              </button>
+            </div>
+          </div>
+          <div class="card">
+            <h2>مصفوفة العوامل الخارجية (EFE)</h2>
+            <table id="efe-table" class="matrix-table">
+              <thead>
+                <tr>
+                  <th>وصف العامل</th>
+                  <th>النوع</th>
+                  <th>الوزن</th>
+                  <th>التقييم</th>
+                  <th>النتيجة الموزونة</th>
+                  <th>إجراءات</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+            <div class="totals" id="efe-totals"></div>
+          </div>
+        </section>
+
+        <section id="page-cpm" class="tool-page tab-content">
+          <div class="card">
+            <h2>إدارة المنافسين</h2>
+            <div class="form-group">
+              <input
+                type="text"
+                id="cpm-competitor-name"
+                placeholder="اسم المنافس الجديد"
+              />
+              <button onclick="app.cpm.addCompetitor()">إضافة منافس</button>
+            </div>
+            <p>
+              شركتك (العمود 1) والمنافسون:
+              <strong id="cpm-competitor-list"></strong>
+            </p>
+          </div>
+          <div class="card">
+            <h2>إضافة عامل نجاح حاسم (CSF)</h2>
+            <div class="form-group">
+              <input
+                type="text"
+                id="cpm-factor-text"
+                placeholder="العامل (مثال: 'الحصة السوقية')"
+              />
+              <input
+                type="number"
+                id="cpm-factor-weight"
+                placeholder="الوزن (0.01 - 1.0)"
+                step="0.01"
+              />
+              <button onclick="app.cpm.addFactor()">إضافة عامل</button>
+            </div>
+          </div>
+          <div class="card">
+            <h2>مصفوفة الوضع التنافسي (CPM)</h2>
+            <table id="cpm-table" class="matrix-table">
+              <thead></thead>
+              <tbody></tbody>
+              <tfoot></tfoot>
+            </table>
+          </div>
+        </section>
+
+        <section id="page-swot" class="tool-page tab-content">
+          <div class="card">
+            <h2>مصفوفة SWOT وتوليد الاستراتيجيات</h2>
+            <p>
+              راجع عواملك الرئيسية وقم بصياغة الاستراتيجيات. يتم حفظ ملاحظاتك
+              تلقائياً.
+            </p>
+            <button
+              onclick="app.swot.pullFactors()"
+              class="btn"
+              style="margin-top: 10px"
+            >
+              <i class="fa-solid fa-sync"></i> سحب/تحديث العوامل من
+              (IFE/EFE/Firebase)
+            </button>
+            <div id="swot-reference" style="display: none; margin-top: 20px">
+              <div class="swot-grid">
+                <div class="swot-card strengths">
+                  <h3><i class="fa-solid fa-star"></i> نقاط القوة (S)</h3>
+                  <ul id="swot-s"></ul>
+                </div>
+                <div class="swot-card weaknesses">
+                  <h3>
+                    <i class="fa-solid fa-triangle-exclamation"></i> نقاط الضعف
+                    (W)
+                  </h3>
+                  <ul id="swot-w"></ul>
+                </div>
+                <div class="swot-card opportunities">
+                  <h3><i class="fa-solid fa-sun"></i> الفرص (O)</h3>
+                  <ul id="swot-o"></ul>
+                </div>
+                <div class="swot-card threats">
+                  <h3><i class="fa-solid fa-bolt"></i> التهديدات (T)</h3>
+                  <ul id="swot-t"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="swot-grid">
+            <div class="card">
+              <h3>استراتيجيات S-O (القوة-الفرص)</h3>
+              <textarea
+                id="swot-so"
+                placeholder="استخدم نقاط القوة لاقتناص الفرص..."
+                oninput="app.debouncedSave()"
+              ></textarea>
+            </div>
+            <div class="card">
+              <h3>استراتيجيات W-O (الضعف-الفرص)</h3>
+              <textarea
+                id="swot-wo"
+                placeholder="تغلب على نقاط الضعف باستغلال الفرص..."
+                oninput="app.debouncedSave()"
+              ></textarea>
+            </div>
+            <div class="card">
+              <h3>استراتيجيات S-T (القوة-التهديدات)</h3>
+              <textarea
+                id="swot-st"
+                placeholder="استخدم نقاط القوة لدرء التهديدات..."
+                oninput="app.debouncedSave()"
+              ></textarea>
+            </div>
+            <div class="card">
+              <h3>استراتيجيات W-T (الضعف-التهديدات)</h3>
+              <textarea
+                id="swot-wt"
+                placeholder="استراتيجيات دفاعية لتقليل الضعف وتجنب التهديدات..."
+                oninput="app.debouncedSave()"
+              ></textarea>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-bcg" class="tool-page tab-content">
+          <div class="card">
+            <h2>إضافة قسم / منتج جديد (لـ BCG)</h2>
+            <div class="form-group">
+              <input type="text" id="bcg-division" placeholder="اسم القسم" />
+              <input
+                type="number"
+                id="bcg-growth"
+                placeholder="معدل نمو الصناعة (-20 إلى 20)"
+                step="0.1"
+              />
+              <input
+                type="number"
+                id="bcg-rmsp"
+                placeholder="الحصة السوقية النسبية (0.0 إلى 1.0)"
+                step="0.01"
+              />
+              <input
+                type="number"
+                id="bcg-revenue"
+                placeholder="الإيرادات (لحجم الدائرة)"
+              />
+              <button onclick="app.bcg.add()">إضافة</button>
+              <button class="btn btn-danger" onclick="app.bcg.clear()">
+                مسح الكل
+              </button>
+            </div>
+          </div>
+          <div class="card">
+            <h2>مصفوفة بوسطن (BCG)</h2>
+            <div
+              style="width: 100%; max-width: 700px; margin: auto; padding: 10px"
+            >
+              <canvas id="bcgChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-ie" class="tool-page tab-content">
+          <div class="card">
+            <h2>المصفوفة الداخلية-الخارجية (IE)</h2>
+            <p>هذه المصفوفة ترسم موقع شركتك بناءً على نتائج IFE و EFE.</p>
+            <p style="margin-top: 10px">
+              <strong>نتيجة IFE الإجمالية الحالية: </strong
+              ><span id="ie-ife-score">N/A</span><br />
+              <strong>نتيجة EFE الإجمالية الحالية: </strong
+              ><span id="ie-efe-score">N/A</span>
+            </p>
+            <button onclick="app.ie.plotFirm()" class="btn">
+              <i class="fa-solid fa-map-pin"></i> تحديد موقع الشركة على المصفوفة
+            </button>
+          </div>
+          <div class="card">
+            <h2>إضافة قسم (لـ IE)</h2>
+            <div class="form-group">
+              <input type="text" id="ie-division" placeholder="اسم القسم" />
+              <input
+                type="number"
+                id="ie-ife"
+                placeholder="نتيجة IFE للقسم (1.0 - 4.0)"
+                step="0.1"
+              />
+              <input
+                type="number"
+                id="ie-efe"
+                placeholder="نتيجة EFE للقسم (1.0 - 4.0)"
+                step="0.1"
+              />
+              <input
+                type="number"
+                id="ie-revenue"
+                placeholder="الإيرادات (لحجم الدائرة)"
+              />
+              <button onclick="app.ie.add()">إضافة</button>
+              <button class="btn btn-danger" onclick="app.ie.clear()">
+                مسح الكل
+              </button>
+            </div>
+          </div>
+          <div class="card">
+            <div
+              style="width: 100%; max-width: 700px; margin: auto; padding: 10px"
+            >
+              <canvas id="ieChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-space" class="tool-page tab-content">
+          <div class="card">
+            <h2>تقييمات مصفوفة SPACE</h2>
+            <p>
+              أدخل التقييمات لكل عامل. استخدم المقياس الموضح (راجع زر الشرح 'i'
+              للمزيد).
+            </p>
+            <div class="swot-grid" style="grid-template-columns: 1fr 1fr">
+              <div>
+                <h3>
+                  المركز المالي (FP)
+                  <span style="font-weight: normal">(من +1 إلى +7)</span>
+                </h3>
+                <div class="form-group">
+                  <label>العائد على الاستثمار (ROI)</label
+                  ><input
+                    type="number"
+                    id="space-fp1"
+                    min="1"
+                    max="7"
+                    oninput="app.space.update()"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>الرافعة المالية</label
+                  ><input
+                    type="number"
+                    id="space-fp2"
+                    min="1"
+                    max="7"
+                    oninput="app.space.update()"
+                  />
+                </div>
+                <strong style="margin-top: 10px; display: block"
+                  >متوسط (FP): <span id="space-fp-avg">0</span></strong
+                >
+              </div>
+              <div>
+                <h3>
+                  مركز الاستقرار (SP)
+                  <span style="font-weight: normal">(من -1 إلى -7)</span>
+                </h3>
+                <div class="form-group">
+                  <label>معدل التضخم</label
+                  ><input
+                    type="number"
+                    id="space-sp1"
+                    min="-7"
+                    max="-1"
+                    oninput="app.space.update()"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>التغير التكنولوجي</label
+                  ><input
+                    type="number"
+                    id="space-sp2"
+                    min="-7"
+                    max="-1"
+                    oninput="app.space.update()"
+                  />
+                </div>
+                <strong style="margin-top: 10px; display: block"
+                  >متوسط (SP): <span id="space-sp-avg">0</span></strong
+                >
+              </div>
+              <div>
+                <h3>
+                  مركز الصناعة (IP)
+                  <span style="font-weight: normal">(من +1 إلى +7)</span>
+                </h3>
+                <div class="form-group">
+                  <label>إمكانات النمو</label
+                  ><input
+                    type="number"
+                    id="space-ip1"
+                    min="1"
+                    max="7"
+                    oninput="app.space.update()"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>إمكانات الربح</label
+                  ><input
+                    type="number"
+                    id="space-ip2"
+                    min="1"
+                    max="7"
+                    oninput="app.space.update()"
+                  />
+                </div>
+                <strong style="margin-top: 10px; display: block"
+                  >متوسط (IP): <span id="space-ip-avg">0</span></strong
+                >
+              </div>
+              <div>
+                <h3>
+                  المركز التنافسي (CP)
+                  <span style="font-weight: normal">(من -1 إلى -7)</span>
+                </h3>
+                <div class="form-group">
+                  <label>الحصة السوقية</label
+                  ><input
+                    type="number"
+                    id="space-cp1"
+                    min="-7"
+                    max="-1"
+                    oninput="app.space.update()"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>جودة المنتج</label
+                  ><input
+                    type="number"
+                    id="space-cp2"
+                    min="-7"
+                    max="-1"
+                    oninput="app.space.update()"
+                  />
+                </div>
+                <strong style="margin-top: 10px; display: block"
+                  >متوسط (CP): <span id="space-cp-avg">0</span></strong
+                >
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h2>مصفوفة SPACE والتحليل</h2>
+            <div class="totals">
+              <p>
+                <strong>إحداثي المحور السيني (X = IP + CP): </strong
+                ><span id="space-x-axis">0</span>
+              </p>
+              <p>
+                <strong>إحداثي المحور الصادي (Y = FP + SP): </strong
+                ><span id="space-y-axis">0</span>
+              </p>
+              <p class="analysis-result">
+                <strong>الاستراتيجية المقترحة: </strong
+                ><span id="space-strategy">N/A</span>
+              </p>
+            </div>
+            <div
+              style="width: 100%; max-width: 600px; margin: auto; padding: 10px"
+            >
+              <canvas id="spaceChart"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <section id="page-qspm" class="tool-page tab-content">
+          <div class="card">
+            <h2>مصفوفة التخطيط الاستراتيجي الكمي (QSPM)</h2>
+            <p>قارن بين استراتيجيتين بديلتين (من SWOT مثلاً) لاختيار الأفضل.</p>
+            <div class="form-group">
+              <input
+                type="text"
+                id="qspm-s1-name"
+                placeholder="اسم الاستراتيجية 1"
+                oninput="app.debouncedSave(); app.qspm.updateNames()"
+              />
+              <input
+                type="text"
+                id="qspm-s2-name"
+                placeholder="اسم الاستراتيجية 2"
+                oninput="app.debouncedSave(); app.qspm.updateNames()"
+              />
+            </div>
+          </div>
+          <div class="card">
+            <table id="qspm-table" class="matrix-table qspm-table">
+              <thead>
+                <tr>
+                  <th>العامل الحاسم</th>
+                  <th>الوزن</th>
+                  <th id="qspm-s1-header">استراتيجية 1: AS</th>
+                  <th id="qspm-s1-tas-header">استراتيجية 1: TAS</th>
+                  <th id="qspm-s2-header">استراتيجية 2: AS</th>
+                  <th id="qspm-s2-tas-header">استراتيجية 2: TAS</th>
+                </tr>
+              </thead>
+              <tbody id="qspm-factors-body"></tbody>
+              <tfoot id="qspm-totals-foot"></tfoot>
+            </table>
+          </div>
+        </section>
+
+        <section id="page-ai-report" class="tool-page tab-content">
+          <div class="card">
+            <h2>
+              <i class="fa-solid fa-robot"></i> مُنشئ التقرير الاستراتيجي (AI)
+            </h2>
+            <p>
+              ستقوم هذه الأداة بتحليل جميع البيانات التي أدخلتها (IFE, EFE, CPM,
+              BCG, SWOT, SPACE) لإنشاء تقرير استراتيجي شامل.
+            </p>
+            <div class="form-group">
+              <label for="ai-language">اختر لغة التقرير:</label>
+              <select id="ai-language">
+                <option value="Arabic">العربية (Arabic)</option>
+                <option value="English">الإنجليزية (English)</option>
+              </select>
+              <button id="ai-generate-btn" onclick="app.aiReport.generate()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> إنشاء التقرير
+              </button>
+            </div>
+          </div>
+          <div class="card">
+            <h2>التقرير المُنشأ</h2>
+            <div class="loader" id="ai-loader"></div>
+            <div id="ai-report-output">
+              سيظهر تقريرك هنا. اضغط "إنشاء التقرير" للبدء...
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+    <div id="autosave-status">...</div>
+
+    <div id="info-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modal-title">Info</h2>
+          <span class="close-btn" onclick="app.closeModal()">&times;</span>
+        </div>
+        <div id="modal-body">
+          <p>Welcome!</p>
+        </div>
+      </div>
+    </div>
+
+    <script type="module">
+      // --- إعدادات Firebase ---
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+      import {
+        getFirestore,
+        doc,
+        setDoc,
+        getDoc,
+        collection,
+        getDocs,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
+      import {
+        getAuth,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+      // --- إعدادات الذكاء الاصطناعي ---
+      import { GoogleGenerativeAI } from "https://esm.run/@google/generative-ai";
+
+      // 🛑 إعدادات Firebase (استخدم نفس الإعدادات من ملفاتك الأخرى)
+      const firebaseConfig = {
+        apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
+        authDomain: "ecomers-dd329.firebaseapp.com",
+        projectId: "ecomers-dd329",
+        storageBucket: "ecomers-dd329.firebasestorage.app",
+        messagingSenderId: "190646144215",
+        appId: "1:190646144215:web:d55f24091a920f92b6b492",
+        measurementId: "G-NVYK3DZR00",
+      };
+
+      // 🛑 💡 (هام) استخدم نفس مفتاح AI من ملفاتك الأخرى
+      const API_KEY = "AIzaSyBcFkJsomDYhm1uGqoq3-8mHr0LTu-mZ9s";
+
+      // --- تهيئة التطبيقات ---
+      const appFirebase = initializeApp(firebaseConfig);
+      const db = getFirestore(appFirebase);
+      const auth = getAuth(appFirebase);
+      const genAI = new GoogleGenerativeAI(API_KEY);
+
+      (function () {
+        const app = {
+          data: {},
+          dbRef: null, // (مرجع مستند Firebase)
+          charts: { bcg: null, ie: null, space: null },
+
+          tools: [
+            { id: "welcome", name: "معلومات الشركة" },
+            { id: "ife", name: "IFE" },
+            { id: "efe", name: "EFE" },
+            { id: "cpm", name: "CPM" },
+            { id: "swot", name: "SWOT" },
+            { id: "bcg", name: "BCG" },
+            { id: "ie", name: "IE" },
+            { id: "space", name: "SPACE" },
+            { id: "qspm", name: "QSPM" },
+            { id: "ai-report", name: "تقرير AI" },
+          ],
+
+          infoContent: {
+            welcome: {
+              title: "معلومات الشركة",
+              body: `<p>ابدأ بإدخال معلومات شركتك الأساسية. يتم حفظ البيانات تلقائياً في Firebase.</p>`,
+            },
+            ife: {
+              title: "مصفوفة العوامل الداخلية (IFE)",
+              body: `<p>تلخص وتقيّم نقاط القوة والضعف الرئيسية لشركتك.</p>
+                       <strong>ماذا أفعل؟</strong>
+                       <ol>
+                           <li>أضف عوامل داخلية (10-20 عامل).</li>
+                           <li>أعطِ كل عامل <strong>"وزن" (Weight)</strong> من 0.0 إلى 1.0 حسب أهميته *للصناعة*. (يجب أن يكون مجموع الأوزان = 1.0).</li>
+                           <li>أعطِ كل عامل <strong>"تقييم" (Rating)</strong> من 1 إلى 4 حسب أداء *شركتك* فيه: (4 = قوة رئيسية, 3 = قوة ثانوية, 2 = ضعف ثانوي, 1 = ضعف رئيسي).</li>
+                           <li>النتيجة النهائية فوق 2.5 تعني أن الوضع الداخلي قوي.</li>
+                       </ol>`,
+            },
+            efe: {
+              title: "مصفوفة العوامل الخارجية (EFE)",
+              body: `<p>تلخص وتقيّم الفرص والتهديدات الخارجية التي تواجه شركتك.</p>
+                       <strong>ماذا أفعل؟</strong>
+                       <ol>
+                           <li>أضف عوامل خارجية (10-20 عامل).</li>
+                           <li>أعطِ كل عامل <strong>"وزن" (Weight)</strong> من 0.0 إلى 1.0 حسب أهميته *للصناعة*. (يجب أن يكون مجموع الأوزان = 1.0).</li>
+                           <li>أعطِ كل عامل <strong>"تقييم" (Rating)</strong> من 1 إلى 4 حسب جودة *استجابة شركتك* لهذا العامل: (4 = استجابة ممتازة, 3 = فوق المتوسط, 2 = متوسطة, 1 = ضعيفة).</li>
+                           <li>النتيجة النهائية فوق 2.5 تعني أن الشركة تستجيب جيداً للبيئة الخارجية.</li>
+                       </ol>`,
+            },
+            cpm: {
+              title: "مصفوفة الوضع التنافسي (CPM)",
+              body: `<p>تقارن هذه المصفوفة شركتك بأهم منافسيك بناءً على عوامل النجاح الرئيسية في الصناعة.</p>
+                       <strong>ماذا أفعل؟</strong>
+                       <ol>
+                           <li>أضف شركتك (تلقائياً هي أول عمود) ثم أضف المنافسين.</li>
+                           <li>أضف "عوامل النجاح الرئيسية" (CSFs) في صناعتك.</li>
+                           <li>أعطِ كل عامل <strong>"وزن" (Weight)</strong> من 0.0 إلى 1.0. (المجموع يجب أن = 1.0).</li>
+                           <li>أعطِ <strong>"تقييم" (Rating)</strong> من 1 إلى 4 (مثل IFE) *لكل شركة* على *كل عامل*.</li>
+                           <li>الشركة صاحبة أعلى مجموع هي الرائدة في المنافسة.</li>
+                       </ol>`,
+            },
+            swot: {
+              title: "مصفوفة SWOT (التحليل الرباعي)",
+              body: `<p>تساعدك على توليد استراتيجيات بناءً على عواملك الداخلية والخارجية.</p>
+                       <strong>ماذا أفعل؟</strong>
+                       <ol>
+                           <li>اضغط على "سحب/تحديث العوامل" لسحب أهم العوامل من IFE و EFE وبيانات FurnAI.</li>
+                           <li>بناءً على هذه العوامل، ابدأ بكتابة الاستراتيجيات في المربعات الأربعة (SO, WO, ST, WT).</li>
+                           <li>يتم حفظ ما تكتبه تلقائياً.</li>
+                       </ol>`,
+            },
+            bcg: {
+              title: "مصفوفة بوسطن (BCG)",
+              body: `<p>تضع أقسام شركتك (أو منتجاتك) على رسم بياني لتساعدك على تحديد أين تستثمر مواردك.</p>
+                       <strong>ماذا أفعل؟</strong>
+                       <ol>
+                           <li>لكل قسم أو منتج، أدخل:</li>
+                           <li><strong>معدل نمو الصناعة (IGR):</strong> من -20 إلى 20. (المحور Y).</li>
+                           <li><strong>الحصة السوقية النسبية (RMSP):</strong> من 0.0 إلى 1.0. (المحور X).</li>
+                           <li><strong>الإيرادات (Revenue):</strong> هذا يحدد حجم الدائرة.</li>
+                           <li>الأداة سترسم الدائرة في المربع الصحيح: (نجوم، استفهام، أبقار حلوب، كلاب).</li>
+                       </ol>`,
+            },
+            ie: {
+              title: "المصفوفة الداخلية-الخارجية (IE)",
+              body: `<p>تضع شركتك أو أقسامها على شبكة من 9 مربعات بناءً على نتائج IFE و EFE.</p>
+                       <strong>ماذا أفعل؟</strong>
+                       <ol>
+                           <li>الأداة تستخدم نتيجتك الإجمالية من IFE (المحور X) و EFE (المحور Y).</li>
+                           <li>اضغط "تحديد موقع الشركة" لترى موقع شركتك الحالي.</li>
+                           <li>يمكنك أيضاً إضافة "أقسام" منفصلة إذا كان لديك نتيجة IFE و EFE لكل قسم.</li>
+                           <li>المربعات الـ 9 مقسمة إلى 3 مناطق استراتيجية: (النمو والبناء، الحفاظ والصيانة، أو الحصاد والتخارج).</li>
+                       </ol>`,
+            },
+            space: {
+              title: "مصفوفة (SPACE)",
+              body: `<p>تحدد هذه المصفوفة "الوضع" الاستراتيجي لشركتك (هجومي، متحفظ، دفاعي، أو تنافسي).</p>
+                       <strong>ماذا أفعل؟</strong>
+                       <ol>
+                           <li>أعطِ تقييماً لكل بُعد من الأبعاد الأربعة. *انتبه جيداً لمقياس التقييم*:</li>
+                           <li><strong>المركز المالي (FP):</strong> من +1 (الأسوأ) إلى +7 (الأفضل).</li>
+                           <li><strong>مركز الصناعة (IP):</strong> من +1 (الأسوأ) إلى +7 (الأفضل).</li>
+                           <li><strong>مركز الاستقرار (SP):</strong> من -1 (الأفضل) إلى -7 (الأسوأ). (بالعكس)</li>
+                           <li><strong>المركز التنافسي (CP):</strong> من -1 (الأفضل) إلى -7 (الأسوأ). (بالعكس)</li>
+                           <li>الأداة ستحسب الإحداثيات (X, Y). الربع الذي تقع فيه النقطة يحدد نوع الاستراتيجية.</li>
+                       </ol>`,
+            },
+            qspm: {
+              title: "مصفوفة (QSPM)",
+              body: `<p>تستخدم عوامل IFE/EFE للمقارنة "بشكل كمي" بين استراتيجيتين لاختيار الأفضل.</p>
+                       <strong>ماذا أفعل؟</strong>
+                       <ol>
+                           <li>أدخل اسم "الاستراتيجية 1" و "الاستراتيجية 2".</li>
+                           <li>الجدول سيعرض تلقائياً كل العوامل والأوزان من IFE و EFE.</li>
+                           <li>لكل عامل، أعطِ <strong>"درجة جاذبية" (AS)</strong> من 1 إلى 4. (1 = غير جذابة، 4 = جذابة جداً).</li>
+                           <li>*قاعدة مهمة:* لا تعطِ نفس درجة الجاذبية للاستراتيجيتين في نفس الصف (إلا إذا كانت 0).</li>
+                           <li>*قاعدة مهمة:* إذا كان العامل لا يؤثر على قرار المفاضلة، أعطِ كلتا الاستراتيجيتين درجة 0.</li>
+                           <li>الاستراتيجية ذات المجموع الأعلى (STAS) هي الأفضل.</li>
+                       </ol>`,
+            },
+            "ai-report": {
+              title: "مُنشئ التقارير بالذكاء الاصطناعي (AI)",
+              body: `<p>تستخدم هذه الأداة نموذج Gemini من جوجل لتحليل مشروعك بالكامل.</p>
+                       <strong>ماذا أفعل؟</strong>
+                       <ol>
+                           <li>تأكد أولاً من تعبئة البيانات في الأدوات الأخرى (IFE, EFE, SWOT, SPACE...).</li>
+                           <li>اختر اللغة التي تريد التقرير بها (English أو Arabic).</li>
+                           <li>اضغط "إنشاء التقرير". ستقوم الأداة بجمع كل بياناتك وإرسالها للذكاء الاصطناعي.</li>
+                           <li>يرجى الانتظار، قد يستغرق الأمر من 10 إلى 30 ثانية.</li>
+                       </ol>`,
+            },
+          },
+
+          // --- 💡 دالة لإنشاء شريط التنقل (Tabs) ---
+          initTabs() {
+            const nav = document.getElementById("main-nav");
+            nav.innerHTML = "";
+            app.tools.forEach((tool) => {
+              nav.innerHTML += `<button id="btn-${tool.id}" class="tab-btn" onclick="app.showPage('${tool.id}')">
+                    ${tool.name}
+                </button>`;
+            });
+
+            document.getElementById("info-btn").onclick = () => {
+              const activePageId = document
+                .querySelector(".tool-page.active")
+                .id.replace("page-", "");
+              app.showModal(activePageId);
+            };
+          },
+
+          showPage(pageId) {
+            document
+              .querySelectorAll(".tab-content")
+              .forEach((p) => p.classList.remove("active"));
+            document.getElementById(`page-${pageId}`).classList.add("active");
+
+            document
+              .querySelectorAll("#main-nav button")
+              .forEach((b) => b.classList.remove("active"));
+            document.getElementById(`btn-${pageId}`).classList.add("active");
+
+            const tool = app.tools.find((t) => t.id === pageId);
+            document.getElementById("page-title").textContent = tool.name;
+
+            // إعادة العرض عند فتح التبويب (مهم للرسوم البيانية)
+            if (pageId === "qspm") app.qspm.render();
+            if (pageId === "swot") app.swot.render();
+            if (pageId === "ie") app.ie.render();
+            if (pageId === "bcg") app.bcg.render();
+            if (pageId === "space")
+              app.space.render(
+                app.data.space.xAxis || 0,
+                app.data.space.yAxis || 0
+              );
+          },
+
+          // --- 💡 دوال الحفظ والتحميل من Firebase ---
+
+          // دالة الحفظ التلقائي (Debounce)
+          utils: {
+            debounce(func, delay = 1500) {
+              let timeout;
+              return (...args) => {
+                const statusEl = document.getElementById("autosave-status");
+                statusEl.textContent = "يتم الحفظ...";
+                statusEl.className = "saving";
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                  func.apply(this, args);
+                  statusEl.textContent = "تم الحفظ ✓";
+                  statusEl.className = "saved";
+                  setTimeout(() => {
+                    statusEl.className = "";
+                  }, 2000);
+                }, delay);
+              };
+            },
+          },
+
+          async saveData() {
+            if (app.dbRef) {
+              try {
+                await setDoc(app.dbRef, app.data);
+              } catch (e) {
+                console.error("Firebase save error: ", e);
+                alert("خطأ أثناء الحفظ في Firebase.");
+              }
+            }
+          },
+
+          // تهيئة التطبيق بعد التحقق من المدير
+          init(user) {
+            // 💡 تحديد مستند Firebase بناءً على المستخدم
+            // (يمكنك تغيير "main_data" إذا أردت)
+            app.dbRef = doc(db, "strategy", "main_data");
+
+            app.initTabs();
+            app.loadData(); // (الآن سيتم التحميل من Firebase)
+
+            // ربط زر الخروج
+            document
+              .getElementById("logout-btn")
+              .addEventListener("click", async (e) => {
+                e.preventDefault();
+                await signOut(auth);
+                window.location.href = "login.html";
+              });
+          },
+
+          async loadData() {
+            const defaultData = {
+              companyInfo: {
+                name: "FurnAI",
+                industry: "الأثاث",
+                country: "فلسطين",
+                notes: "",
+              },
+              ife: { items: [] },
+              efe: { items: [] },
+              cpm: { competitors: ["FurnAI"], factors: [] },
+              swot: { so: "", st: "", wo: "", wt: "" },
+              bcg: { items: [] },
+              ie: { items: [], firm: null },
+              space: { ratings: {}, xAxis: 0, yAxis: 0 },
+              qspm: {
+                s1Name: "استراتيجية 1",
+                s2Name: "استراتيجية 2",
+                scores: {},
+              },
+            };
+
+            try {
+              const docSnap = await getDoc(app.dbRef);
+              if (docSnap.exists()) {
+                app.data = { ...defaultData, ...docSnap.data() }; // دمج البيانات الافتراضية مع المحفوظة
+              } else {
+                app.data = defaultData; // استخدام الافتراضي إذا لم يوجد مستند
+              }
+            } catch (e) {
+              console.error("Firebase load error: ", e);
+              app.data = defaultData;
+            }
+
+            app.showPage("welcome");
+            app.renderAll();
+          },
+
+          debouncedSave: null, // سيتم تهيئته
+
+          renderAll() {
+            // تهيئة الحفظ التلقائي
+            app.debouncedSave = app.utils.debounce(app.saveData, 1500);
+
+            app.companyInfo.render();
+            app.ife.render();
+            app.efe.render();
+            app.cpm.render();
+            app.swot.render();
+            app.bcg.render();
+            app.ie.render();
+            app.space._loadRender();
+            app.qspm.render();
+          },
+
+          // (لا حاجة لـ export/import/clear data لأننا نستخدم Firebase)
+
+          showModal(toolId) {
+            const info = app.infoContent[toolId];
+            if (info) {
+              document.getElementById("modal-title").innerHTML = info.title;
+              document.getElementById("modal-body").innerHTML = info.body;
+              document.getElementById("info-modal").style.display = "block";
+            }
+          },
+
+          closeModal() {
+            document.getElementById("info-modal").style.display = "none";
+          },
+
+          companyInfo: {
+            save() {
+              app.data.companyInfo = {
+                name: document.getElementById("company-name").value,
+                industry: document.getElementById("company-industry").value,
+                country: document.getElementById("company-country").value,
+                notes: document.getElementById("company-notes").value,
+              };
+              app.saveData(); // (حفظ فوري)
+            },
+            render() {
+              if (!app.data.companyInfo) return;
+              document.getElementById("company-name").value =
+                app.data.companyInfo.name || "";
+              document.getElementById("company-industry").value =
+                app.data.companyInfo.industry || "";
+              document.getElementById("company-country").value =
+                app.data.companyInfo.country || "";
+              document.getElementById("company-notes").value =
+                app.data.companyInfo.notes || "";
+            },
+          },
+
+          ife: {
+            add() {
+              const text = document.getElementById("ife-text").value;
+              const type = document.getElementById("ife-type").value;
+              const weight = parseFloat(
+                document.getElementById("ife-weight").value
+              );
+              const rating = parseInt(
+                document.getElementById("ife-rating").value
+              );
+
+              if (!text || !weight || !rating)
+                return alert("الرجاء ملء جميع الحقول");
+
+              app.data.ife.items.push({
+                id: Date.now(),
+                text,
+                type,
+                weight,
+                rating,
+              });
+              app.ife.render();
+              app.saveData(); // (حفظ فوري)
+
+              document.getElementById("ife-text").value = "";
+              document.getElementById("ife-weight").value = "";
+              document.getElementById("ife-rating").value = "";
+            },
+            delete(id) {
+              app.data.ife.items = app.data.ife.items.filter(
+                (i) => i.id !== id
+              );
+              app.ife.render();
+              app.saveData(); // (حفظ فوري)
+            },
+            render() {
+              const tableBody = document.querySelector("#ife-table tbody");
+              tableBody.innerHTML = "";
+              let totalWeight = 0;
+              let totalScore = 0;
+
+              app.data.ife.items.forEach((item) => {
+                const weightedScore = (item.weight * item.rating).toFixed(2);
+                totalWeight += item.weight;
+                totalScore += parseFloat(weightedScore);
+
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                  <td>${item.text}</td>
+                  <td>${item.type === "strength" ? "قوة" : "ضعف"}</td>
+                  <td>${item.weight.toFixed(2)}</td>
+                  <td>${item.rating}</td>
+                  <td><strong>${weightedScore}</strong></td>
+                  <td><button class="btn btn-danger btn-sm" onclick="app.ife.delete(${
+                    item.id
+                  })">حذف</button></td>
+                `;
+              });
+
+              const totalsDiv = document.getElementById("ife-totals");
+              const analysis =
+                totalScore > 2.5
+                  ? "وضع داخلي قوي"
+                  : totalScore < 2.5
+                  ? "وضع داخلي ضعيف"
+                  : "وضع داخلي متوسط";
+              totalsDiv.innerHTML = `
+                <p>مجموع الأوزان: <span style="color: ${
+                  totalWeight.toFixed(2) == 1.0 ? "green" : "red"
+                }">${totalWeight.toFixed(2)}</span> (يجب أن يساوي 1.0)</p>
+                <p>مجموع النتائج الموزونة: <strong>${totalScore.toFixed(
+                  2
+                )}</strong></p>
+                <p class="analysis-result"><strong>التحليل:</strong> ${analysis} (النتيجة: ${totalScore.toFixed(
+                2
+              )})</p>
+              `;
+            },
+          },
+
+          efe: {
+            add() {
+              const text = document.getElementById("efe-text").value;
+              const type = document.getElementById("efe-type").value;
+              const weight = parseFloat(
+                document.getElementById("efe-weight").value
+              );
+              const rating = parseInt(
+                document.getElementById("efe-rating").value
+              );
+
+              if (!text || !weight || !rating)
+                return alert("الرجاء ملء جميع الحقول");
+
+              app.data.efe.items.push({
+                id: Date.now(),
+                text,
+                type,
+                weight,
+                rating,
+              });
+              app.efe.render();
+              app.saveData(); // (حفظ فوري)
+
+              document.getElementById("efe-text").value = "";
+              document.getElementById("efe-weight").value = "";
+              document.getElementById("efe-rating").value = "";
+            },
+            delete(id) {
+              app.data.efe.items = app.data.efe.items.filter(
+                (i) => i.id !== id
+              );
+              app.efe.render();
+              app.saveData(); // (حفظ فوري)
+            },
+            render() {
+              const tableBody = document.querySelector("#efe-table tbody");
+              tableBody.innerHTML = "";
+              let totalWeight = 0;
+              let totalScore = 0;
+
+              app.data.efe.items.forEach((item) => {
+                const weightedScore = (item.weight * item.rating).toFixed(2);
+                totalWeight += item.weight;
+                totalScore += parseFloat(weightedScore);
+
+                const row = tableBody.insertRow();
+                row.innerHTML = `
+                  <td>${item.text}</td>
+                  <td>${item.type === "opportunity" ? "فرصة" : "تهديد"}</td>
+                  <td>${item.weight.toFixed(2)}</td>
+                  <td>${item.rating}</td>
+                  <td><strong>${weightedScore}</strong></td>
+                  <td><button class="btn btn-danger btn-sm" onclick="app.efe.delete(${
+                    item.id
+                  })">حذف</button></td>
+                `;
+              });
+
+              const totalsDiv = document.getElementById("efe-totals");
+              const analysis =
+                totalScore > 2.5
+                  ? "استجابة قوية للبيئة"
+                  : totalScore < 2.5
+                  ? "استجابة ضعيفة للبيئة"
+                  : "استجابة متوسطة";
+              totalsDiv.innerHTML = `
+                <p>مجموع الأوزان: <span style="color: ${
+                  totalWeight.toFixed(2) == 1.0 ? "green" : "red"
+                }">${totalWeight.toFixed(2)}</span> (يجب أن يساوي 1.0)</p>
+                <p>مجموع النتائج الموزونة: <strong>${totalScore.toFixed(
+                  2
+                )}</strong></p>
+                <p class="analysis-result"><strong>التحليل:</strong> ${analysis} (النتيجة: ${totalScore.toFixed(
+                2
+              )})</p>
+              `;
+            },
+          },
+
+          cpm: {
+            addCompetitor() {
+              const name = document.getElementById("cpm-competitor-name").value;
+              if (!name) return alert("الرجاء إدخال اسم");
+              app.data.cpm.competitors.push(name);
+              app.data.cpm.factors.forEach((f) => f.ratings.push(1)); // (إضافة تقييم افتراضي)
+              app.cpm.render();
+              app.saveData(); // (حفظ فوري)
+              document.getElementById("cpm-competitor-name").value = "";
+            },
+            addFactor() {
+              const text = document.getElementById("cpm-factor-text").value;
+              const weight = parseFloat(
+                document.getElementById("cpm-factor-weight").value
+              );
+              if (!text || !weight) return alert("الرجاء ملء جميع الحقول");
+
+              const ratings = new Array(app.data.cpm.competitors.length).fill(
+                1
+              );
+              app.data.cpm.factors.push({
+                id: Date.now(),
+                text,
+                weight,
+                ratings,
+              });
+              app.cpm.render();
+              app.saveData(); // (حفظ فوري)
+              document.getElementById("cpm-factor-text").value = "";
+              document.getElementById("cpm-factor-weight").value = "";
+            },
+            deleteFactor(id) {
+              app.data.cpm.factors = app.data.cpm.factors.filter(
+                (f) => f.id !== id
+              );
+              app.cpm.render();
+              app.saveData(); // (حفظ فوري)
+            },
+            updateRating(factorId, compIndex, value) {
+              const factor = app.data.cpm.factors.find(
+                (f) => f.id === factorId
+              );
+              factor.ratings[compIndex] = parseInt(value);
+              app.cpm.render();
+              app.saveData(); // (حفظ فوري)
+            },
+            render() {
+              const competitors = app.data.cpm.competitors;
+              const factors = app.data.cpm.factors;
+
+              document.getElementById("cpm-competitor-list").textContent =
+                competitors.join(", ");
+              const tableHead = document.querySelector("#cpm-table thead");
+              const tableBody = document.querySelector("#cpm-table tbody");
+              const tableFoot = document.querySelector("#cpm-table tfoot");
+
+              let headHTML = "<tr><th>عامل النجاح الحاسم</th><th>الوزن</th>";
+              competitors.forEach((name, index) => {
+                headHTML += `<th>${name} (تقييم)</th><th>${name} (نتيجة)</th>`;
+              });
+              headHTML += "<th>إجراءات</th></tr>";
+              tableHead.innerHTML = headHTML;
+
+              tableBody.innerHTML = "";
+              let totalWeight = 0;
+              let columnTotals = new Array(competitors.length).fill(0);
+
+              factors.forEach((factor) => {
+                let rowHTML = `
+                  <td>${factor.text}</td>
+                  <td>${factor.weight.toFixed(2)}</td>
+                `;
+                totalWeight += factor.weight;
+                factor.ratings.forEach((rating, index) => {
+                  const score = (rating * factor.weight).toFixed(2);
+                  columnTotals[index] += parseFloat(score);
+                  rowHTML += `
+                    <td><input type="number" min="1" max="4" value="${rating}" oninput="app.cpm.updateRating(${factor.id}, ${index}, this.value)"></td>
+                    <td><strong>${score}</strong></td>
+                  `;
+                });
+                rowHTML += `<td><button class="btn btn-danger btn-sm" onclick="app.cpm.deleteFactor(${factor.id})">حذف</button></td>`;
+                tableBody.innerHTML += `<tr>${rowHTML}</tr>`;
+              });
+
+              let footHTML = `<tr>
+                <td><strong>المجموع</strong></td>
+                <td><strong style="color: ${
+                  totalWeight.toFixed(2) == 1.0 ? "green" : "red"
+                }">${totalWeight.toFixed(2)}</strong></td>
+              `;
+              competitors.forEach((name, index) => {
+                footHTML += `
+                  <td>---</td>
+                  <td><strong>${columnTotals[index].toFixed(2)}</strong></td>
+                `;
+              });
+              footHTML += "<td>---</td></tr>";
+              tableFoot.innerHTML = footHTML;
+            },
+          },
+
+          swot: {
+            // 💡 (معدل) سحب البيانات من Firebase
+            async pullFactors() {
+              document.getElementById("swot-reference").style.display = "block";
+              const sList = document.getElementById("swot-s");
+              const wList = document.getElementById("swot-w");
+              const oList = document.getElementById("swot-o");
+              const tList = document.getElementById("swot-t");
+
+              // 1. سحب من IFE/EFE (المخزنة محلياً في app.data)
+              sList.innerHTML =
+                app.data.ife.items
+                  .filter((i) => i.type === "strength")
+                  .map(
+                    (i) =>
+                      `<li><i class="fa-solid fa-list-check"></i> ${i.text} (تقييم: ${i.rating})</li>`
+                  )
+                  .join("") || "<li>لم يتم إضافة نقاط قوة في IFE.</li>";
+              wList.innerHTML =
+                app.data.ife.items
+                  .filter((i) => i.type === "weakness")
+                  .map(
+                    (i) =>
+                      `<li><i class="fa-solid fa-list-check"></i> ${i.text} (تقييم: ${i.rating})</li>`
+                  )
+                  .join("") || "<li>لم يتم إضافة نقاط ضعف في IFE.</li>";
+              oList.innerHTML =
+                app.data.efe.items
+                  .filter((i) => i.type === "opportunity")
+                  .map(
+                    (i) =>
+                      `<li><i class="fa-solid fa-list-check"></i> ${i.text} (تقييم: ${i.rating})</li>`
+                  )
+                  .join("") || "<li>لم يتم إضافة فرص في EFE.</li>";
+              tList.innerHTML =
+                app.data.efe.items
+                  .filter((i) => i.type === "threat")
+                  .map(
+                    (i) =>
+                      `<li><i class="fa-solid fa-list-check"></i> ${i.text} (تقييم: ${i.rating})</li>`
+                  )
+                  .join("") || "<li>لم يتم إضافة تهديدات في EFE.</li>";
+
+              // 2. سحب بيانات حية من Firebase
+              try {
+                const [productsSnap, materialsSnap] = await Promise.all([
+                  getDocs(collection(db, "products")),
+                  getDocs(collection(db, "raw_materials")),
+                ]);
+
+                const productsCount = productsSnap.size;
+                const materials = materialsSnap.docs.map((d) => d.data());
+                const lowStockCount = materials.filter(
+                  (m) =>
+                    m.current_stock <= m.reorder_point && m.reorder_point > 0
+                ).length;
+
+                sList.innerHTML += `<li style="color: green;"><i class="fa-solid fa-database"></i> كتالوج منتجات متنوع (${productsCount} منتج)</li>`;
+                if (lowStockCount > 0) {
+                  wList.innerHTML += `<li style="color: red;"><i class="fa-solid fa-database"></i> يوجد ${lowStockCount} مواد خام عند نقطة إعادة الطلب</li>`;
+                } else {
+                  sList.innerHTML += `<li style="color: green;"><i class="fa-solid fa-database"></i> إدارة جيدة للمخزون (لا يوجد نقص حرج)</li>`;
+                }
+              } catch (e) {
+                console.error("Error pulling live data: ", e);
+                wList.innerHTML += `<li><i class="fa-solid fa-database"></i> خطأ في سحب البيانات الحية</li>`;
+              }
+            },
+            render() {
+              document.getElementById("swot-so").value = app.data.swot.so || "";
+              document.getElementById("swot-st").value = app.data.swot.st || "";
+              document.getElementById("swot-wo").value = app.data.swot.wo || "";
+              document.getElementById("swot-wt").value = app.data.swot.wt || "";
+            },
+          },
+
+          bcg: {
+            add() {
+              const name = document.getElementById("bcg-division").value;
+              const growth = parseFloat(
+                document.getElementById("bcg-growth").value
+              );
+              const rmsp = parseFloat(
+                document.getElementById("bcg-rmsp").value
+              );
+              const revenue = parseFloat(
+                document.getElementById("bcg-revenue").value
+              );
+
+              if (!name || isNaN(growth) || isNaN(rmsp) || isNaN(revenue))
+                return alert("الرجاء ملء جميع الحقول");
+
+              const safeRevenue = Math.max(1, revenue);
+              const radius = 5 + Math.log10(safeRevenue) * 3;
+
+              app.data.bcg.items.push({
+                x: rmsp,
+                y: growth,
+                r: radius,
+                label: name,
+                revenue: revenue,
+              });
+              app.bcg.render();
+              app.saveData(); // (حفظ فوري)
+
+              document.getElementById("bcg-division").value = "";
+              document.getElementById("bcg-growth").value = "";
+              document.getElementById("bcg-rmsp").value = "";
+              document.getElementById("bcg-revenue").value = "";
+            },
+            clear() {
+              if (confirm("هل أنت متأكد من مسح جميع أقسام BCG؟")) {
+                app.data.bcg.items = [];
+                app.bcg.render();
+                app.saveData(); // (حفظ فوري)
+              }
+            },
+            render() {
+              const ctx = document.getElementById("bcgChart").getContext("2d");
+              if (app.charts.bcg) app.charts.bcg.destroy();
+
+              const datasets = app.data.bcg.items.map((item) => {
+                const quadrant =
+                  item.x >= 0.5 && item.y >= 0
+                    ? "نجم"
+                    : item.x < 0.5 && item.y >= 0
+                    ? "استفهام"
+                    : item.x >= 0.5 && item.y < 0
+                    ? "بقرة حلوب"
+                    : "كلب";
+                const color =
+                  quadrant === "نجم"
+                    ? "rgba(54, 162, 235, 0.7)"
+                    : quadrant === "استفهام"
+                    ? "rgba(255, 159, 64, 0.7)"
+                    : quadrant === "بقرة حلوب"
+                    ? "rgba(75, 192, 192, 0.7)"
+                    : "rgba(255, 99, 132, 0.7)";
+
+                return {
+                  label: `${item.label} (${quadrant})`,
+                  data: [{ x: item.x, y: item.y, r: item.r }],
+                  backgroundColor: color,
+                };
+              });
+
+              app.charts.bcg = new Chart(ctx, {
+                type: "bubble",
+                data: { datasets },
+                options: {
+                  responsive: true,
+                  plugins: {
+                    title: {
+                      display: true,
+                      text: "مصفوفة بوسطن (BCG)",
+                      font: { family: "Cairo" },
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function (context) {
+                          const item = app.data.bcg.items[context.datasetIndex];
+                          return `${item.label}: (الحصة: ${item.x}, النمو: ${
+                            item.y
+                          }%, الإيرادات: ${item.revenue.toLocaleString()})`;
+                        },
+                      },
+                    },
+                    annotation: {
+                      annotations: {
+                        line1: {
+                          type: "line",
+                          yMin: 0,
+                          yMax: 0,
+                          borderColor: "rgba(0,0,0,0.5)",
+                          borderWidth: 2,
+                          borderDash: [6, 6],
+                        },
+                        line2: {
+                          type: "line",
+                          xMin: 0.5,
+                          xMax: 0.5,
+                          borderColor: "rgba(0,0,0,0.5)",
+                          borderWidth: 2,
+                          borderDash: [6, 6],
+                        },
+                      },
+                    },
+                  },
+                  scales: {
+                    x: {
+                      title: {
+                        display: true,
+                        text: "الحصة السوقية النسبية (RMSP)",
+                        font: { family: "Cairo" },
+                      },
+                      reverse: true,
+                      min: 0,
+                      max: 1.0,
+                      ticks: { stepSize: 0.1 },
+                    },
+                    y: {
+                      title: {
+                        display: true,
+                        text: "معدل نمو الصناعة (%)",
+                        font: { family: "Cairo" },
+                      },
+                      min: -20,
+                      max: 20,
+                      ticks: { stepSize: 5 },
+                    },
+                  },
+                },
+              });
+            },
+          },
+
+          ie: {
+            add() {
+              const name = document.getElementById("ie-division").value;
+              const ife = parseFloat(document.getElementById("ie-ife").value);
+              const efe = parseFloat(document.getElementById("ie-efe").value);
+              const revenue = parseFloat(
+                document.getElementById("ie-revenue").value
+              );
+              if (!name || isNaN(ife) || isNaN(efe) || isNaN(revenue))
+                return alert("الرجاء ملء جميع الحقول");
+              const safeRevenue = Math.max(1, revenue);
+              const radius = 5 + Math.log10(safeRevenue) * 3;
+              app.data.ie.items.push({
+                x: ife,
+                y: efe,
+                r: radius,
+                label: name,
+                revenue: revenue,
+              });
+              app.ie.render();
+              app.saveData(); // (حفظ فوري)
+              document.getElementById("ie-division").value = "";
+              document.getElementById("ie-ife").value = "";
+              document.getElementById("ie-efe").value = "";
+              document.getElementById("ie-revenue").value = "";
+            },
+            plotFirm() {
+              const ifeScore = parseFloat(
+                document.querySelector("#ife-totals strong")?.textContent || 0
+              );
+              const efeScore = parseFloat(
+                document.querySelector("#efe-totals strong")?.textContent || 0
+              );
+              if (
+                isNaN(ifeScore) ||
+                isNaN(efeScore) ||
+                ifeScore === 0 ||
+                efeScore === 0
+              )
+                return alert("الرجاء إكمال مصفوفات IFE و EFE أولاً.");
+              app.data.ie.firm = {
+                x: ifeScore,
+                y: efeScore,
+                r: 10,
+                label: "شركتي",
+              };
+              app.ie.render();
+              app.saveData(); // (حفظ فوري)
+            },
+            clear() {
+              if (confirm("هل أنت متأكد من مسح جميع أقسام IE؟")) {
+                app.data.ie.items = [];
+                app.data.ie.firm = null;
+                app.ie.render();
+                app.saveData(); // (حفظ فوري)
+              }
+            },
+            render() {
+              const ctx = document.getElementById("ieChart").getContext("2d");
+              if (app.charts.ie) app.charts.ie.destroy();
+
+              const ifeScore = app.data.ife.items
+                .reduce((acc, i) => acc + i.weight * i.rating, 0)
+                .toFixed(2);
+              const efeScore = app.data.efe.items
+                .reduce((acc, i) => acc + i.weight * i.rating, 0)
+                .toFixed(2);
+              document.getElementById("ie-ife-score").textContent =
+                ifeScore > 0 ? ifeScore : "N/A";
+              document.getElementById("ie-efe-score").textContent =
+                efeScore > 0 ? efeScore : "N/A";
+
+              let allData = [...app.data.ie.items];
+              if (app.data.ie.firm) {
+                allData.push(app.data.ie.firm);
+              }
+
+              const datasets = allData.map((item, index) => ({
+                label: item.label,
+                data: [{ x: item.x, y: item.y, r: item.r }],
+                backgroundColor:
+                  item.label === "شركتي"
+                    ? "rgba(255, 99, 132, 0.9)"
+                    : "rgba(54, 162, 235, 0.7)",
+              }));
+
+              app.charts.ie = new Chart(ctx, {
+                type: "bubble",
+                data: { datasets },
+                options: {
+                  responsive: true,
+                  plugins: {
+                    title: {
+                      display: true,
+                      text: "المصفوفة الداخلية-الخارجية (IE)",
+                      font: { family: "Cairo" },
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: (ctx) =>
+                          `${allData[ctx.datasetIndex].label}: (IFE: ${
+                            ctx.parsed.x
+                          }, EFE: ${ctx.parsed.y})`,
+                      },
+                    },
+                    annotation: {
+                      annotations: {
+                        lineX1: {
+                          type: "line",
+                          xMin: 2.0,
+                          xMax: 2.0,
+                          borderColor: "rgba(0,0,0,0.5)",
+                          borderWidth: 2,
+                          borderDash: [6, 6],
+                        },
+                        lineX2: {
+                          type: "line",
+                          xMin: 3.0,
+                          xMax: 3.0,
+                          borderColor: "rgba(0,0,0,0.5)",
+                          borderWidth: 2,
+                          borderDash: [6, 6],
+                        },
+                        lineY1: {
+                          type: "line",
+                          yMin: 2.0,
+                          yMax: 2.0,
+                          borderColor: "rgba(0,0,0,0.5)",
+                          borderWidth: 2,
+                          borderDash: [6, 6],
+                        },
+                        lineY2: {
+                          type: "line",
+                          yMin: 3.0,
+                          yMax: 3.0,
+                          borderColor: "rgba(0,0,0,0.5)",
+                          borderWidth: 2,
+                          borderDash: [6, 6],
+                        },
+                        labelGrow1: {
+                          type: "label",
+                          xValue: 3.5,
+                          yValue: 3.5,
+                          content: "نمو وبناء",
+                          font: { size: 14, family: "Cairo" },
+                        },
+                        labelHold: {
+                          type: "label",
+                          xValue: 2.5,
+                          yValue: 2.5,
+                          content: "حفاظ وصيانة",
+                          font: { size: 14, family: "Cairo" },
+                        },
+                        labelHarvest: {
+                          type: "label",
+                          xValue: 1.5,
+                          yValue: 1.5,
+                          content: "حصاد/تخارج",
+                          font: { size: 14, family: "Cairo" },
+                        },
+                      },
+                    },
+                  },
+                  scales: {
+                    x: {
+                      title: {
+                        display: true,
+                        text: "نتيجة IFE (1.0 - 4.0)",
+                        font: { family: "Cairo" },
+                      },
+                      min: 1.0,
+                      max: 4.0,
+                      ticks: { stepSize: 0.5 },
+                    },
+                    y: {
+                      title: {
+                        display: true,
+                        text: "نتيجة EFE (1.0 - 4.0)",
+                        font: { family: "Cairo" },
+                      },
+                      min: 1.0,
+                      max: 4.0,
+                      ticks: { stepSize: 0.5 },
+                    },
+                  },
+                },
+              });
+            },
+          },
+
+          space: {
+            update() {
+              const ratings = app.data.space.ratings;
+              const getAvg = (prefix, count) => {
+                let sum = 0;
+                let num = 0;
+                for (let i = 1; i <= 2; i++) {
+                  // (تبسيط لـ 2 عوامل فقط كما في المثال الجديد)
+                  const id = `${prefix}${i}`;
+                  const val = parseFloat(
+                    document.getElementById(`space-${id}`)?.value
+                  );
+                  ratings[id] = val;
+                  if (!isNaN(val)) {
+                    sum += val;
+                    num++;
+                  }
+                }
+                return num === 0 ? 0 : sum / num;
+              };
+
+              const avgFP = getAvg("fp", 2);
+              const avgSP = getAvg("sp", 2);
+              const avgIP = getAvg("ip", 2);
+              const avgCP = getAvg("cp", 2);
+
+              document.getElementById("space-fp-avg").textContent =
+                avgFP.toFixed(2);
+              document.getElementById("space-sp-avg").textContent =
+                avgSP.toFixed(2);
+              document.getElementById("space-ip-avg").textContent =
+                avgIP.toFixed(2);
+              document.getElementById("space-cp-avg").textContent =
+                avgCP.toFixed(2);
+
+              const xAxis = avgIP + avgCP;
+              const yAxis = avgFP + avgSP;
+
+              app.data.space.xAxis = xAxis; // حفظ الإحداثيات
+              app.data.space.yAxis = yAxis;
+
+              document.getElementById("space-x-axis").textContent =
+                xAxis.toFixed(2);
+              document.getElementById("space-y-axis").textContent =
+                yAxis.toFixed(2);
+
+              let strategy = "N/A";
+              if (xAxis > 0 && yAxis > 0) strategy = "هجومي (Aggressive)";
+              else if (xAxis < 0 && yAxis > 0)
+                strategy = "متحفظ (Conservative)";
+              else if (xAxis < 0 && yAxis < 0) strategy = "دفاعي (Defensive)";
+              else if (xAxis > 0 && yAxis < 0)
+                strategy = "تنافسي (Competitive)";
+
+              document.getElementById("space-strategy").textContent = strategy;
+              app.space.render(xAxis, yAxis);
+              app.debouncedSave(); // (حفظ تلقائي)
+            },
+            render(xAxis = 0, yAxis = 0) {
+              const ctx = document
+                .getElementById("spaceChart")
+                .getContext("2d");
+              if (app.charts.space) app.charts.space.destroy();
+              app.charts.space = new Chart(ctx, {
+                type: "scatter",
+                data: {
+                  datasets: [
+                    {
+                      label: "المتجه الاستراتيجي",
+                      data: [{ x: xAxis, y: yAxis }],
+                      pointRadius: 10,
+                      backgroundColor: "rgba(255, 99, 132, 0.9)",
+                    },
+                  ],
+                },
+                options: {
+                  plugins: {
+                    title: {
+                      display: true,
+                      text: "مصفوفة SPACE",
+                      font: { family: "Cairo" },
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: (ctx) =>
+                          `المتجه: (X: ${ctx.parsed.x.toFixed(
+                            2
+                          )}, Y: ${ctx.parsed.y.toFixed(2)})`,
+                      },
+                    },
+                    annotation: {
+                      annotations: {
+                        lineX: {
+                          type: "line",
+                          xMin: 0,
+                          xMax: 0,
+                          borderColor: "rgba(0,0,0,0.5)",
+                          borderWidth: 2,
+                        },
+                        lineY: {
+                          type: "line",
+                          yMin: 0,
+                          yMax: 0,
+                          borderColor: "rgba(0,0,0,0.5)",
+                          borderWidth: 2,
+                        },
+                        labelAggressive: {
+                          type: "label",
+                          xValue: 3.5,
+                          yValue: 3.5,
+                          content: "هجومي",
+                          font: { size: 12, family: "Cairo" },
+                        },
+                        labelConservative: {
+                          type: "label",
+                          xValue: -3.5,
+                          yValue: 3.5,
+                          content: "متحفظ",
+                          font: { size: 12, family: "Cairo" },
+                        },
+                        labelDefensive: {
+                          type: "label",
+                          xValue: -3.5,
+                          yValue: -3.5,
+                          content: "دفاعي",
+                          font: { size: 12, family: "Cairo" },
+                        },
+                        labelCompetitive: {
+                          type: "label",
+                          xValue: 3.5,
+                          yValue: -3.5,
+                          content: "تنافسي",
+                          font: { size: 12, family: "Cairo" },
+                        },
+                      },
+                    },
+                  },
+                  scales: {
+                    x: {
+                      title: {
+                        display: true,
+                        text: "محور (CP + IP)",
+                        font: { family: "Cairo" },
+                      },
+                      min: -7,
+                      max: 7,
+                      ticks: { stepSize: 1 },
+                    },
+                    y: {
+                      title: {
+                        display: true,
+                        text: "محور (FP + SP)",
+                        font: { family: "Cairo" },
+                      },
+                      min: -7,
+                      max: 7,
+                      ticks: { stepSize: 1 },
+                    },
+                  },
+                },
+              });
+            },
+            _loadRender() {
+              // (تبسيط لـ 2 عوامل فقط)
+              ["fp1", "fp2", "sp1", "sp2", "ip1", "ip2", "cp1", "cp2"].forEach(
+                (id) => {
+                  const el = document.getElementById(`space-${id}`);
+                  if (el && app.data.space.ratings[id])
+                    el.value = app.data.space.ratings[id];
+                }
+              );
+              app.space.update();
+            },
+          },
+
+          qspm: {
+            updateNames() {
+              app.data.qspm.s1Name =
+                document.getElementById("qspm-s1-name").value || "استراتيجية 1";
+              app.data.qspm.s2Name =
+                document.getElementById("qspm-s2-name").value || "استراتيجية 2";
+              app.qspm.render();
+              app.saveData(); // (حفظ فوري)
+            },
+            updateScore(factorType, factorId, strategyNum, value) {
+              const key = `${factorType}-${factorId}`;
+              if (!app.data.qspm.scores[key]) {
+                app.data.qspm.scores[key] = { as1: 0, as2: 0 };
+              }
+              app.data.qspm.scores[key][`as${strategyNum}`] =
+                parseInt(value) || 0;
+              app.qspm.render();
+              app.saveData(); // (حفظ فوري)
+            },
+            render() {
+              const s1Name = app.data.qspm.s1Name;
+              const s2Name = app.data.qspm.s2Name;
+              document.getElementById("qspm-s1-name").value = s1Name;
+              document.getElementById("qspm-s2-name").value = s2Name;
+              document.getElementById(
+                "qspm-s1-header"
+              ).textContent = `${s1Name}: AS`;
+              document.getElementById(
+                "qspm-s1-tas-header"
+              ).textContent = `${s1Name}: TAS`;
+              document.getElementById(
+                "qspm-s2-header"
+              ).textContent = `${s2Name}: AS`;
+              document.getElementById(
+                "qspm-s2-tas-header"
+              ).textContent = `${s2Name}: TAS`;
+
+              const body = document.getElementById("qspm-factors-body");
+              body.innerHTML = "";
+              let totalTAS1 = 0;
+              let totalTAS2 = 0;
+
+              const buildRows = (title, factors, type) => {
+                if (factors.length === 0) return;
+                body.innerHTML += `<tr><td colspan="6" style="background-color: #f8f9fa;"><strong>${title}</strong></td></tr>`;
+                factors.forEach((f) => {
+                  const key = `${type}-${f.id}`;
+                  const scoreData = app.data.qspm.scores[key] || {
+                    as1: 0,
+                    as2: 0,
+                  };
+                  const as1 = scoreData.as1;
+                  const as2 = scoreData.as2;
+                  const tas1 = (f.weight * as1).toFixed(2);
+                  const tas2 = (f.weight * as2).toFixed(2);
+                  totalTAS1 += parseFloat(tas1);
+                  totalTAS2 += parseFloat(tas2);
+                  body.innerHTML += `
+                    <tr>
+                      <td>${f.text}</td>
+                      <td>${f.weight.toFixed(2)}</td>
+                      <td><input type="number" min="0" max="4" value="${as1}" oninput="app.qspm.updateScore('${type}', ${
+                    f.id
+                  }, 1, this.value)"></td>
+                      <td class="tas">${tas1}</td>
+                      <td><input type="number" min="0" max="4" value="${as2}" oninput="app.qspm.updateScore('${type}', ${
+                    f.id
+                  }, 2, this.value)"></td>
+                      <td class="tas">${tas2}</td>
+                    </tr>
+                  `;
+                });
+              };
+
+              buildRows(
+                "نقاط القوة الداخلية",
+                app.data.ife.items.filter((i) => i.type === "strength"),
+                "ife"
+              );
+              buildRows(
+                "نقاط الضعف الداخلية",
+                app.data.ife.items.filter((i) => i.type === "weakness"),
+                "ife"
+              );
+              buildRows(
+                "الفرص الخارجية",
+                app.data.efe.items.filter((i) => i.type === "opportunity"),
+                "efe"
+              );
+              buildRows(
+                "التهديدات الخارجية",
+                app.data.efe.items.filter((i) => i.type === "threat"),
+                "efe"
+              );
+
+              const foot = document.getElementById("qspm-totals-foot");
+              foot.innerHTML = `
+                <tr>
+                  <td colspan="2"><strong>مجموع درجات الجاذبية (STAS)</strong></td>
+                  <td>---</td>
+                  <td class="tas"><strong>${totalTAS1.toFixed(2)}</strong></td>
+                  <td>---</td>
+                  <td class="tas"><strong>${totalTAS2.toFixed(2)}</strong></td>
+                </tr>
+              `;
+            },
+          },
+
+          // 💡 (معدل) لاستخدام مكتبة @google/generative-ai
+          aiReport: {
+            model: null,
+            _gatherData() {
+              let context = "START OF DATA:\n\n";
+              context += "== COMPANY INFO ==\n";
+              context += `Name: ${app.data.companyInfo.name}\n`;
+              context += `Industry: ${app.data.companyInfo.industry}\n`;
+              context += `Country/Region: ${app.data.companyInfo.country}\n`;
+              context += `Notes: ${app.data.companyInfo.notes}\n\n`;
+              const ifeScore = app.data.ife.items
+                .reduce((acc, i) => acc + i.weight * i.rating, 0)
+                .toFixed(2);
+              context += `== IFE MATRIX (Total Score: ${ifeScore}) ==\n`;
+              context += "Strengths:\n";
+              app.data.ife.items
+                .filter((i) => i.type === "strength")
+                .forEach(
+                  (i) =>
+                    (context += `- ${i.text} (W:${i.weight}, R:${i.rating})\n`)
+                );
+              context += "Weaknesses:\n";
+              app.data.ife.items
+                .filter((i) => i.type === "weakness")
+                .forEach(
+                  (i) =>
+                    (context += `- ${i.text} (W:${i.weight}, R:${i.rating})\n`)
+                );
+              context += "\n";
+              const efeScore = app.data.efe.items
+                .reduce((acc, i) => acc + i.weight * i.rating, 0)
+                .toFixed(2);
+              context += `== EFE MATRIX (Total Score: ${efeScore}) ==\n`;
+              context += "Opportunities:\n";
+              app.data.efe.items
+                .filter((i) => i.type === "opportunity")
+                .forEach(
+                  (i) =>
+                    (context += `- ${i.text} (W:${i.weight}, R:${i.rating})\n`)
+                );
+              context += "Threats:\n";
+              app.data.efe.items
+                .filter((i) => i.type === "threat")
+                .forEach(
+                  (i) =>
+                    (context += `- ${i.text} (W:${i.weight}, R:${i.rating})\n`)
+                );
+              context += "\n";
+              context += "== CPM MATRIX ==\n";
+              context += `Competitors: ${app.data.cpm.competitors.join(
+                ", "
+              )}\n`;
+              app.data.cpm.factors.forEach((f) => {
+                context += `- Factor: ${f.text} (W:${
+                  f.weight
+                }), Ratings: [${f.ratings.join(", ")}]\n`;
+              });
+              context += "\n";
+              context += "== SWOT STRATEGIES ==\n";
+              context += `S-O: ${app.data.swot.so}\n`;
+              context += `W-O: ${app.data.swot.wo}\n`;
+              context += `S-T: ${app.data.swot.st}\n`;
+              context += `W-T: ${app.data.swot.wt}\n\n`;
+              context += "== BCG MATRIX ==\n";
+              app.data.bcg.items.forEach((i) => {
+                context += `- Division: ${i.label} (Growth: ${i.y}%, RMSP: ${i.x}, Revenue: ${i.revenue})\n`;
+              });
+              context += "\n";
+              context += "== SPACE MATRIX ==\n";
+              context += `Coordinates: (X: ${app.data.space.xAxis?.toFixed(
+                2
+              )}, Y: ${app.data.space.yAxis?.toFixed(2)})\n\n`;
+              context += "== QSPM ==\n";
+              context += `Strategy 1 (${app.data.qspm.s1Name}) vs Strategy 2 (${app.data.qspm.s2Name})\n`;
+              // (يمكن إضافة تفاصيل QSPM هنا إذا لزم الأمر)
+              context += "END OF DATA\n";
+              return context;
+            },
+
+            async generate() {
+              const language = document.getElementById("ai-language").value;
+              const btn = document.getElementById("ai-generate-btn");
+              const loader = document.getElementById("ai-loader");
+              const output = document.getElementById("ai-report-output");
+
+              btn.disabled = true;
+              loader.style.display = "block";
+              output.textContent =
+                "يتم تجميع البيانات والاتصال بالذكاء الاصطناعي... قد يستغرق هذا 30 ثانية.";
+
+              try {
+                if (!this.model) {
+                  this.model = genAI.getGenerativeModel({
+                    model: "gemini-2.5-flash",
+                  });
+                }
+                const dataContext = this._gatherData();
+                const prompt = `
+                  أنت مستشار إدارة استراتيجية محترف. مهمتك هي كتابة تقرير تحليل استراتيجي كامل للعميل بناءً على البيانات التي قدمها.
+
+                  هذه هي البيانات:
+                  ${dataContext}
+
+                  يجب كتابة تقريرك باللغة: ${language}.
+                  
+                  يرجى هيكلة تقريرك كالتالي (استخدم تنسيق Markdown و h3 للعناوين الرئيسية):
+                  1.  **ملخص تنفيذي:** نظرة عامة مختصرة على الوضع الاستراتيجي للشركة وأهم التوصيات.
+                  2.  **التحليل الداخلي (IFE):** تحليل النتيجة الإجمالية، وأهم نقاط القوة، وأهم نقاط الضعف.
+                  3.  **التحليل الخارجي (EFE):** تحليل النتيجة الإجمالية، وأهم الفرص، وأهم التهديدات.
+                  4.  **المشهد التنافسي (CPM):** تحليل وضع الشركة مقابل منافسيها بناءً على نتائج CPM.
+                  5.  **تحليل المحفظة (BCG & IE):** تحليل الأقسام بناءً على بيانات BCG و IE (إن وجدت).
+                  6.  **الوضع الاستراتيجي (SPACE):** تحليل إحداثيات مصفوفة SPACE والتوصية بالوضع الاستراتيجي (هجومي، متحفظ، الخ).
+                  7.  **التوصيات الاستراتيجية (SWOT & QSPM):** تجميع استراتيجيات SWOT ونتائج QSPM (إن وجدت) لتقديم 3-5 توصيات استراتيجية محددة وقابلة للتنفيذ.
+
+                  كن محترفاً، وقدم رؤى ثاقبة، واستخدم البيانات لتبرير استنتاجاتك.
+                `;
+
+                const result = await this.model.generateContent(prompt);
+                const response = result.response;
+                const reportText = response.text();
+
+                // (تنظيف بسيط للنص)
+                output.textContent = reportText.replace(
+                  /h3>/g,
+                  'h3 style="color:var(--primary-color);">'
+                );
+              } catch (error) {
+                output.textContent = `حدث خطأ: ${error.message}\n\nيرجى التأكد من أن مفتاح API في السكربت صحيح وأن لديك اتصال بالإنترنت.`;
+                console.error("AI Report Error:", error);
+              } finally {
+                btn.disabled = false;
+                loader.style.display = "none";
+              }
+            },
+          },
+        };
+
+        // --- نقطة بداية التطبيق ---
+        onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists() && userDoc.data().role === "admin") {
+              app.init(user); // 💡 بدء التطبيق
+            } else {
+              alert("غير مصرح لك بالوصول إلى هذه الصفحة.");
+              window.location.href = "login.html";
+            }
+          } else {
+            window.location.href = "login.html";
+          }
+        });
+
+        // (جعل الكائن 'app' متاحاً في النطاق العام للأزرار)
+        window.app = app;
+      })();
+    </script>
+  </body>
+</html>

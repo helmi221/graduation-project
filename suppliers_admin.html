@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FurnAI | إدارة الموردين والمشتريات</title>
+    <title>FurnAI | إدارة الموردين والفواتير</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -63,11 +63,12 @@
         display: flex;
         gap: 10px;
       }
-      .status-badge.مسودة {
+      /* 💡 (معدل) تغيير أسماء الحالات */
+      .status-badge.بانتظار-الاستلام {
         background-color: #777;
         color: white;
       }
-      .status-badge.مُستلم {
+      .status-badge.تم-الاستلام-بالمخزون {
         background-color: var(--success-color);
         color: white;
       }
@@ -149,6 +150,14 @@
       .log-toggle-header[aria-expanded="true"] .log-toggle-icon {
         transform: rotate(90deg);
       }
+
+      /* 💡 (جديد) إضافة كلاس الزر الناقص */
+      .btn-success {
+        background-color: var(--success-color);
+      }
+      .btn-success:hover {
+        background-color: #388e3c;
+      }
     </style>
   </head>
   <body>
@@ -173,27 +182,32 @@
           </li>
           <li>
             <a href="raw_materials_admin.html"
-              ><i class="fa-solid fa-hammer"></i> المواد الخام (المخزون)</a
+              ><i class="fa-solid fa-hammer"></i> المواد الخام</a
             >
           </li>
           <li>
             <a href="suppliers_admin.html" class="active"
-              ><i class="fa-solid fa-truck-fast"></i> الموردين (المشتريات)</a
+              ><i class="fa-solid fa-truck-fast"></i> الموردين</a
             >
           </li>
           <li>
             <a href="fixed_costs_admin.html"
-              ><i class="fa-solid fa-calculator"></i> التكاليف الثابتة</a
+              ><i class="fa-solid fa-calculator"></i> التكاليف</a
             >
           </li>
           <li>
             <a href="customers_admin.html"
-              ><i class="fa-solid fa-users"></i> إدارة العملاء</a
+              ><i class="fa-solid fa-users"></i> العملاء</a
+            >
+          </li>
+          <li>
+            <a href="strategy_admin.html"
+              ><i class="fa-solid fa-lightbulb"></i> الاستراتيجية</a
             >
           </li>
           <li>
             <a href="#" id="logout-btn"
-              ><i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج</a
+              ><i class="fa-solid fa-right-from-bracket"></i> خروج</a
             >
           </li>
         </ul>
@@ -201,7 +215,7 @@
     </header>
 
     <div class="main-content container-fluid">
-      <h1>إدارة الموردين والمشتريات</h1>
+      <h1>إدارة الموردين وفواتير المشتريات</h1>
 
       <div class="dashboard-stats">
         <div class="stat-card" style="border-left-color: var(--primary-color)">
@@ -218,8 +232,8 @@
             <i class="fa-solid fa-file-invoice"></i>
           </div>
           <div class="stat-info">
-            <h3><span id="pending-po-count">0</span></h3>
-            <p>أوامر شراء (مسودة) بانتظار الاستلام</p>
+            <h3><span id="pending-invoice-count">0</span></h3>
+            <p>فواتير بانتظار الاستلام</p>
           </div>
         </div>
         <div class="stat-card" style="border-left-color: var(--info-color)">
@@ -227,8 +241,8 @@
             <i class="fa-solid fa-money-bill-wave"></i>
           </div>
           <div class="stat-info">
-            <h3><span id="pending-po-value">0</span> ₪</h3>
-            <p>القيمة الإجمالية للأوامر قيد الانتظار</p>
+            <h3><span id="pending-invoice-value">0</span> ₪</h3>
+            <p>القيمة الإجمالية للفواتير قيد الانتظار</p>
           </div>
         </div>
       </div>
@@ -237,11 +251,11 @@
         <button class="tab-btn active" data-tab="suppliers">
           <i class="fa-solid fa-users"></i> الموردين
         </button>
-        <button class="tab-btn" data-tab="purchase-orders">
-          <i class="fa-solid fa-file-invoice-dollar"></i> أوامر الشراء (PO)
+        <button class="tab-btn" data-tab="purchase-invoices">
+          <i class="fa-solid fa-file-invoice-dollar"></i> فواتير المشتريات
         </button>
         <button class="tab-btn" data-tab="logs">
-          <i class="fa-solid fa-history"></i> سجلات المشتريات
+          <i class="fa-solid fa-history"></i> سجل حركة المخزون
         </button>
       </div>
 
@@ -263,15 +277,15 @@
           </div>
         </div>
 
-        <div id="purchase-orders" class="tab-content">
+        <div id="purchase-invoices" class="tab-content">
           <div class="section-header">
-            <h2>أوامر الشراء (Purchase Orders)</h2>
-            <button class="btn" id="add-po-btn">
-              <i class="fa-solid fa-plus"></i> إنشاء أمر شراء جديد
+            <h2>فواتير المشتريات المسجلة</h2>
+            <button class="btn" id="add-invoice-btn">
+              <i class="fa-solid fa-plus"></i> تسجيل فاتورة شراء جديدة
             </button>
           </div>
-          <div id="po-table-container">
-            <p class="loading-msg">جارٍ تحميل أوامر الشراء...</p>
+          <div id="invoice-table-container">
+            <p class="loading-msg">جارٍ تحميل الفواتير...</p>
           </div>
         </div>
 
@@ -349,19 +363,19 @@
       </div>
     </div>
 
-    <div id="po-modal" class="modal-overlay">
+    <div id="invoice-modal" class="modal-overlay">
       <div class="modal-content" style="max-width: 800px">
         <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
-        <h2 id="po-modal-title">إنشاء أمر شراء جديد</h2>
-        <form id="po-form">
-          <input type="hidden" id="po-id" />
+        <h2 id="invoice-modal-title">تسجيل فاتورة شراء جديدة</h2>
+        <form id="invoice-form">
+          <input type="hidden" id="invoice-id" />
           <div class="form-group">
-            <label for="po-supplier">اختر المورد</label>
-            <select id="po-supplier" required></select>
+            <label for="invoice-supplier">اختر المورد</label>
+            <select id="invoice-supplier" required></select>
           </div>
           <hr style="margin: 15px 0" />
-          <h3>بنود أمر الشراء</h3>
-          <div id="po-items-container"></div>
+          <h3>بنود الفاتورة</h3>
+          <div id="invoice-items-container"></div>
           <div
             class="modal-form-grid"
             style="
@@ -373,21 +387,26 @@
             "
           >
             <div class="form-group">
-              <label for="po-material-select">اختر المادة</label>
-              <select id="po-material-select"></select>
+              <label for="invoice-material-select">اختر المادة</label>
+              <select id="invoice-material-select"></select>
             </div>
             <div class="form-group">
-              <label for="po-item-quantity">الكمية</label>
-              <input type="number" id="po-item-quantity" min="1" step="any" />
+              <label for="invoice-item-quantity">الكمية</label>
+              <input
+                type="number"
+                id="invoice-item-quantity"
+                min="1"
+                step="any"
+              />
             </div>
             <div class="form-group">
-              <label for="po-item-cost">تكلفة الوحدة (شيكل)</label>
-              <input type="number" id="po-item-cost" min="0" step="0.01" />
+              <label for="invoice-item-cost">تكلفة الوحدة (شيكل)</label>
+              <input type="number" id="invoice-item-cost" min="0" step="0.01" />
             </div>
             <button
               type="button"
               class="btn btn-secondary btn-sm"
-              id="add-po-item-btn"
+              id="add-invoice-item-btn"
             >
               <i class="fa-solid fa-plus"></i> إضافة البند
             </button>
@@ -399,11 +418,11 @@
               color: var(--success-color);
             "
           >
-            الإجمالي: <span id="po-total-cost">0.00</span> شيكل
+            الإجمالي: <span id="invoice-total-cost">0.00</span> شيكل
           </h3>
           <div class="btn-group" style="margin-top: 20px">
-            <button type="submit" class="btn" id="save-po-btn">
-              <i class="fa-solid fa-save"></i> حفظ كمسودة
+            <button type="submit" class="btn" id="save-invoice-btn">
+              <i class="fa-solid fa-save"></i> حفظ الفاتورة (بانتظار الاستلام)
             </button>
           </div>
         </form>
@@ -413,7 +432,7 @@
     <div id="receive-stock-modal" class="modal-overlay">
       <div class="modal-content">
         <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
-        <h2>استلام بضاعة أمر الشراء (<span id="receive-po-id"></span>)</h2>
+        <h2>تأكيد استلام الفاتورة (<span id="receive-invoice-id"></span>)</h2>
         <form id="receive-stock-form">
           <p>
             أنت على وشك استلام البضاعة التالية وإضافتها إلى المخزون. سيؤدي هذا
@@ -469,7 +488,7 @@
 
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-      // 💡 (تم التعديل) إضافة "limit" الناقص
+      // 💡 (معدل) إضافة "limit" الناقص
       import {
         getFirestore,
         collection,
@@ -518,19 +537,21 @@
       const db = getFirestore(app);
       const auth = getAuth(app);
 
-      // (نفس المتغيرات وعناصر الواجهة من الرد السابق)
+      // 💡 (معدل) تغيير أسماء المتغيرات
       let allSuppliers = [];
-      let allPurchaseOrders = [];
+      let allInvoices = [];
       let allRawMaterials = [];
       let rawMaterialsMap = new Map();
-      let currentPOItems = [];
-      let poToReceive = null;
+      let currentInvoiceItems = [];
+      let invoiceToReceive = null;
       const tabButtons = document.querySelectorAll(".tab-btn");
       const tabContents = document.querySelectorAll(".tab-content");
       const suppliersTableContainer = document.getElementById(
         "suppliers-table-container"
       );
-      const poTableContainer = document.getElementById("po-table-container");
+      const invoiceTableContainer = document.getElementById(
+        "invoice-table-container"
+      );
       const logToggleHeader = document.getElementById("log-toggle-header");
       const logContentWrapper = document.getElementById(
         "materials-log-container-wrapper"
@@ -545,8 +566,12 @@
       const totalSuppliersCount = document.getElementById(
         "total-suppliers-count"
       );
-      const pendingPoCount = document.getElementById("pending-po-count");
-      const pendingPoValue = document.getElementById("pending-po-value");
+      const pendingInvoiceCount = document.getElementById(
+        "pending-invoice-count"
+      );
+      const pendingInvoiceValue = document.getElementById(
+        "pending-invoice-value"
+      );
 
       // --------------------------------------------------------
       // التحقق من الصلاحيات والتحميل الأولي
@@ -557,7 +582,7 @@
           if (userDoc.exists() && userDoc.data().role === "admin") {
             await loadInitialData();
             renderSuppliersTable(allSuppliers);
-            renderPOTable(allPurchaseOrders);
+            renderInvoiceTable(allInvoices); // 💡 (معدل)
             fillAImodalSelect(allRawMaterials);
             fillSelectOptions(
               supplierLogSelect,
@@ -586,21 +611,28 @@
           window.location.href = "login.html";
         });
 
+      // 💡 (معدل)
       async function loadInitialData() {
         try {
-          const [suppliersSnap, poSnap, materialsSnap] = await Promise.all([
-            getDocs(query(collection(db, "suppliers"), orderBy("name"))),
-            getDocs(
-              query(collection(db, "purchase_orders"), orderBy("date", "desc"))
-            ),
-            getDocs(collection(db, "raw_materials")),
-          ]);
+          const [suppliersSnap, invoiceSnap, materialsSnap] = await Promise.all(
+            [
+              getDocs(query(collection(db, "suppliers"), orderBy("name"))),
+              // 💡 (ملاحظة) اسم المجموعة في فايربيس يبقى كما هو
+              getDocs(
+                query(
+                  collection(db, "purchase_orders"),
+                  orderBy("date", "desc")
+                )
+              ),
+              getDocs(collection(db, "raw_materials")),
+            ]
+          );
 
           allSuppliers = suppliersSnap.docs.map((d) => ({
             id: d.id,
             ...d.data(),
           }));
-          allPurchaseOrders = poSnap.docs.map((d) => ({
+          allInvoices = invoiceSnap.docs.map((d) => ({
             id: d.id,
             ...d.data(),
             date: d.data().date.toDate(),
@@ -621,23 +653,24 @@
       }
 
       // --------------------------------------------------------
-      // حساب الإحصائيات
+      // 💡 (معدل) حساب الإحصائيات
       // --------------------------------------------------------
       function calculateStats() {
         totalSuppliersCount.textContent = allSuppliers.length;
         let pendingCount = 0;
         let pendingValue = 0;
-        allPurchaseOrders.forEach((po) => {
-          if (po.status === "مسودة") {
+        allInvoices.forEach((invoice) => {
+          // 💡 (معدل) البحث عن "مسودة"
+          if (invoice.status === "مسودة") {
             pendingCount++;
-            pendingValue += po.items.reduce(
+            pendingValue += invoice.items.reduce(
               (sum, item) => sum + item.quantity * item.cost_per_unit,
               0
             );
           }
         });
-        pendingPoCount.textContent = pendingCount;
-        pendingPoValue.textContent = pendingValue.toFixed(0);
+        pendingInvoiceCount.textContent = pendingCount;
+        pendingInvoiceValue.textContent = pendingValue.toFixed(0);
       }
 
       // --------------------------------------------------------
@@ -675,7 +708,7 @@
       });
 
       // ========================================================
-      // القسم 1: إدارة الموردين
+      // القسم 1: إدارة الموردين (كما هو)
       // ========================================================
 
       function renderSuppliersTable(suppliers) {
@@ -798,20 +831,20 @@
         });
 
       // ========================================================
-      // 💡 (معدل) القسم 2: إدارة أوامر الشراء (PO)
+      // 💡 (معدل) القسم 2: إدارة فواتير الشراء
       // ========================================================
 
-      function renderPOTable(pos) {
-        if (pos.length === 0) {
-          poTableContainer.innerHTML =
-            '<p class="loading-msg">لا توجد أوامر شراء مسجلة.</p>';
+      function renderInvoiceTable(invoices) {
+        if (invoices.length === 0) {
+          invoiceTableContainer.innerHTML =
+            '<p class="loading-msg">لا توجد فواتير شراء مسجلة.</p>';
           return;
         }
         let tableHtml = `
           <table class="orders-table">
             <thead>
               <tr>
-                <th>رقم الأمر</th>
+                <th>رقم الفاتورة</th>
                 <th>المورد</th>
                 <th>التاريخ</th>
                 <th>الإجمالي</th>
@@ -821,43 +854,53 @@
             </thead>
             <tbody>
         `;
-        pos.forEach((po) => {
-          const supplier = allSuppliers.find((s) => s.id === po.supplier_id);
+        invoices.forEach((invoice) => {
+          const supplier = allSuppliers.find(
+            (s) => s.id === invoice.supplier_id
+          );
           const supplierName = supplier ? supplier.name : "مورد محذوف";
-          const totalCost = po.items.reduce(
+          const totalCost = invoice.items.reduce(
             (sum, item) => sum + item.quantity * item.cost_per_unit,
             0
           );
 
-          // 💡 (تم التعديل) تغيير منطق الأزرار
-          let actions = `<button class="btn btn-secondary btn-sm edit-po-btn" data-id="${po.id}"><i class="fa-solid fa-pencil"></i> تعديل</button>`;
-          if (po.status === "مسودة") {
-            // إذا كان "مسودة"، يمكن استلامه
-            actions += ` <button class="btn btn-sm" style="background-color: var(--success-color);" id="receive-po-btn" data-id="${po.id}"><i class="fa-solid fa-box-open"></i> استلام البضاعة</button>`;
+          // 💡 (معدل) تغيير المصطلحات
+          let statusText = "غير معروف";
+          let statusClass = "";
+          if (invoice.status === "مسودة") {
+            statusText = "بانتظار الاستلام";
+            statusClass = "بانتظار-الاستلام";
+          } else if (invoice.status === "مُستلم") {
+            statusText = "تم الاستلام بالمخزون";
+            statusClass = "تم-الاستلام-بالمخزون";
+          }
+
+          let actions = `<button class="btn btn-secondary btn-sm edit-invoice-btn" data-id="${invoice.id}"><i class="fa-solid fa-pencil"></i> تعديل</button>`;
+          if (invoice.status === "مسودة") {
+            // 💡 (معدل) تصحيح الخطأ الإملائي وإزالة الـ style
+            actions += ` <button class="btn btn-success btn-sm" id="receive-invoice-btn" data-id="${invoice.id}"><i class="fa-solid fa-box-open"></i> استلام البضاعة</button>`;
           }
 
           tableHtml += `
-            <tr data-id="${po.id}">
-              <td>${po.id.substring(0, 8)}...</td>
+            <tr data-id="${invoice.id}">
+              <td>${invoice.id.substring(0, 8)}...</td>
               <td>${supplierName}</td>
-              <td>${po.date.toLocaleDateString("ar-EG")}</td>
+              <td>${invoice.date.toLocaleDateString("ar-EG")}</td>
               <td>${totalCost.toFixed(2)} شيكل</td>
-              <td><span class="status-badge ${po.status}">${
-            po.status
-          }</span></td>
+              <td><span class="status-badge ${statusClass}">${statusText}</span></td>
               <td class="actions-buttons" style="white-space: nowrap;">${actions}</td>
             </tr>
           `;
         });
         tableHtml += "</tbody></table>";
-        poTableContainer.innerHTML = tableHtml;
+        invoiceTableContainer.innerHTML = tableHtml;
 
         // ربط الأحداث
-        document.querySelectorAll(".edit-po-btn").forEach((btn) => {
-          btn.addEventListener("click", handleEditPO);
+        document.querySelectorAll(".edit-invoice-btn").forEach((btn) => {
+          btn.addEventListener("click", handleEditInvoice);
         });
-        document.querySelectorAll("#receive-po-btn").forEach((btn) => {
-          btn.addEventListener("click", handleReceivePO);
+        document.querySelectorAll("#receive-invoice-btn").forEach((btn) => {
+          btn.addEventListener("click", handleReceiveInvoice);
         });
       }
 
@@ -877,68 +920,73 @@
         });
       }
 
-      document.getElementById("add-po-btn").addEventListener("click", () => {
-        document.getElementById("po-modal-title").textContent =
-          "إنشاء أمر شراء جديد";
-        document.getElementById("po-form").reset();
-        document.getElementById("po-id").value = "";
-        currentPOItems = [];
-        renderPOItemsList();
-        fillSelectOptions(
-          document.getElementById("po-supplier"),
-          allSuppliers,
-          "id",
-          "name"
-        );
-        fillSelectOptions(
-          document.getElementById("po-material-select"),
-          allRawMaterials,
-          "id",
-          "name_ar"
-        );
-        document.getElementById("save-po-btn").disabled = false;
-        openModal("po-modal");
-      });
-
-      function handleEditPO(e) {
-        const id = e.currentTarget.dataset.id;
-        const po = allPurchaseOrders.find((p) => p.id === id);
-        if (po) {
-          // 💡 (جديد) منع تعديل أمر مستلم
-          if (po.status === "مُستلم") {
-            alert("لا يمكن تعديل أمر شراء تم استلامه بالفعل.");
-            return;
-          }
-
-          document.getElementById(
-            "po-modal-title"
-          ).textContent = `تعديل أمر الشراء ${po.id.substring(0, 8)}`;
-          document.getElementById("po-id").value = po.id;
+      // 💡 (معدل)
+      document
+        .getElementById("add-invoice-btn")
+        .addEventListener("click", () => {
+          document.getElementById("invoice-modal-title").textContent =
+            "تسجيل فاتورة شراء جديدة";
+          document.getElementById("invoice-form").reset();
+          document.getElementById("invoice-id").value = "";
+          currentInvoiceItems = [];
+          renderInvoiceItemsList();
           fillSelectOptions(
-            document.getElementById("po-supplier"),
+            document.getElementById("invoice-supplier"),
             allSuppliers,
             "id",
             "name"
           );
-          document.getElementById("po-supplier").value = po.supplier_id;
           fillSelectOptions(
-            document.getElementById("po-material-select"),
+            document.getElementById("invoice-material-select"),
             allRawMaterials,
             "id",
             "name_ar"
           );
-          currentPOItems = po.items;
-          renderPOItemsList();
-          document.getElementById("save-po-btn").disabled = false;
-          openModal("po-modal");
+          document.getElementById("save-invoice-btn").disabled = false;
+          openModal("invoice-modal");
+        });
+
+      // 💡 (معدل)
+      function handleEditInvoice(e) {
+        const id = e.currentTarget.dataset.id;
+        const invoice = allInvoices.find((p) => p.id === id);
+        if (invoice) {
+          if (invoice.status === "مُستلم") {
+            alert("لا يمكن تعديل فاتورة تم استلامها بالفعل.");
+            return;
+          }
+
+          document.getElementById(
+            "invoice-modal-title"
+          ).textContent = `تعديل الفاتورة ${invoice.id.substring(0, 8)}`;
+          document.getElementById("invoice-id").value = invoice.id;
+          fillSelectOptions(
+            document.getElementById("invoice-supplier"),
+            allSuppliers,
+            "id",
+            "name"
+          );
+          document.getElementById("invoice-supplier").value =
+            invoice.supplier_id;
+          fillSelectOptions(
+            document.getElementById("invoice-material-select"),
+            allRawMaterials,
+            "id",
+            "name_ar"
+          );
+          currentInvoiceItems = invoice.items;
+          renderInvoiceItemsList();
+          document.getElementById("save-invoice-btn").disabled = false;
+          openModal("invoice-modal");
         }
       }
 
-      function renderPOItemsList() {
-        const container = document.getElementById("po-items-container");
-        const totalCostEl = document.getElementById("po-total-cost");
+      // 💡 (معدل)
+      function renderInvoiceItemsList() {
+        const container = document.getElementById("invoice-items-container");
+        const totalCostEl = document.getElementById("invoice-total-cost");
         let total = 0;
-        if (currentPOItems.length === 0) {
+        if (currentInvoiceItems.length === 0) {
           container.innerHTML =
             '<p style="text-align: center; color: #999;">لم تتم إضافة بنود بعد.</p>';
           totalCostEl.textContent = "0.00";
@@ -950,7 +998,7 @@
             <thead><tr><th>المادة</th><th>الكمية</th><th>تكلفة الوحدة</th><th>الإجمالي</th><th></th></tr></thead>
             <tbody>
         `;
-        currentPOItems.forEach((item, index) => {
+        currentInvoiceItems.forEach((item, index) => {
           const material = rawMaterialsMap.get(item.material_id);
           const materialName = material ? material.name_ar : "مادة محذوفة";
           const itemTotal = item.quantity * item.cost_per_unit;
@@ -961,7 +1009,7 @@
               <td>${item.quantity} ${material ? material.unit : ""}</td>
               <td>${item.cost_per_unit.toFixed(2)} شيكل</td>
               <td>${itemTotal.toFixed(2)} شيكل</td>
-              <td><button type="button" class="btn btn-danger btn-sm remove-po-item-btn" data-index="${index}">&times;</button></td>
+              <td><button type="button" class="btn btn-danger btn-sm remove-invoice-item-btn" data-index="${index}">&times;</button></td>
             </tr>
           `;
         });
@@ -969,24 +1017,26 @@
         container.innerHTML = html;
         totalCostEl.textContent = total.toFixed(2);
 
-        document.querySelectorAll(".remove-po-item-btn").forEach((btn) => {
+        document.querySelectorAll(".remove-invoice-item-btn").forEach((btn) => {
           btn.addEventListener("click", (e) => {
-            currentPOItems.splice(e.currentTarget.dataset.index, 1);
-            renderPOItemsList();
+            currentInvoiceItems.splice(e.currentTarget.dataset.index, 1);
+            renderInvoiceItemsList();
           });
         });
       }
 
+      // 💡 (معدل)
       document
-        .getElementById("add-po-item-btn")
+        .getElementById("add-invoice-item-btn")
         .addEventListener("click", () => {
-          const materialId =
-            document.getElementById("po-material-select").value;
+          const materialId = document.getElementById(
+            "invoice-material-select"
+          ).value;
           const quantity = parseFloat(
-            document.getElementById("po-item-quantity").value
+            document.getElementById("invoice-item-quantity").value
           );
           const cost = parseFloat(
-            document.getElementById("po-item-cost").value
+            document.getElementById("invoice-item-cost").value
           );
 
           if (!materialId || isNaN(quantity) || quantity <= 0 || isNaN(cost)) {
@@ -994,81 +1044,81 @@
             return;
           }
 
-          currentPOItems.push({
+          currentInvoiceItems.push({
             material_id: materialId,
             quantity: quantity,
             cost_per_unit: cost,
           });
-          renderPOItemsList();
-          document.getElementById("po-item-quantity").value = "";
-          document.getElementById("po-item-cost").value = "";
-          document.getElementById("po-material-select").value = "";
+          renderInvoiceItemsList();
+          document.getElementById("invoice-item-quantity").value = "";
+          document.getElementById("invoice-item-cost").value = "";
+          document.getElementById("invoice-material-select").value = "";
         });
 
-      // 💡 (معدل) حفظ أمر الشراء
+      // 💡 (معدل) حفظ الفاتورة (الكود كما هو، فقط الأسماء تغيرت)
       document
-        .getElementById("po-form")
+        .getElementById("invoice-form")
         .addEventListener("submit", async (e) => {
           e.preventDefault();
           const id =
-            document.getElementById("po-id").value ||
+            document.getElementById("invoice-id").value ||
             doc(collection(db, "purchase_orders")).id;
-          const isEdit = !!document.getElementById("po-id").value;
-          let currentStatus = "مسودة"; // 💡 الافتراضي دائماً مسودة
+          const isEdit = !!document.getElementById("invoice-id").value;
+          let currentStatus = "مسودة"; // 💡 (مهم) القيمة تبقى "مسودة" للدلالة على أنها بانتظار الاستلام
 
           if (isEdit) {
-            const po = allPurchaseOrders.find((p) => p.id === id);
-            if (po && po.status === "مُستلم") {
-              alert("لا يمكن تعديل أمر شراء تم استلامه بالفعل.");
+            const invoice = allInvoices.find((p) => p.id === id);
+            if (invoice && invoice.status === "مُستلم") {
+              alert("لا يمكن تعديل فاتورة تم استلامها بالفعل.");
               return;
             }
-            currentStatus = po.status; // الحفاظ على حالة المسودة
+            currentStatus = invoice.status;
           }
 
           const data = {
-            supplier_id: document.getElementById("po-supplier").value,
-            status: currentStatus, // 💡 ستكون دائماً "مسودة"
-            items: currentPOItems,
-            date: Timestamp.now(), // دائماً حدث التاريخ عند الحفظ
+            supplier_id: document.getElementById("invoice-supplier").value,
+            status: currentStatus, // "مسودة"
+            items: currentInvoiceItems,
+            date: Timestamp.now(),
           };
 
           try {
             await setDoc(doc(db, "purchase_orders", id), data, { merge: true });
-            closeModal("po-modal");
+            closeModal("invoice-modal");
             await loadInitialData();
-            renderPOTable(allPurchaseOrders);
+            renderInvoiceTable(allInvoices); // 💡 (معدل)
             calculateStats();
-            alert("تم حفظ أمر الشراء (كمسودة) بنجاح.");
+            alert("تم حفظ الفاتورة (بانتظار الاستلام) بنجاح.");
           } catch (err) {
             alert("خطأ: " + err.message);
           }
         });
 
       // ========================================================
-      // القسم 3: استلام البضاعة (ربط المخزون)
+      // 💡 (معدل) القسم 3: استلام البضاعة
       // ========================================================
-      function handleReceivePO(e) {
+      function handleReceiveInvoice(e) {
         const id = e.currentTarget.dataset.id;
-        poToReceive = allPurchaseOrders.find((p) => p.id === id);
-        if (!poToReceive) {
-          alert("خطأ: لم يتم العثور على أمر الشراء.");
+        invoiceToReceive = allInvoices.find((p) => p.id === id);
+        if (!invoiceToReceive) {
+          alert("خطأ: لم يتم العثور على الفاتورة.");
           return;
         }
-        if (poToReceive.status !== "مسودة") {
-          alert("خطأ: لا يمكن استلام هذا الأمر لأنه ليس في حالة 'مسودة'.");
+        if (invoiceToReceive.status !== "مسودة") {
+          alert(
+            "خطأ: لا يمكن استلام هذه الفاتورة لأنها ليست في حالة 'بانتظار الاستلام'."
+          );
           return;
         }
 
-        document.getElementById("receive-po-id").textContent = id.substring(
-          0,
-          8
-        );
+        document.getElementById("receive-invoice-id").textContent =
+          id.substring(0, 8);
         const summaryEl = document.getElementById("receive-items-summary");
         const totalValueEl = document.getElementById("receive-total-value");
         let html = "<ul>";
         let totalValue = 0;
 
-        poToReceive.items.forEach((item) => {
+        invoiceToReceive.items.forEach((item) => {
           const material = rawMaterialsMap.get(item.material_id);
           const materialName = material ? material.name_ar : "مادة محذوفة";
           const itemTotal = item.quantity * item.cost_per_unit;
@@ -1087,14 +1137,14 @@
         .getElementById("receive-stock-form")
         .addEventListener("submit", async (e) => {
           e.preventDefault();
-          if (!poToReceive) return;
+          if (!invoiceToReceive) return;
 
           const batch = writeBatch(db);
           const logCollection = collection(db, "raw_materials_log");
 
           let totalItemsCost = 0;
 
-          for (const item of poToReceive.items) {
+          for (const item of invoiceToReceive.items) {
             const material = rawMaterialsMap.get(item.material_id);
             if (!material) {
               alert(`خطأ: المادة ${item.material_id} غير موجودة في المخزون.`);
@@ -1125,15 +1175,15 @@
               material_name: material.name_ar,
               change_quantity: inputQuantity,
               change_value: inputTotalCost,
-              operation_type: "purchase", // من أمر شراء
-              order_id: poToReceive.id, // ربط بأمر الشراء
+              operation_type: "purchase", // من فاتورة شراء
+              order_id: invoiceToReceive.id, // ربط بالفاتورة
               date: new Date().toISOString(),
             });
           }
 
-          // 3. تحديث حالة أمر الشراء إلى "مُستلم"
-          const poRef = doc(db, "purchase_orders", poToReceive.id);
-          batch.update(poRef, {
+          // 3. تحديث حالة الفاتورة إلى "مُستلم"
+          const invoiceRef = doc(db, "purchase_orders", invoiceToReceive.id);
+          batch.update(invoiceRef, {
             status: "مُستلم",
             received_date: new Date().toISOString(),
             received_value: totalItemsCost,
@@ -1143,7 +1193,7 @@
             await batch.commit();
             closeModal("receive-stock-modal");
             await loadInitialData();
-            renderPOTable(allPurchaseOrders);
+            renderInvoiceTable(allInvoices);
             calculateStats();
             // 💡 (جديد) إعادة تحميل السجلات بعد الإضافة
             fetchAndRenderGeneralLog();
@@ -1151,7 +1201,7 @@
               supplierLogSelect.dispatchEvent(new Event("change"));
             }
             alert("تم استلام البضاعة وتحديث المخزون بنجاح.");
-            poToReceive = null;
+            invoiceToReceive = null;
           } catch (err) {
             alert("خطأ فادح أثناء تحديث المخزون: " + err.message);
           }
@@ -1307,7 +1357,7 @@
         supplierLogContainer.innerHTML =
           '<p class="loading-msg">جارٍ جلب سجل المورد...</p>';
         try {
-          // 1. إيجاد كل أوامر الشراء (PO) لهذا المورد
+          // 1. إيجاد كل الفواتير (PO) لهذا المورد
           const poQuery = query(
             collection(db, "purchase_orders"),
             where("supplier_id", "==", supplierId),
@@ -1318,11 +1368,11 @@
 
           if (poIds.length === 0) {
             supplierLogContainer.innerHTML =
-              '<p class="loading-msg">لا توجد أوامر شراء مستلمة لهذا المورد.</p>';
+              '<p class="loading-msg">لا توجد فواتير مستلمة لهذا المورد.</p>';
             return;
           }
 
-          // 2. إيجاد كل حركات المخزون المرتبطة بأوامر الشراء هذه
+          // 2. إيجاد كل حركات المخزون المرتبطة بالفواتير هذه
           const logQuery = query(
             collection(db, "raw_materials_log"),
             where("order_id", "in", poIds),
@@ -1370,7 +1420,7 @@
                           <th><i class="fa-solid fa-arrows-up-down"></i> التغيير في الكمية</th>
                           <th><i class="fa-solid fa-money-bill-wave"></i> التغيير في القيمة (شيكل)</th>
                           <th><i class="fa-solid fa-calendar-alt"></i> التاريخ</th>
-                          <th><i class="fa-solid fa-box"></i> المصدر (PO / طلب)</th>
+                          <th><i class="fa-solid fa-box"></i> المصدر (فاتورة / طلب)</th>
                       </tr>
                   </thead>
                   <tbody>
@@ -1380,7 +1430,7 @@
           const unit = materialData.unit || "وحدة";
           const typeDisplay =
             entry.operation_type === "purchase"
-              ? "شراء (PO)"
+              ? "شراء (فاتورة)"
               : entry.operation_type === "correction"
               ? "تصحيح/تسوية"
               : "استهلاك (طلب)";
