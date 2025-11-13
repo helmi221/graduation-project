@@ -867,13 +867,13 @@
       const genAI = new GoogleGenerativeAI(API_KEY);
 
       const forecastAiModel = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
+        model: "gemini-2.0-flash",
         tools: {
           googleSearch: {},
         },
       });
       const analystAiModel = genAI.getGenerativeModel({
-        model: "gemini-2.5-flash",
+        model: "gemini-2.0-flash",
         tools: {
           googleSearch: {},
         },

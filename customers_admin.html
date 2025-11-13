@@ -221,6 +221,7 @@
       .order-details-card.custom {
         border-right: 4px solid var(--info-color);
       }
+      /* 💡 (جديد) أنماط المحلل الذكي */
       .ai-advisor-section {
         margin-top: 20px;
         padding-top: 20px;
@@ -245,24 +246,6 @@
         font-weight: 600;
         color: var(--dark-color);
         margin-bottom: 8px;
-      }
-
-      /* 💡 (جديد) تنسيق زر الحذف */
-      .delete-customer-btn {
-        padding: 5px 10px;
-        font-size: 0.9rem;
-        /* يمنع الزر من أخذ خصائص .btn-sm الكاملة إذا كانت موجودة */
-        line-height: 1.2;
-        background-color: #fbe9e7;
-        color: var(--danger-color);
-        border: 1px solid var(--danger-color);
-      }
-      .delete-customer-btn:hover {
-        background-color: var(--danger-color);
-        color: white;
-      }
-      .delete-customer-btn i {
-        pointer-events: none; /* لمنع الأيقونة من التقاط النقر */
       }
     </style>
   </head>
@@ -363,34 +346,8 @@
       </div>
     </div>
 
-    <div id="confirmation-modal" class="modal-overlay">
-      <div class="modal-content" style="max-width: 500px">
-        <span class="modal-close" data-modal="confirmation-modal"
-          ><i class="fa-solid fa-xmark"></i
-        ></span>
-        <h2 id="confirm-title">تأكيد الحذف</h2>
-        <p
-          id="confirm-message"
-          style="text-align: center; margin-bottom: 2rem; line-height: 1.7"
-        ></p>
-        <div class="btn-group" style="justify-content: center">
-          <button id="confirm-action-btn" class="btn btn-danger">
-            نعم، قم بالحذف
-          </button>
-          <button
-            class="btn btn-secondary"
-            id="confirm-cancel-btn"
-            style="background-color: #777"
-          >
-            إلغاء
-          </button>
-        </div>
-      </div>
-    </div>
-
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-      // 💡 (جديد) استيراد دالة الحذف
       import {
         getFirestore,
         collection,
@@ -401,7 +358,6 @@
         where,
         updateDoc,
         setDoc,
-        deleteDoc, // 💡 (جديد)
       } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
       import {
         getAuth,
@@ -414,7 +370,7 @@
       // 🛑 💡 إعدادات Gemini AI
       const API_KEY = "AIzaSyBcFkJsomDYhm1uGqoq3-8mHr0LTu-mZ9s";
       const genAI = new GoogleGenerativeAI(API_KEY);
-      const aiModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+      const aiModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
       // تهيئة Firebase
       const firebaseConfig = {
@@ -437,23 +393,6 @@
       const sortSelect = document.getElementById("customer-sort");
 
       let allCustomersData = [];
-
-      // 💡 (جديد) دوال المودال
-      function openModal(modalId) {
-        document.getElementById(modalId).classList.add("active");
-        document.body.classList.add("scroll-lock");
-      }
-      function closeModal(modalId) {
-        document.getElementById(modalId).classList.remove("active");
-        document.body.classList.remove("scroll-lock");
-      }
-      // ربط أزرار الإغلاق (X والإلغاء)
-      document
-        .querySelector("#confirmation-modal .modal-close")
-        .addEventListener("click", () => closeModal("confirmation-modal"));
-      document
-        .getElementById("confirm-cancel-btn")
-        .addEventListener("click", () => closeModal("confirmation-modal"));
 
       // --------------------------------------------------------
       // (معدل) وظائف الإحصائيات
@@ -568,7 +507,7 @@
       }
 
       // --------------------------------------------------------
-      // (معدل) وظيفة بناء قائمة العملاء (لإضافة زر الحذف)
+      // (معدل) وظيفة بناء قائمة العملاء
       // --------------------------------------------------------
       function renderCustomersList(customersToRender) {
         if (customersToRender.length === 0) {
@@ -592,8 +531,6 @@
           if (customer.segment === "VIP") segmentClass = "vip";
           if (customer.segment === "At Risk") segmentClass = "at-risk";
 
-          const customerName = customer.name || "عميل غير معروف";
-
           listHtml += `
             <div class="customer-accordion-item">
                 <div class="customer-info-header" data-uid="${
@@ -601,7 +538,7 @@
                 }" aria-expanded="false" role="button">
                     <div class="customer-main-details">
                         <i class="fa-solid fa-circle-user customer-avatar-icon"></i>
-                        ${customerName}
+                        ${customer.name || "عميل غير معروف"}
                     </div>
                     
                     <div class="customer-badges">
@@ -614,13 +551,7 @@
                         )} ₪</span>
                     </div>
 
-                    <div style="display: flex; gap: 10px; align-items: center; margin-right: auto; padding-right: 20px;">
-                        <button class="btn btn-danger btn-sm delete-customer-btn" 
-                                data-uid="${customer.uid}" 
-                                data-name="${customerName}" 
-                                title="حذف العميل">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
+                    <div style="display: flex; gap: 15px; align-items: center;">
                         <i class="fa-solid fa-chevron-left accordion-toggle-icon"></i>
                     </div>
                 </div>
@@ -782,59 +713,11 @@
           button.addEventListener("click", saveAdminNote);
         });
 
+        // 💡 (جديد) ربط زر المحلل الذكي
         document.querySelectorAll(".get-ai-advice-btn").forEach((button) => {
           button.removeEventListener("click", getAiAdvice);
           button.addEventListener("click", getAiAdvice);
         });
-
-        // 💡 (جديد) ربط زر الحذف
-        document.querySelectorAll(".delete-customer-btn").forEach((button) => {
-          button.removeEventListener("click", handleDeleteCustomerClick); // منع التكرار
-          button.addEventListener("click", handleDeleteCustomerClick);
-        });
-      }
-
-      // 💡 (جديد) إظهار نافذة تأكيد الحذف
-      function showConfirmationModal(title, message, callback) {
-        document.getElementById("confirm-title").textContent = title;
-        document.getElementById("confirm-message").textContent = message;
-        const confirmBtn = document.getElementById("confirm-action-btn");
-
-        // 💡 (مهم) إزالة المستمع القديم لمنع الحذف المتعدد
-        const newConfirmBtn = confirmBtn.cloneNode(true);
-        confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
-
-        newConfirmBtn.addEventListener("click", () => {
-          callback();
-          closeModal("confirmation-modal");
-        });
-        openModal("confirmation-modal");
-      }
-
-      // 💡 (جديد) معالج النقر على زر الحذف
-      function handleDeleteCustomerClick(e) {
-        e.stopPropagation(); // 💡 (مهم) منع فتح الأكورديون
-        const uid = e.currentTarget.dataset.uid;
-        const name = e.currentTarget.dataset.name;
-
-        showConfirmationModal(
-          "تأكيد حذف العميل",
-          `هل أنت متأكد من حذف العميل "${name}"؟\n\n⚠️ ملاحظة: سيتم حذف حساب العميل فقط. ستبقى سجلات الطلبات الخاصة به محفوظة في النظام (لكنها ستكون "بدون عميل").`,
-          () => deleteCustomer(uid)
-        );
-      }
-
-      // 💡 (جديد) دالة الحذف الفعلية
-      async function deleteCustomer(uid) {
-        try {
-          await deleteDoc(doc(db, "users", uid));
-          alert("تم حذف العميل بنجاح.");
-          // 💡 (مهم) إعادة تحميل القائمة
-          fetchAndRenderCustomers();
-        } catch (err) {
-          console.error("Error deleting customer: ", err);
-          alert("حدث خطأ أثناء حذف العميل: " + err.message);
-        }
       }
 
       async function saveAdminNote(e) {
@@ -955,11 +838,6 @@
 
       function toggleAccordion(e) {
         // (الدالة كما هي - لم تتغير)
-        // 💡 (مهم) منع الفتح/الإغلاق عند النقر على زر الحذف
-        if (e.target.classList.contains("delete-customer-btn")) {
-          return;
-        }
-
         const header = e.currentTarget;
         const contentId = `orders-content-${header.dataset.uid}`;
         const content = document.getElementById(contentId);
