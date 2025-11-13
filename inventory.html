@@ -142,6 +142,16 @@
             <button class="btn" id="add-product-btn">
               <i class="fa-solid fa-plus"></i> إضافة منتج جديد
             </button>
+            <button
+              class="btn"
+              id="update-all-costs-btn"
+              style="
+                background-color: var(--accent-1);
+                color: var(--dark-color);
+              "
+            >
+              <i class="fa-solid fa-sync-alt"></i> تحديث تكاليف جميع المنتجات
+            </button>
           </div>
         </div>
         <div id="products-table-container">
@@ -407,13 +417,14 @@
         setDoc,
         deleteDoc,
         getDoc,
+        // 💡 (جديد) استيراد writeBatch
+        writeBatch,
       } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
       import {
         getAuth,
         onAuthStateChanged,
         signOut,
       } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-      // 💡 إزالة استيراد Gemini
 
       // 🛑 إعدادات Firebase
       const firebaseConfig = {
@@ -447,6 +458,8 @@
       const suggestedFinalPrice = document.getElementById(
         "suggested-final-price"
       );
+      // 💡 (جديد) الإمساك بالزر الجديد
+      const updateAllCostsBtn = document.getElementById("update-all-costs-btn");
 
       // 💡 متغيرات التكاليف الثابتة
       let totalMonthlyFixedCost = 0;
@@ -563,6 +576,8 @@
               "click",
               handleApplyCalculatedPrice
             );
+            // 💡 (جديد) ربط الزر الجديد
+            updateAllCostsBtn.addEventListener("click", updateAllProductCosts);
           } else {
             alert("غير مصرح لك بالوصول إلى هذه الصفحة.");
             window.location.href = "login.html";
@@ -1026,6 +1041,21 @@
           `;
         });
 
+        // 💡 (جديد) ربط حقول الإدخال المباشر في الجدول
+        document.querySelectorAll(".quantity-update-input").forEach((input) => {
+          input.addEventListener("change", (e) => {
+            const idToUpdate = e.target.dataset.id;
+            const newQuantity = parseFloat(e.target.value);
+            const item = currentRequiredMaterials.find(
+              (i) => i.id === idToUpdate
+            );
+            if (item && newQuantity > 0) {
+              item.quantity = newQuantity;
+              updateCostDisplay(); // 💡 تحديث التكلفة عند تغيير الكمية
+            }
+          });
+        });
+
         updateCostDisplay();
       }
 
@@ -1033,6 +1063,59 @@
       document
         .getElementById("manufacturing-hours")
         .addEventListener("change", updateCostDisplay);
+
+      // --------------------------------------------------------
+      // 💡 (جديد) دالة تحديث جميع التكاليف (الزر الجديد)
+      // --------------------------------------------------------
+      async function updateAllProductCosts() {
+        if (
+          !confirm(
+            `هل أنت متأكد من أنك تريد إعادة حساب وحفظ التكاليف (TCOGS) لـ ${allProducts.length} منتج؟\n\nسيقوم هذا بتحديث حقل 'total_cost' لجميع المنتجات في قاعدة البيانات بناءً على التكاليف الحالية للمواد الخام وساعات العمل.`
+          )
+        ) {
+          return;
+        }
+
+        const loadingMsg = "جارٍ تحديث التكاليف... يرجى الانتظار.";
+        alert(loadingMsg); // إشعار فوري
+        document.getElementById(
+          "products-table-container"
+        ).innerHTML = `<p class="loading-msg">${loadingMsg}</p>`;
+
+        const batch = writeBatch(db);
+        let successCount = 0;
+
+        try {
+          for (const product of allProducts) {
+            // 1. إعادة حساب التكاليف
+            const costs = calculateProductCosts(product);
+
+            // 2. تحضير البيانات للتحديث (نحدث التكلفة فقط)
+            const updatePayload = {
+              total_cost: costs.total_cost,
+              // ملاحظة: نحن لا نلمس 'is_available' هنا
+              // لأن المنطق الآلي موجود في واجهة العميل (products.html)
+            };
+
+            // 3. إضافة للباتش
+            const productRef = doc(db, "products", product.id.toString());
+            batch.update(productRef, updatePayload);
+            successCount++;
+          }
+
+          // 4. تنفيذ الباتش
+          await batch.commit();
+
+          alert(`✅ تم تحديث تكاليف ${successCount} منتج بنجاح.`);
+
+          // 5. إعادة تحميل الجدول (مع البيانات المحدثة)
+          fetchAndRenderProducts();
+        } catch (e) {
+          console.error("Error updating all costs:", e);
+          alert("حدث خطأ فادح أثناء تحديث التكاليف: " + e.message);
+          fetchAndRenderProducts(); // إعادة تحميل الجدول حتى لو فشل
+        }
+      }
 
       // --------------------------------------------------------
       // منطق الحفظ والحذف (مع التعديل المطلوب)

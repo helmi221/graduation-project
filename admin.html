@@ -17,10 +17,44 @@
     <link rel="stylesheet" href="admin.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-      /* (نفس كود ה-CSS من الرد السابق - لم يتغير) */
+      /* 💡 (جديد) أنماط التصميم المحسن */
+      .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 1.5rem;
+      }
+      .dashboard-header h1 {
+        margin-bottom: 0;
+      }
+      .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .filter-group label {
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
+      #period-filter {
+        padding: 10px 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        background-color: var(--white-color);
+        font-family: "Cairo", sans-serif;
+      }
+
       .stat-card .stat-info h3 {
         font-size: 2rem;
       }
+      .stat-card .stat-info p {
+        font-size: 0.9rem;
+      }
+
       .smart-alert {
         padding: 20px;
         border-radius: var(--border-radius);
@@ -55,34 +89,73 @@
       .smart-alert strong {
         font-weight: 800;
       }
-      .dashboard-grid {
+
+      /* 💡 (جديد) تخطيط الشبكة الرئيسي (2fr 1fr) */
+      .dashboard-grid-main {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        margin-top: 20px;
+        grid-template-columns: 2fr 1fr;
+        gap: 25px;
+        margin-top: 25px;
       }
-      .grid-span-2 {
-        grid-column: span 2;
+      .main-column {
+        grid-column: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
       }
-      .grid-span-1 {
-        grid-column: span 1;
+      .sidebar-column {
+        grid-column: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
       }
+
       .data-card {
         background-color: var(--white-color);
-        padding: 20px;
+        padding: 25px;
         border-radius: var(--border-radius);
         box-shadow: var(--shadow);
         border: 1px solid var(--border-color);
-        margin-bottom: 20px;
+        /* 💡 (جديد) لضمان تساوي الارتفاع في الشبكة */
+        display: flex;
+        flex-direction: column;
+        height: 100%;
       }
       .data-card h3 {
-        font-size: 1.2rem;
-        margin-bottom: 15px;
+        font-size: 1.3rem;
+        margin-bottom: 20px;
         color: var(--dark-color);
         text-align: right;
         border-bottom: 1px solid #eee;
-        padding-bottom: 10px;
+        padding-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
       }
+      /* 💡 (جديد) أيقونات ملونة لرؤوس البطاقات */
+      .data-card h3 i {
+        font-size: 1.1rem;
+        width: 30px;
+        height: 30px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        color: white;
+      }
+      #tasks-card h3 i {
+        background-color: var(--danger-color);
+      }
+      #order-status-card h3 i {
+        background-color: var(--primary-color);
+      }
+      #top-products-card h3 i {
+        background-color: var(--success-color);
+      }
+      #top-customers-card h3 i {
+        background-color: var(--info-color);
+      }
+
       .tasks-list {
         list-style: none;
         padding: 0;
@@ -124,6 +197,7 @@
       .tasks-list a[href*="suppliers"] .task-count {
         background-color: var(--warning-color);
       }
+
       .data-list {
         list-style: none;
         padding: 0;
@@ -133,7 +207,7 @@
         justify-content: space-between;
         align-items: center;
         font-size: 1rem;
-        padding: 10px 0;
+        padding: 12px 5px;
         border-bottom: 1px dashed #eee;
       }
       .data-list li:last-child {
@@ -145,16 +219,152 @@
       .data-list .item-value {
         font-weight: 700;
         color: var(--primary-color);
+        font-size: 1.1rem;
       }
+      /* 💡 (جديد) حاويات الرسوم البيانية */
+      #orderStatusChartContainer {
+        position: relative;
+        height: 350px;
+        width: 100%;
+        margin-top: auto; /* يدفع الرسم البياني لأسفل البطاقة */
+      }
+      #categoryProfitChartContainer {
+        position: relative;
+        height: 350px;
+        width: 100%;
+      }
+
+      /* (معدل) أنماط الأكورديون (الطي) */
+      .log-toggle-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        background-color: var(--white-color);
+        padding: 20px 25px;
+        border-radius: 8px;
+        margin-top: 30px;
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow);
+      }
+      .log-toggle-header:hover {
+        background-color: #fcfcfc;
+      }
+      .log-toggle-header h2 {
+        margin: 0;
+        font-size: 1.4rem;
+        text-align: right;
+        color: var(--primary-color);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+      /* 💡 (جديد) أيقونات الأكورديون الملونة */
+      #profit-log-toggle-header h2 i {
+        color: var(--success-color);
+      }
+      #strategy-toggle-header h2 i {
+        color: var(--info-color);
+      }
+
+      .log-content-wrapper {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-out;
+        background-color: #fcfcfc;
+        border: 1px solid var(--border-color);
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        padding: 0 20px;
+      }
+      .log-content-wrapper.active {
+        display: block;
+        max-height: 5000px;
+        transition: max-height 0.6s ease-in;
+        padding: 25px 20px;
+      }
+      .log-toggle-icon {
+        transition: transform 0.3s;
+        font-size: 1.2rem;
+      }
+      .log-toggle-header[aria-expanded="true"] .log-toggle-icon {
+        transform: rotate(90deg);
+      }
+
+      /* 💡 (جديد) شبكة الأدوات الاستراتيجية بداخل الأكورديون */
+      .strategic-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 25px;
+      }
+
+      /* (معدل) تنسيق جدول الأرباح */
+      .profit-log-container {
+        max-height: 600px;
+        overflow-y: auto;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+      }
+      .profit-log-container .orders-table {
+        margin-top: 0;
+        border: none;
+      }
+      .profit-log-container .orders-table tr:nth-child(even) {
+        background-color: var(--light-color);
+      }
+      .profit-log-container .orders-table tr:hover {
+        background-color: #e8e5e3;
+      }
+      .profit-log-container .orders-table th {
+        background-color: var(--white-color);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-bottom: 2px solid var(--dark-color);
+      }
+      .profit-positive {
+        color: var(--success-color);
+        font-weight: 700;
+      }
+      .profit-negative {
+        color: var(--danger-color);
+        font-weight: 700;
+      }
+      .profit-margin {
+        font-weight: 600;
+      }
+
+      /* (معدل) استجابة الشبكة الرئيسية */
       @media (max-width: 1200px) {
-        .dashboard-grid {
+        .dashboard-grid-main {
           grid-template-columns: 1fr;
         }
-        .grid-span-1,
-        .grid-span-2 {
-          grid-column: span 1;
+        .main-column,
+        .sidebar-column {
+          grid-column: 1;
+        }
+        .strategic-grid {
+          grid-template-columns: 1fr;
         }
       }
+
+      /* (معدل) استجابة بطاقات الإحصائيات */
+      @media (max-width: 992px) {
+        .dashboard-stats {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 576px) {
+        .dashboard-stats {
+          grid-template-columns: 1fr;
+        }
+        .dashboard-header {
+          text-align: center;
+          justify-content: center;
+        }
+      }
+
+      /* أنماط التوقعات (Forecast) */
       #forecast-card .btn {
         width: 100%;
       }
@@ -196,7 +406,7 @@
         color: var(--primary-color);
       }
 
-      /* (جديد) أنماط الزر العائم والمودال للمحلل */
+      /* أنماط المحلل الذكي (FAB والمودال) - بدون تغيير */
       .ai-fab {
         position: fixed;
         bottom: 30px;
@@ -328,79 +538,6 @@
         width: 20px;
         height: 20px;
       }
-
-      /* 💡 (جديد) أنماط الفلتر والأكورديون */
-      .dashboard-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 20px;
-        margin-bottom: 1.5rem;
-      }
-      .dashboard-header h1 {
-        margin-bottom: 0;
-      }
-      .filter-group {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-      .filter-group label {
-        font-weight: 600;
-        font-size: 1.1rem;
-      }
-      #period-filter {
-        padding: 10px 15px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        font-size: 1rem;
-        font-weight: 600;
-        background-color: var(--white-color);
-        font-family: "Cairo", sans-serif;
-      }
-      .log-toggle-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: pointer;
-        background-color: var(--white-color);
-        padding: 15px 20px;
-        border-radius: 8px;
-        margin-top: 30px;
-        border: 1px solid var(--border-color);
-        box-shadow: var(--shadow);
-      }
-      .log-toggle-header h2 {
-        margin: 0;
-        font-size: 1.4rem;
-        text-align: right;
-        color: var(--primary-color);
-      }
-      .log-content-wrapper {
-        max-height: 0;
-        overflow: hidden;
-        transition: max-height 0.4s ease-out;
-        /* (جديد) إضافة خلفية وحدود للتمييز */
-        background-color: #fcfcfc;
-        border: 1px solid var(--border-color);
-        border-top: none;
-        border-radius: 0 0 8px 8px;
-        padding: 0 20px;
-      }
-      .log-content-wrapper.active {
-        display: block;
-        max-height: 5000px; /* قيمة كبيرة بما يكفي */
-        transition: max-height 0.6s ease-in;
-        padding: 20px 20px;
-      }
-      .log-toggle-icon {
-        transition: transform 0.3s;
-        font-size: 1.2rem;
-      }
-      .log-toggle-header[aria-expanded="true"] .log-toggle-icon {
-        transform: rotate(90deg);
-      }
     </style>
   </head>
   <body>
@@ -520,8 +657,8 @@
         </div>
       </div>
 
-      <div class="dashboard-grid" style="grid-template-columns: 1fr">
-        <div class="grid-span-1">
+      <div class="dashboard-grid-main">
+        <div class="main-column">
           <div class="data-card" id="tasks-card">
             <h3><i class="fa-solid fa-triangle-exclamation"></i> مهام عاجلة</h3>
             <ul class="tasks-list">
@@ -545,67 +682,115 @@
               </li>
             </ul>
           </div>
+
+          <div class="data-card" id="order-status-card">
+            <h3>
+              <i class="fa-solid fa-chart-pie"></i> توزيع حالات الطلبات
+              (المفلترة)
+            </h3>
+            <div id="orderStatusChartContainer">
+              <canvas id="orderStatusChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-column">
+          <div class="data-card" id="top-products-card">
+            <h3><i class="fa-solid fa-star"></i> أفضل 5 منتجات مبيعاً</h3>
+            <ul class="data-list" id="top-products-list"></ul>
+          </div>
+
+          <div class="data-card" id="top-customers-card">
+            <h3><i class="fa-solid fa-user-check"></i> أفضل 5 عملاء</h3>
+            <ul class="data-list" id="top-customers-list"></ul>
+          </div>
         </div>
       </div>
 
       <div
         class="log-toggle-header"
-        id="analytics-toggle-header"
+        id="profit-log-toggle-header"
         aria-expanded="false"
       >
         <h2>
-          <i class="fa-solid fa-chart-pie"></i> التحليلات التفصيلية والرسوم
-          البيانية
+          <i class="fa-solid fa-file-invoice-dollar"></i> سجل الأرباح المفصل
+          (للطلبات المكتملة)
         </h2>
         <i class="fa-solid fa-chevron-left log-toggle-icon"></i>
       </div>
       <div
-        id="analytics-content-wrapper"
+        id="profit-log-content-wrapper"
         class="log-content-wrapper"
         aria-expanded="false"
       >
-        <div class="dashboard-grid">
-          <div class="grid-span-2">
-            <div class="data-card" id="forecast-card">
-              <h3>
-                <i class="fa-solid fa-brain"></i> توقعات الأرباح (الربع القادم)
-              </h3>
-              <p style="color: #555; margin-bottom: 15px">
-                استخدم الذكاء الاصطناعي لتحليل العوامل الخارجية (الاقتصاد،
-                السياسة، المواسم) وتأثيرها المتوقع على أرباحك.
+        <p
+          style="
+            margin-bottom: 20px;
+            font-size: 1rem;
+            color: #555;
+            background: var(--white-color);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px dashed var(--border-color);
+          "
+        >
+          يعرض هذا الجدول تفصيل الأرباح لكل طلب مكتمل ضمن الفترة الزمنية المحددة
+          في الفلتر أعلاه.
+          <br />
+          <strong
+            >ملاحظة: "لإزالة" ربح من هذا السجل، اذهب إلى
+            <a href="orders_admin.html" style="color: var(--info-color)"
+              >إدارة الطلبات</a
+            >
+            وغير حالة الطلب من "مكتمل" إلى "مؤرشف".</strong
+          >
+        </p>
+        <div class="profit-log-container" id="profit-log-container">
+          <p class="loading-msg">اختر فترة لعرض سجل الأرباح...</p>
+        </div>
+      </div>
+
+      <div
+        class="log-toggle-header"
+        id="strategy-toggle-header"
+        aria-expanded="false"
+      >
+        <h2>
+          <i class="fa-solid fa-lightbulb"></i> الأدوات الاستراتيجية وتحليل AI
+        </h2>
+        <i class="fa-solid fa-chevron-left log-toggle-icon"></i>
+      </div>
+      <div
+        id="strategy-content-wrapper"
+        class="log-content-wrapper"
+        aria-expanded="false"
+      >
+        <div class="strategic-grid">
+          <div class="data-card" id="forecast-card">
+            <h3>
+              <i class="fa-solid fa-brain"></i> توقعات الأرباح (الربع القادم)
+            </h3>
+            <p style="color: #555; margin-bottom: 15px">
+              استخدم الذكاء الاصطناعي لتحليل العوامل الخارجية (الاقتصاد،
+              السياسة، المواسم) وتأثيرها المتوقع على أرباحك.
+            </p>
+            <button class="btn btn-secondary" id="run-forecast-btn">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> بدء تحليل التوقعات
+            </button>
+            <div id="forecast-results" style="display: none">
+              <p class="loading-msg" id="forecast-loading">
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                جارٍ البحث وتحليل العوامل...
               </p>
-              <button class="btn btn-secondary" id="run-forecast-btn">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> بدء تحليل
-                التوقعات
-              </button>
-              <div id="forecast-results" style="display: none">
-                <p class="loading-msg" id="forecast-loading">
-                  <i class="fa-solid fa-spinner fa-spin"></i>
-                  جارٍ البحث وتحليل العوامل...
-                </p>
-                <div id="forecast-content" style="display: none"></div>
-              </div>
+              <div id="forecast-content" style="display: none"></div>
             </div>
           </div>
 
-          <div class="grid-span-1">
-            <div class="data-card">
-              <h3><i class="fa-solid fa-star"></i> أفضل 5 منتجات مبيعاً</h3>
-              <ul class="data-list" id="top-products-list"></ul>
-            </div>
-            <div class="data-card">
-              <h3><i class="fa-solid fa-user-check"></i> أفضل 5 عملاء</h3>
-              <ul class="data-list" id="top-customers-list"></ul>
-            </div>
-
-            <div class="data-card">
-              <h3><i class="fa-solid fa-chart-pie"></i> توزيع حالات الطلبات</h3>
-              <canvas id="orderStatusChart"></canvas>
-            </div>
-            <div class="data-card">
-              <h3>
-                <i class="fa-solid fa-chart-bar"></i> الربح حسب الفئة (مكتمل)
-              </h3>
+          <div class="data-card">
+            <h3>
+              <i class="fa-solid fa-chart-bar"></i> الربح حسب الفئة (مكتمل)
+            </h3>
+            <div id="categoryProfitChartContainer">
               <canvas id="categoryProfitChart"></canvas>
             </div>
           </div>
@@ -681,14 +866,12 @@
       const API_KEY = "AIzaSyBcFkJsomDYhm1uGqoq3-8mHr0LTu-mZ9s"; // ⚠️⚠️⚠️ استبدل هذا
       const genAI = new GoogleGenerativeAI(API_KEY);
 
-      // 💡 (معدل) تعريف الموديلات
       const forecastAiModel = genAI.getGenerativeModel({
         model: "gemini-2.5-flash",
         tools: {
           googleSearch: {},
         },
       });
-      // 💡 (معدل) إعطاء المساعد العام ولوج للويب
       const analystAiModel = genAI.getGenerativeModel({
         model: "gemini-2.5-flash",
         tools: {
@@ -704,25 +887,34 @@
       let allCustomersMap = new Map();
       let allRawMaterials = [];
 
-      // 💡 (معدل) إضافة متغيرات جلوبال للبيانات
       let currentTotalRevenue = 0;
       let currentGrossProfit = 0;
       let currentNetProfit = 0;
       let currentFixedCosts = 0;
-      let currentTotalCOGS = 0; // 💡 (إصلاح) المتغير الناقص
+      let currentTotalCOGS = 0;
       let currentPendingOrders = 0;
       let currentLowStock = 0;
       let currentTopProducts = [];
       let currentTopCustomers = [];
       let aiAnalystChatHistory = [];
+      let completedOrdersDetails = [];
 
-      // 💡 (جديد) عناصر التحكم بالفلتر والأكورديون
+      // 💡 (معدل) الإمساك بعناصر الواجهة الجديدة
       const periodFilter = document.getElementById("period-filter");
-      const analyticsToggleHeader = document.getElementById(
-        "analytics-toggle-header"
+      const strategyToggleHeader = document.getElementById(
+        "strategy-toggle-header"
       );
-      const analyticsContentWrapper = document.getElementById(
-        "analytics-content-wrapper"
+      const strategyContentWrapper = document.getElementById(
+        "strategy-content-wrapper"
+      );
+      const profitLogToggleHeader = document.getElementById(
+        "profit-log-toggle-header"
+      );
+      const profitLogContentWrapper = document.getElementById(
+        "profit-log-content-wrapper"
+      );
+      const profitLogContainer = document.getElementById(
+        "profit-log-container"
       );
 
       // --------------------------------------------------------
@@ -739,9 +931,7 @@
                 );
               }
               await fetchCoreData();
-              // 💡 (جديد) تشغيل الفلتر الافتراضي عند التحميل
               fetchStats(periodFilter.value);
-              // 💡 (جديد) ربط المستمعات
               setupListeners();
             } else {
               alert("غير مصرح لك بالوصول إلى هذه الصفحة.");
@@ -763,19 +953,27 @@
           window.location.href = "login.html";
         });
 
-      // 💡 (جديد) دالة لربط المستمعات
+      // 💡 (معدل) دالة ربط المستمعات (Listeners)
       function setupListeners() {
         // ربط مستمع الفلتر
         periodFilter.addEventListener("change", (e) => {
           fetchStats(e.target.value);
         });
 
-        // ربط مستمع الأكورديون
-        analyticsToggleHeader.addEventListener("click", () => {
+        // 💡 (معدل) ربط مستمع الأكورديون (الاستراتيجي)
+        strategyToggleHeader.addEventListener("click", () => {
           const isExpanded =
-            analyticsToggleHeader.getAttribute("aria-expanded") === "true";
-          analyticsToggleHeader.setAttribute("aria-expanded", !isExpanded);
-          analyticsContentWrapper.classList.toggle("active");
+            strategyToggleHeader.getAttribute("aria-expanded") === "true";
+          strategyToggleHeader.setAttribute("aria-expanded", !isExpanded);
+          strategyContentWrapper.classList.toggle("active");
+        });
+
+        // 💡 (جديد) ربط مستمع الأكورديون (سجل الأرباح)
+        profitLogToggleHeader.addEventListener("click", () => {
+          const isExpanded =
+            profitLogToggleHeader.getAttribute("aria-expanded") === "true";
+          profitLogToggleHeader.setAttribute("aria-expanded", !isExpanded);
+          profitLogContentWrapper.classList.toggle("active");
         });
 
         // (المستمعات القديمة)
@@ -817,7 +1015,6 @@
       async function fetchFixedCosts() {
         try {
           const costsSnapshot = await getDocs(collection(db, "fixed_costs"));
-          // 💡 (معدل) تخزين التكاليف الثابتة الشهرية في المتغير الجلوبال
           currentFixedCosts = costsSnapshot.docs.reduce(
             (sum, doc) => sum + parseFloat(doc.data().amount || 0),
             0
@@ -839,7 +1036,7 @@
         const netProfitDisplay = document.getElementById("net-profit");
         const netProfitContainer = document.getElementById(
           "net-profit-container"
-        ); // 💡 (جديد)
+        );
         const pendingOrdersCount = document.getElementById(
           "pending-orders-count"
         );
@@ -852,13 +1049,17 @@
           "smart-alert-message"
         );
 
+        // 💡 (جديد) إعادة تعيين مصفوفة تفاصيل الأرباح
+        completedOrdersDetails = [];
+        profitLogContainer.innerHTML =
+          '<p class="loading-msg">جارٍ تصفية الطلبات المكتملة...</p>';
+
         try {
           // جلب التكاليف الثابتة (شهرية)
           const monthlyFixedCosts = await fetchFixedCosts();
           let periodFixedCosts = 0;
           let fixedCostMultiplier = 1;
 
-          // 💡 (جديد) تحديد التكاليف الثابتة للفترة
           if (filterPeriod === "monthly") {
             periodFixedCosts = monthlyFixedCosts;
           } else if (filterPeriod === "quarterly") {
@@ -877,9 +1078,18 @@
             getDocs(customDesignsCollection),
           ]);
 
+          // 💡 (معدل) جلب الـ ID مع البيانات
           const allOrders = [
-            ...ordersSnapshot.docs.map((doc) => doc.data()),
-            ...customDesignsSnapshot.docs.map((doc) => doc.data()),
+            ...ordersSnapshot.docs.map((doc) => ({
+              id: doc.id,
+              type: "ready",
+              ...doc.data(),
+            })),
+            ...customDesignsSnapshot.docs.map((doc) => ({
+              id: doc.id,
+              type: "custom",
+              ...doc.data(),
+            })),
           ];
 
           // 💡 (جديد) تحديد نطاق التواريخ للفلتر
@@ -959,6 +1169,9 @@
               let orderCOGS = 0;
               let orderCategory = "غير محدد";
               const customerId = o.customer_uid;
+              const customerName =
+                allCustomersMap.get(customerId)?.name || o.name || "---";
+
               if (customerId) {
                 const currentSpending =
                   customerSpendingMap.get(customerId) || 0;
@@ -979,6 +1192,7 @@
                 });
                 orderCategory = o.items[0]?.category || "غير محدد";
               } else if (o.type === "custom" && o.final_price) {
+                // (ملاحظة: تكلفة الطلب المخصص هي تقديرية من المدير)
                 orderCOGS = parseFloat(o.estimatedCOGS || orderRevenue * 0.75);
                 orderCategory = o.type_of_product || "تصميم مخصص";
               }
@@ -987,6 +1201,17 @@
               if (!categoryProfits[orderCategory])
                 categoryProfits[orderCategory] = 0;
               categoryProfits[orderCategory] += profit;
+
+              // 💡 (جديد) إضافة البيانات إلى سجل الأرباح المفصل
+              completedOrdersDetails.push({
+                id: o.id,
+                date: orderDate.toLocaleDateString("ar-EG"),
+                customerName: customerName,
+                revenue: orderRevenue,
+                cogs: orderCOGS,
+                profit: profit,
+                margin: orderRevenue > 0 ? (profit / orderRevenue) * 100 : 0,
+              });
             }
           });
 
@@ -1004,7 +1229,7 @@
           // 💡 (إصلاح) تخزين البيانات لاستخدامها في التوقعات والتحليل
           currentTotalRevenue = totalRevenue;
           currentGrossProfit = grossProfit;
-          currentTotalCOGS = totalCOGS; // 💡 (إصلاح)
+          currentTotalCOGS = totalCOGS;
           currentNetProfit = netProfit;
           // currentFixedCosts تم تخزينها بـ fetchFixedCosts()
           currentPendingOrders = pendingReviewCount;
@@ -1105,6 +1330,9 @@
             rejectedCount
           );
           renderCategoryProfitChart(categoryProfits);
+
+          // 💡 (جديد) عرض جدول الأرباح المفصل
+          renderProfitLogTable(completedOrdersDetails);
         } catch (e) {
           console.error("Error fetching stats:", e);
           smartAlertBox.style.display = "flex";
@@ -1112,6 +1340,58 @@
           smartAlertIcon.className = "fa-solid fa-circle-xmark";
           smartAlertMessage.innerHTML = `<strong>خطأ فادح:</strong> فشل تحميل البيانات. ${e.message}`;
         }
+      }
+
+      // --------------------------------------------------------
+      // 💡 (جديد) دالة عرض جدول الأرباح المفصل
+      // --------------------------------------------------------
+      function renderProfitLogTable(profitData) {
+        if (profitData.length === 0) {
+          profitLogContainer.innerHTML =
+            '<p class="loading-msg">لا توجد طلبات مكتملة في هذه الفترة الزمنية.</p>';
+          return;
+        }
+
+        // فرز البيانات (الأرباح الأعلى أولاً)
+        profitData.sort((a, b) => b.profit - a.profit);
+
+        let tableHtml = `
+          <table class="orders-table">
+            <thead>
+              <tr>
+                <th><i class="fa-solid fa-receipt"></i> رقم الطلب</th>
+                <th><i class="fa-solid fa-user"></i> العميل</th>
+                <th><i class="fa-solid fa-calendar-alt"></i> التاريخ</th>
+                <th><i class="fa-solid fa-chart-line"></i> الإيراد (شيكل)</th>
+                <th><i class="fa-solid fa-boxes-stacked"></i> التكلفة (TCOGS)</th>
+                <th><i class="fa-solid fa-money-bill-trend-up"></i> الربح (شيكل)</th>
+                <th><i class="fa-solid fa-percent"></i> هامش الربح</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        profitData.forEach((order) => {
+          const profitClass =
+            order.profit > 0 ? "profit-positive" : "profit-negative";
+
+          tableHtml += `
+            <tr>
+              <td>${order.id.substring(0, 10)}...</td>
+              <td>${order.customerName}</td>
+              <td>${order.date}</td>
+              <td>${order.revenue.toFixed(2)}</td>
+              <td>${order.cogs.toFixed(2)}</td>
+              <td class="${profitClass}">${order.profit.toFixed(2)}</td>
+              <td class="profit-margin ${profitClass}">${order.margin.toFixed(
+            1
+          )}%</td>
+            </tr>
+          `;
+        });
+
+        tableHtml += "</tbody></table>";
+        profitLogContainer.innerHTML = tableHtml;
       }
 
       // --------------------------------------------------------
@@ -1377,7 +1657,6 @@
         rejected
       ) {
         const ctx = document.getElementById("orderStatusChart");
-        // 💡 (جديد) تدمير المخطط القديم قبل رسم الجديد
         if (Chart.getChart(ctx)) {
           Chart.getChart(ctx).destroy();
         }
@@ -1396,9 +1675,10 @@
           data: data,
           options: {
             responsive: true,
+            maintainAspectRatio: false, // 💡 (جديد) لجعل الرسم يستجيب للحاوية
             plugins: {
               legend: {
-                position: "top",
+                position: "bottom", // 💡 (جديد) نقل المفتاح للأسفل لتوفير مساحة
                 labels: {
                   font: {
                     family: "Cairo",
@@ -1412,7 +1692,6 @@
 
       function renderCategoryProfitChart(categoryProfits) {
         const ctx = document.getElementById("categoryProfitChart");
-        // 💡 (جديد) تدمير المخطط القديم قبل رسم الجديد
         if (Chart.getChart(ctx)) {
           Chart.getChart(ctx).destroy();
         }
@@ -1435,6 +1714,7 @@
           data: data,
           options: {
             responsive: true,
+            maintainAspectRatio: false, // 💡 (جديد)
             plugins: {
               legend: {
                 display: false,
