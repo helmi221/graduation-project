@@ -180,7 +180,6 @@
         signOut,
       } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 
-      // إعدادات Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
         authDomain: "ecomers-dd329.firebaseapp.com",
@@ -195,7 +194,6 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
-      // عناصر الواجهة
       const userDisplayName = document.getElementById("user-display-name");
       const userEmail = document.getElementById("user-email");
       const authLink = document.getElementById("auth-link");
@@ -219,7 +217,7 @@
       let cart = [];
       let allRawMaterialsMap = new Map();
 
-      // مراقبة حالة تسجيل الدخول
+      // حالة المستخدم
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           const userDocRef = doc(db, "users", user.uid);
@@ -246,28 +244,29 @@
         }
       });
 
-      // إنشاء كرت منتج (id كنص)
+      // إنشاء بطاقة منتج
       function createProductCard(product) {
         const isAvailable = product.is_available !== false;
         const card = document.createElement("div");
         card.className = `product-card ${isAvailable ? "" : "out-of-stock"}`;
-        // 👈 نخزن الـ id مثل ما هو (String)
-        card.dataset.productId = product.id;
+
+        // 👇 نستخدم index داخلياً فقط لتحديد المنتج عند الضغط
+        card.dataset.productIndex = product.index;
 
         const imageSrc = `images/${product.id}.png`;
         card.innerHTML = `
-      <div class="product-image-container">
-        <img src="${imageSrc}" alt="${product.name}" loading="lazy"
-          onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80';">
-      </div>
-      <div class="product-card-content">
-        <span class="product-category">${product.category}</span>
-        <h3>${product.name}</h3>
-        <p class="product-price">${parseFloat(product.price).toFixed(
-          0
-        )} شيكل</p>
-      </div>
-    `;
+          <div class="product-image-container">
+            <img src="${imageSrc}" alt="${
+          product.name
+        }" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&q=80';">
+          </div>
+          <div class="product-card-content">
+            <span class="product-category">${product.category}</span>
+            <h3>${product.name}</h3>
+            <p class="product-price">${parseFloat(product.price).toFixed(
+              0
+            )} شيكل</p>
+          </div>`;
         return card;
       }
 
@@ -309,7 +308,6 @@
             .split("،")
             .map((c) => c.trim())
             .filter(Boolean);
-
           colors.forEach((color) => {
             const option = document.createElement("option");
             option.value = color;
@@ -321,8 +319,8 @@
           colorSection.style.display = "none";
         }
 
-        // 👈 id كنص
-        addToCartBtn.dataset.productId = product.id;
+        // 👇 نخزن index المنتج بدل id
+        addToCartBtn.dataset.productIndex = product.index;
         addToCartBtn.disabled = !isAvailable;
         addToCartBtn.textContent = isAvailable
           ? "إضافة إلى السلة"
@@ -333,21 +331,18 @@
         body.classList.add("scroll-lock");
       }
 
-      // إضافة إلى السلة
-      function addToCart(productId, quantity, color) {
-        // 👈 نبحث باستخدام id كنص
-        const product = allProducts.find((p) => p.id === productId);
+      // إضافة إلى السلة (نمرر كائن المنتج نفسه)
+      function addToCart(product, quantity, color) {
         if (!product || product.is_available === false) return;
 
         const existingItem = cart.find(
-          (item) => item.id === productId && item.color === color
+          (item) => item.id === product.id && item.color === color
         );
-
         if (existingItem) {
           existingItem.quantity += quantity;
         } else {
           cart.push({
-            id: product.id, // String
+            id: product.id,
             name: product.name,
             price: parseFloat(product.price),
             quantity,
@@ -355,7 +350,6 @@
             image: `images/${product.id}.png`,
           });
         }
-
         saveCart();
         updateCartBadge();
       }
@@ -371,10 +365,10 @@
         }
       });
 
-      // زر "إضافة إلى السلة" داخل المودال
+      // زر "إضافة إلى السلة"
       addToCartBtn.addEventListener("click", (e) => {
-        // 👈 هنا كمان نقرأ id كنص بدون parseInt
-        const productId = e.currentTarget.dataset.productId;
+        const productIndex = parseInt(e.currentTarget.dataset.productIndex, 10);
+        const product = allProducts[productIndex];
         const quantity = parseInt(
           document.getElementById("modal-quantity").value,
           10
@@ -383,7 +377,7 @@
         const color =
           colorSelect.style.display !== "none" ? colorSelect.value : null;
 
-        addToCart(productId, quantity, color);
+        addToCart(product, quantity, color);
         closeModal();
         showToast("✅ تمت إضافة المنتج إلى السلة بنجاح!");
       });
@@ -395,18 +389,14 @@
         }
       }
 
-      // عند الضغط على بطاقة منتج
+      // الضغط على كرت المنتج
       function handleGridClick(e) {
         const card = e.target.closest(".product-card");
         if (!card) return;
 
-        // 👈 id كنص من data-attribute
-        const productId = card.dataset.productId;
-        const product = allProducts.find((p) => p.id === productId);
-
-        if (product) {
-          openModal(product);
-        }
+        const productIndex = parseInt(card.dataset.productIndex, 10);
+        const product = allProducts[productIndex];
+        if (product) openModal(product);
       }
 
       function saveCart() {
@@ -432,11 +422,10 @@
         }, 3000);
       }
 
-      // منيو الموبايل
+      // قائمة الموبايل
       menuToggle.addEventListener("click", () => {
         const isActive = mobileMenu.classList.toggle("active");
         body.classList.toggle("scroll-lock");
-        // pointer-events للتأكد إن القائمة ما تحجب النقرات وهي مغلقة
         mobileMenu.style.pointerEvents = isActive ? "auto" : "none";
       });
 
@@ -469,22 +458,20 @@
           filterButtons.forEach((btn) => btn.classList.remove("active"));
           button.classList.add("active");
           const filter = button.dataset.filter;
-
           const filteredProducts =
             filter === "all"
               ? allProducts
               : allProducts.filter((p) => p.category === filter);
-
           displayProducts(filteredProducts, productGrid);
         });
       });
 
-      // الاستماع للضغط على المنتجات
       productGrid.addEventListener("click", handleGridClick);
       modalClose.addEventListener("click", closeModal);
       modal.addEventListener("click", (e) => {
         if (e.target === modal) closeModal();
       });
+
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeModal();
       });
@@ -492,7 +479,7 @@
       // جلب المنتجات + المواد الخام
       async function fetchProductsAndRender() {
         try {
-          // 1) جلب المواد الخام
+          // المواد الخام
           const materialsSnapshot = await getDocs(
             collection(db, "raw_materials")
           );
@@ -504,16 +491,17 @@
             });
           });
 
-          // 2) جلب المنتجات
+          // المنتجات
           const productsSnapshot = await getDocs(collection(db, "products"));
-          allProducts = productsSnapshot.docs.map((d) => ({
-            // 👈 هنا التعديل المهم: نخزن الـ id كنص بدون parseInt
-            id: d.id,
-            ...d.data(),
-            price: parseFloat(d.data().price),
+          allProducts = productsSnapshot.docs.map((doc, index) => ({
+            // 👇 id كما هو (نفس ما كان) + index داخلي
+            id: parseInt(doc.id),
+            index,
+            ...doc.data(),
+            price: parseFloat(doc.data().price),
           }));
 
-          // 3) حساب التوفر اعتماداً على المواد الخام + is_available اليدوي
+          // حساب التوفر بناءً على المواد الخام و is_available اليدوي
           allProducts.forEach((product) => {
             const manualAvailable = product.is_available !== false;
 
@@ -539,7 +527,6 @@
             product.is_available = materialsAvailable;
           });
 
-          // 4) تطبيق الفلتر الحالي (إن وجد)
           const activeFilterBtn = document.querySelector(".filter-btn.active");
           const filter = activeFilterBtn
             ? activeFilterBtn.dataset.filter
@@ -560,7 +547,6 @@
 
       // بدء التنفيذ
       document.addEventListener("DOMContentLoaded", () => {
-        // نتأكد أن منيو الموبايل لا تحجب النقرات بدايةً
         mobileMenu.style.pointerEvents = "none";
         loadCart();
         updateCartBadge();
