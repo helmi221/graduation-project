@@ -418,6 +418,32 @@
         body.classList.toggle("scroll-lock");
       });
 
+      // --- 💡 (هذا هو الإصلاح) ---
+      // 1. إغلاق القائمة عند النقر على الخلفية (الOverlay)
+      mobileMenu.addEventListener("click", (e) => {
+        if (e.target === mobileMenu) {
+          mobileMenu.classList.remove("active");
+          // نتأكد من إزالة قفل الشاشة فقط إذا كان المودال غير مفتوح
+          if (!modal.classList.contains("active")) {
+            body.classList.remove("scroll-lock");
+          }
+        }
+      });
+
+      // 2. إغلاق القائمة عند النقر على رابط بداخلها (للتنقل)
+      const mobileMenuLinks = document.querySelectorAll(
+        "#mobile-menu a.nav-link"
+      );
+      mobileMenuLinks.forEach((link) => {
+        link.addEventListener("click", () => {
+          mobileMenu.classList.remove("active");
+          if (!modal.classList.contains("active")) {
+            body.classList.remove("scroll-lock");
+          }
+        });
+      });
+      // --- نهاية الإصلاح ---
+
       // (جديد) ربط أزرار الفلاتر
       filterButtons.forEach((button) => {
         button.addEventListener("click", () => {
