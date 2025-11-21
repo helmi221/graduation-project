@@ -16,52 +16,67 @@
     />
     <link rel="stylesheet" href="admin.css" />
     <style>
-      /* Status Colors & Display (كما كانت) */
+      /* أنماط الحالة */
       .product-status-available {
         color: var(--success-color);
         font-weight: 700;
         display: flex;
         align-items: center;
         gap: 5px;
+        background-color: #e8f5e9;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
       }
-      .product-status-unavailable-auto {
+      .product-status-unavailable {
         color: var(--danger-color);
         font-weight: 700;
         display: flex;
         align-items: center;
         gap: 5px;
+        background-color: #ffebee;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
       }
-      .product-status-unavailable-manual {
-        color: var(--warning-color);
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      }
-      /* 💡 نمط أيقونة التنبيه بنقص المواد */
-      .missing-materials-alert {
+
+      /* أنماط زر التنبيه */
+      .missing-materials-btn {
+        background: none;
+        border: none;
         color: var(--danger-color);
-        margin-right: 8px;
         cursor: pointer;
-        font-size: 1.1em;
+        font-size: 1.1rem;
+        padding: 5px;
         transition: transform 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
-      .missing-materials-alert:hover {
+      .missing-materials-btn:hover {
         transform: scale(1.2);
+        background-color: rgba(231, 76, 60, 0.1);
+        border-radius: 50%;
       }
-      /* 💡 تنسيق جدول المواد الناقصة */
+
+      /* تنسيق جدول المواد الناقصة */
       #missing-materials-table {
         width: 100%;
         margin-top: 15px;
+        border-collapse: collapse;
       }
       #missing-materials-table th {
         background-color: #ffebee;
         color: var(--danger-color);
+        padding: 10px;
+        border-bottom: 2px solid #ffcdd2;
       }
       #missing-materials-table td {
-        font-weight: 500;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
       }
-      /* 💡 أنماط التسعير الجديدة */
+
+      /* أنماط التسعير */
       .pricing-calculation {
         background-color: #f0f8ff;
         border: 1px dashed var(--info-color);
@@ -138,7 +153,7 @@
       <div class="admin-panel">
         <div class="section-header">
           <h2>قائمة المنتجات</h2>
-          <div>
+          <div style="display: flex; gap: 10px">
             <button class="btn" id="add-product-btn">
               <i class="fa-solid fa-plus"></i> إضافة منتج جديد
             </button>
@@ -150,10 +165,15 @@
                 color: var(--dark-color);
               "
             >
-              <i class="fa-solid fa-sync-alt"></i> تحديث تكاليف جميع المنتجات
+              <i class="fa-solid fa-sync-alt"></i> تحديث الحالة والتكاليف
             </button>
           </div>
         </div>
+        <p style="color: #777; font-size: 0.9rem; margin-bottom: 15px">
+          <i class="fa-solid fa-circle-info"></i> <strong>ملاحظة:</strong> حالة
+          توفر المنتج "تلقائية" بالكامل. إذا نقصت أي مادة خام، سيتحول المنتج إلى
+          "غير متوفر" فوراً.
+        </p>
         <div id="products-table-container">
           <p class="loading-msg">جارٍ تحميل المنتجات...</p>
         </div>
@@ -163,30 +183,36 @@
     <div id="missing-materials-modal" class="modal-overlay">
       <div class="modal-content" style="max-width: 650px">
         <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
-        <h2>
-          <i class="fa-solid fa-triangle-exclamation"></i> المواد الناقصة لـ:
-          <span id="missing-product-name">---</span>
+        <h2 style="color: var(--danger-color)">
+          <i class="fa-solid fa-triangle-exclamation"></i> تقرير نقص المواد
         </h2>
-        <p style="color: var(--danger-color); margin: 10px 0">
-          لا يمكن تصنيع هذا المنتج حالياً بسبب نقص المخزون التالي:
+        <p style="font-size: 1.1rem; margin-bottom: 10px">
+          المنتج: <strong><span id="missing-product-name">---</span></strong>
         </p>
+        <p style="color: #666; margin-bottom: 20px">
+          لا يمكن تصنيع هذا المنتج حالياً. يرجى توفير المواد التالية لإعادة
+          تفعيله:
+        </p>
+
         <div id="missing-materials-report-body"></div>
-        <p
+
+        <div
           style="
-            text-align: right;
-            margin-top: 20px;
-            font-size: 0.9rem;
-            color: #777;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
           "
         >
-          يرجى مراجعة صفحة
-          <a
-            href="raw_materials_admin.html"
-            style="color: var(--info-color); font-weight: bold"
-            >إدارة المخزون</a
+          <span style="font-size: 0.9rem; color: #888"
+            >الحالة الحالية: متوقف تلقائياً</span
           >
-          لإضافة كميات.
-        </p>
+          <a href="raw_materials_admin.html" class="btn btn-sm">
+            <i class="fa-solid fa-cubes"></i> الذهاب للمخزون
+          </a>
+        </div>
       </div>
     </div>
 
@@ -220,9 +246,7 @@
             </div>
 
             <div class="form-group">
-              <label for="manufacturing-hours"
-                >ساعات التصنيع التقريبية (لكل قطعة)</label
-              >
+              <label for="manufacturing-hours">ساعات التصنيع (لكل قطعة)</label>
               <input
                 type="number"
                 id="manufacturing-hours"
@@ -233,27 +257,19 @@
               />
             </div>
 
-            <div class="form-group">
-              <label for="product-is-available">الحالة (التحكم اليدوي)</label>
-              <select id="product-is-available" required>
-                <option value="true">متوفر للبيع (يدوي)</option>
-                <option value="false">غير متوفر (يدوي)</option>
-              </select>
+            <div class="form-group" style="grid-column: 1 / -1">
+              <label for="product-description">الوصف</label>
+              <textarea id="product-description" rows="2"></textarea>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" style="grid-column: 1 / -1">
               <label for="product-specs">المواصفات (اختياري)</label>
               <textarea id="product-specs" rows="1"></textarea>
             </div>
           </div>
 
-          <div class="form-group">
-            <label for="product-description">الوصف</label>
-            <textarea id="product-description" rows="3"></textarea>
-          </div>
-
           <h3>
-            <i class="fa-solid fa-calculator"></i> تحليل التكاليف (لكل قطعة)
+            <i class="fa-solid fa-calculator"></i> تحليل التكاليف (تلقائي)
           </h3>
           <div
             style="
@@ -262,89 +278,104 @@
               border-radius: 8px;
               border: 1px dashed var(--border-color);
               margin-bottom: 20px;
+              font-size: 0.95rem;
             "
           >
-            <p>
-              <strong>التكلفة المتغيرة (المواد الخام):</strong>
-              <span
-                id="variable-cost-display"
-                style="color: var(--info-color); font-weight: 700"
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 5px;
+              "
+            >
+              <span>التكلفة المتغيرة (مواد خام):</span>
+              <span id="variable-cost-display" style="font-weight: 700"
                 >---</span
               >
-              شيكل
-            </p>
-            <p>
-              <strong>تكلفة الأعباء التشغيلية (Overhead):</strong>
-              <span
-                id="overhead-cost-display"
-                style="color: var(--danger-color); font-weight: 700"
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                margin-bottom: 5px;
+              "
+            >
+              <span>تكلفة الأعباء (Overhead):</span>
+              <span id="overhead-cost-display" style="font-weight: 700"
                 >---</span
               >
-              شيكل
-            </p>
-            <p>
+            </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                border-top: 1px solid #ddd;
+                padding-top: 5px;
+                margin-top: 5px;
+              "
+            >
               <strong>التكلفة الإجمالية (TCOGS):</strong>
               <span
                 id="total-cost-display"
-                style="
-                  font-size: 1.2rem;
-                  color: var(--primary-color);
-                  font-weight: 800;
-                "
+                style="color: var(--primary-color); font-weight: 800"
                 >---</span
               >
-              شيكل
-            </p>
+            </div>
           </div>
 
-          <h3><i class="fa-solid fa-percent"></i> حاسبة هامش الربح</h3>
+          <h3><i class="fa-solid fa-percent"></i> مساعد التسعير</h3>
           <div class="pricing-calculation">
-            <div class="form-group">
-              <label for="profit-margin-input"
-                >هامش الربح المراد تطبيقه (%)</label
-              >
-              <input
-                type="number"
-                id="profit-margin-input"
-                min="0"
-                step="1"
-                value="30"
-                required
-              />
+            <div class="form-group" style="margin-bottom: 10px">
+              <label for="profit-margin-input">هامش الربح المستهدف (%)</label>
+              <div style="display: flex; gap: 10px">
+                <input
+                  type="number"
+                  id="profit-margin-input"
+                  min="0"
+                  step="1"
+                  value="30"
+                  style="width: 100px"
+                />
+                <button
+                  type="button"
+                  class="btn btn-sm btn-secondary"
+                  id="calculate-price-btn"
+                >
+                  <i class="fa-solid fa-calculator"></i> احسب
+                </button>
+              </div>
             </div>
-            <p style="border-top: 1px dashed #ccc; padding-top: 10px">
-              <strong>سعر البيع المقترح:</strong>
+            <p>
+              <strong>السعر المقترح:</strong>
               <span id="suggested-final-price">---</span> شيكل
             </p>
             <button
               type="button"
               class="btn btn-sm"
-              id="calculate-price-btn"
-              style="background-color: var(--info-color); margin-top: 10px"
-            >
-              <i class="fa-solid fa-calculator"></i> احسب السعر
-            </button>
-            <button
-              type="button"
-              class="btn btn-sm btn-secondary"
               id="apply-calculated-price-btn"
               disabled
-              style="margin-top: 10px"
+              style="margin-top: 10px; width: 100%; justify-content: center"
             >
-              <i class="fa-solid fa-arrow-down"></i> تطبيق السعر المقترح
+              <i class="fa-solid fa-check"></i> اعتماد السعر المقترح
             </button>
           </div>
 
           <div style="margin-top: 20px">
-            <h3><i class="fa-solid fa-gears"></i> ربط المواد الخام اللازمة</h3>
-            <div id="materials-table-wrapper" style="margin-bottom: 20px">
-              <table class="orders-table" id="required-materials-table">
+            <h3>
+              <i class="fa-solid fa-layer-group"></i> مكونات المنتج (المواد
+              الخام)
+            </h3>
+            <div id="materials-table-wrapper" style="margin-bottom: 15px">
+              <table
+                class="orders-table"
+                id="required-materials-table"
+                style="margin-top: 5px"
+              >
                 <thead>
                   <tr>
-                    <th><i class="fa-solid fa-ruler-combined"></i> المادة</th>
-                    <th><i class="fa-solid fa-box"></i> الوحدة</th>
-                    <th><i class="fa-solid fa-hashtag"></i> الكمية المطلوبة</th>
-                    <th><i class="fa-solid fa-trash"></i></th>
+                    <th>المادة</th>
+                    <th>الكمية</th>
+                    <th>حذف</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
@@ -353,10 +384,10 @@
 
             <div
               class="modal-form-grid"
-              style="grid-template-columns: 2fr 1fr 1fr"
+              style="grid-template-columns: 2fr 1fr auto; align-items: end"
             >
               <div class="form-group">
-                <label for="material-select">اختر المادة لإضافتها</label>
+                <label for="material-select">إضافة مادة</label>
                 <select id="material-select"></select>
               </div>
               <div class="form-group">
@@ -369,21 +400,26 @@
                   value="1"
                 />
               </div>
-              <div class="form-group" style="align-self: end">
+              <div class="form-group">
                 <button
                   type="button"
                   class="btn btn-secondary"
                   id="add-material-btn"
+                  style="margin-bottom: 2px"
                 >
-                  <i class="fa-solid fa-plus"></i> إضافة
+                  <i class="fa-solid fa-plus"></i>
                 </button>
               </div>
             </div>
           </div>
 
           <div class="btn-group">
-            <button type="submit" class="btn">
-              <i class="fa-solid fa-save"></i> حفظ المنتج
+            <button
+              type="submit"
+              class="btn"
+              style="width: 100%; justify-content: center"
+            >
+              <i class="fa-solid fa-save"></i> حفظ بيانات المنتج
             </button>
           </div>
         </form>
@@ -391,12 +427,14 @@
     </div>
 
     <div id="confirmation-modal" class="modal-overlay">
-      <div class="modal-content">
+      <div class="modal-content" style="max-width: 400px; text-align: center">
         <span class="modal-close"><i class="fa-solid fa-xmark"></i></span>
-        <h2 id="confirm-title"></h2>
+        <h2 id="confirm-title" style="justify-content: center"></h2>
         <p id="confirm-message" style="margin-bottom: 20px"></p>
-        <div class="btn-group">
-          <button class="btn btn-danger" id="confirm-action-btn">تأكيد</button>
+        <div class="btn-group" style="justify-content: center">
+          <button class="btn btn-danger" id="confirm-action-btn">
+            نعم، تأكيد
+          </button>
           <button
             class="btn btn-secondary"
             onclick="closeModal('confirmation-modal')"
@@ -417,7 +455,6 @@
         setDoc,
         deleteDoc,
         getDoc,
-        // 💡 (جديد) استيراد writeBatch
         writeBatch,
       } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
       import {
@@ -426,7 +463,6 @@
         signOut,
       } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-      // 🛑 إعدادات Firebase
       const firebaseConfig = {
         apiKey: "AIzaSyBL7MOIEE8K1UgZTG_j-6-VM0JzlD_7BS0",
         authDomain: "ecomers-dd329.firebaseapp.com",
@@ -440,7 +476,6 @@
       const db = getFirestore(app);
       const auth = getAuth(app);
 
-      // المتغيرات العامة
       let allProducts = [];
       let allRawMaterials = [];
       let rawMaterialsMap = new Map();
@@ -458,15 +493,12 @@
       const suggestedFinalPrice = document.getElementById(
         "suggested-final-price"
       );
-      // 💡 (جديد) الإمساك بالزر الجديد
       const updateAllCostsBtn = document.getElementById("update-all-costs-btn");
 
-      // 💡 متغيرات التكاليف الثابتة
       let totalMonthlyFixedCost = 0;
       let totalMonthlyManufacturingHours = 0;
       let overheadCostPerHour = 0;
 
-      // 💡 قائمة الفئات الثابتة (لحل مشكلة القائمة المنسدلة)
       const productCategories = [
         "طاولة سفرة",
         "كرسي",
@@ -478,9 +510,7 @@
         "طاولة تلفاز",
       ];
 
-      // --------------------------------------------------------
-      // الدوال المساعدة لفتح وإغلاق المودال
-      // --------------------------------------------------------
+      // --- دوال المودال ---
       function openModal(modalId) {
         document.getElementById(modalId).classList.add("active");
         document.body.classList.add("scroll-lock");
@@ -500,20 +530,14 @@
         });
       });
 
-      // 💡 دالة عرض المواد الناقصة لمنتج محدد (متاحة للـ window)
+      // --- دالة عرض المواد الناقصة (Global) ---
       window.showMissingMaterials = function (productId, productName) {
-        // 💡 التصحيح: تحويل الـ ID إلى String للمقارنة الآمنة
         const productIdString = productId.toString();
-        // 💡 البحث عن المنتج باستخدام المقارنة النصية
         const product = allProducts.find(
           (p) => p.id.toString() === productIdString
         );
 
-        // 💡 تم تحسين التحقق من البيانات
         if (!product || !product.missing_materials) {
-          console.error(
-            "Product data not found or missing materials data is unavailable."
-          );
           return;
         }
 
@@ -525,42 +549,42 @@
         const missingList = product.missing_materials;
 
         if (missingList.length === 0) {
-          reportBody.innerHTML = `<p style="text-align: center; color: var(--success-color); font-weight: 600;">✅ لا يوجد نقص في المواد الخام حالياً لتصنيع هذا المنتج.</p>`;
+          reportBody.innerHTML = `<p style="text-align: center; color: var(--success-color);">✅ لا يوجد نقص حالياً.</p>`;
         } else {
           let tableHtml = `
-                  <table class="orders-table" id="missing-materials-table">
-                      <thead>
-                          <tr>
-                              <th><i class="fa-solid fa-list-check"></i> المادة</th>
-                              <th><i class="fa-solid fa-hashtag"></i> الكمية المطلوبة</th>
-                              <th><i class="fa-solid fa-box-open"></i> الكمية المتاحة</th>
-                              <th>الوحدة</th>
-                          </tr>
-                      </thead>
-                      <tbody>
-              `;
-          missingList.forEach((item) => {
-            tableHtml += `
+              <table id="missing-materials-table">
+                  <thead>
                       <tr>
-                          <td>${item.name}</td>
-                          <td>${item.required.toFixed(2)}</td>
-                          <td style="color: var(--danger-color);">${item.available.toFixed(
-                            2
-                          )}</td>
-                          <td>${item.unit}</td>
+                          <th>المادة</th>
+                          <th>المطلوب</th>
+                          <th>المتوفر</th>
+                          <th>النقص</th>
                       </tr>
-                  `;
+                  </thead>
+                  <tbody>
+          `;
+          missingList.forEach((item) => {
+            const shortage = item.required - item.available;
+            tableHtml += `
+                  <tr>
+                      <td>${item.name}</td>
+                      <td>${item.required.toFixed(2)} ${item.unit}</td>
+                      <td style="color: #e67e22;">${item.available.toFixed(
+                        2
+                      )} ${item.unit}</td>
+                      <td style="color: var(--danger-color); font-weight: bold;">-${shortage.toFixed(
+                        2
+                      )} ${item.unit}</td>
+                  </tr>
+              `;
           });
           tableHtml += `</tbody></table>`;
           reportBody.innerHTML = tableHtml;
         }
-
         openModal("missing-materials-modal");
       };
 
-      // --------------------------------------------------------
-      // التحقق من الصلاحيات والتحميل
-      // --------------------------------------------------------
+      // --- التحقق من الصلاحيات والبدء ---
       onAuthStateChanged(auth, async (user) => {
         if (user) {
           const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -568,39 +592,33 @@
             await fetchRawMaterials();
             await fetchFixedCostsAndHours();
             fetchAndRenderProducts();
-            fillCategoriesDropdown(); // 💡 ملء قائمة الفئات
+            fillCategoriesDropdown();
 
-            // 💡 ربط أحداث التسعير
             calculatePriceBtn.addEventListener("click", handlePriceCalculation);
             applyCalculatedPriceBtn.addEventListener(
               "click",
               handleApplyCalculatedPrice
             );
-            // 💡 (جديد) ربط الزر الجديد
             updateAllCostsBtn.addEventListener("click", updateAllProductCosts);
           } else {
-            alert("غير مصرح لك بالوصول إلى هذه الصفحة.");
+            alert("غير مصرح لك بالوصول.");
             window.location.href = "login.html";
           }
         } else {
           window.location.href = "login.html";
         }
       });
+
       document
         .getElementById("logout-btn")
-        .addEventListener("click", async (e) => {
-          e.preventDefault();
+        .addEventListener("click", async () => {
           await signOut(auth);
           window.location.href = "login.html";
         });
 
-      // --------------------------------------------------------
-      // دالة ملء القائمة المنسدلة للفئات (المُصلحة)
-      // --------------------------------------------------------
       function fillCategoriesDropdown() {
         const select = document.getElementById("product-category");
-        select.innerHTML = ""; // تفريغ الخيارات الحالية
-
+        select.innerHTML = "";
         productCategories.forEach((cat) => {
           const option = document.createElement("option");
           option.value = cat;
@@ -609,9 +627,6 @@
         });
       }
 
-      // --------------------------------------------------------
-      // دالة جلب التكاليف الثابتة وحساب تكلفة الساعة
-      // --------------------------------------------------------
       async function fetchFixedCostsAndHours() {
         try {
           const costsSnapshot = await getDocs(collection(db, "fixed_costs"));
@@ -619,37 +634,26 @@
             (sum, doc) => sum + parseFloat(doc.data().amount || 0),
             0
           );
-          // افتراض إجمالي ساعات العمل الشهرية (مثال: 3 موظفين * 160 ساعة/موظف)
           totalMonthlyManufacturingHours = 160 * 3;
-
           if (totalMonthlyManufacturingHours > 0) {
             overheadCostPerHour =
               totalMonthlyFixedCost / totalMonthlyManufacturingHours;
-          } else {
-            overheadCostPerHour = 0;
           }
-
-          // تحديث عرض تكلفة الأعباء التشغيلية في المودال
           document.getElementById("overhead-cost-display").textContent =
             overheadCostPerHour.toFixed(2);
         } catch (e) {
-          console.error("Error fetching fixed costs: ", e);
+          console.error("Error fetching costs:", e);
         }
       }
 
-      /**
-       * تحسب تكلفة المنتج وتتحقق من توفر المواد الخام.
-       * @param {object} product - بيانات المنتج.
-       * @returns {object} - يحتوي على التكاليف و availabilityCheck.
-       */
+      // --- 💡 دالة الحساب والتحقق من التوفر ---
       function calculateProductCosts(product) {
         let variableCost = 0;
         const hours = parseFloat(product.manufacturing_time_hours) || 0;
         const materialsToCalculate =
           product.required_materials || currentRequiredMaterials;
+
         let isAvailable = true;
-        let missingMaterialsCount = 0;
-        // 💡 قائمة لتخزين المواد الناقصة بالتفصيل
         let detailedMissingMaterials = [];
 
         if (materialsToCalculate && materialsToCalculate.length > 0) {
@@ -658,13 +662,9 @@
             if (material) {
               variableCost += requiredMat.quantity * material.cost_per_unit;
 
-              // فحص التوفر
-              if (
-                material.current_stock < requiredMat.quantity ||
-                requiredMat.quantity === 0
-              ) {
+              // 💡 شرط التوفر التلقائي
+              if (material.current_stock < requiredMat.quantity) {
                 isAvailable = false;
-                missingMaterialsCount++;
                 detailedMissingMaterials.push({
                   id: requiredMat.id,
                   name: material.name_ar,
@@ -673,6 +673,16 @@
                   unit: material.unit,
                 });
               }
+            } else {
+              // إذا كانت المادة محذوفة من قاعدة البيانات
+              isAvailable = false;
+              detailedMissingMaterials.push({
+                id: requiredMat.id,
+                name: "مادة محذوفة",
+                required: requiredMat.quantity,
+                available: 0,
+                unit: "??",
+              });
             }
           }
         }
@@ -685,77 +695,48 @@
           fixed_cost: fixedCost,
           total_cost: totalCost,
           overhead_rate: overheadCostPerHour,
-          // 💡 تحديد حالة التوفر الآلي بناءً على المواد الخام
-          availabilityCheck: isAvailable ? "Available" : "Unavailable_Auto",
-          detailedMissingMaterials: detailedMissingMaterials, // إرجاع القائمة
+          isAvailable: isAvailable, // النتيجة النهائية للحالة
+          detailedMissingMaterials: detailedMissingMaterials,
         };
       }
 
-      // --------------------------------------------------------
-      // دالة تحديث عرض التكاليف في المودال (للتكاليف والحساب الذكي)
-      // --------------------------------------------------------
       function updateCostDisplay() {
-        let productData;
-
-        // نستخدم البيانات الحالية في المودال للحساب
-        productData = {
+        let productData = {
           required_materials: currentRequiredMaterials,
           manufacturing_time_hours:
             parseFloat(document.getElementById("manufacturing-hours").value) ||
             0,
         };
-
         const costs = calculateProductCosts(productData);
-
         document.getElementById("variable-cost-display").textContent =
           costs.variable_cost.toFixed(2);
-        // 💡 تم تحديث هذا ليعكس تكلفة الأعباء وليس المعدل
         document.getElementById("overhead-cost-display").textContent =
           costs.fixed_cost.toFixed(2);
         document.getElementById("total-cost-display").textContent =
           costs.total_cost.toFixed(2);
-
-        // إعادة تعيين حاسبة السعر
         suggestedFinalPrice.textContent = "---";
         applyCalculatedPriceBtn.disabled = true;
       }
 
-      // --------------------------------------------------------
-      // 💡 منطق حساب سعر البيع بناءً على الهامش
-      // --------------------------------------------------------
       function handlePriceCalculation() {
         const tCOGS = parseFloat(
           document.getElementById("total-cost-display").textContent
         );
         const marginPercent = parseFloat(profitMarginInput.value);
-
-        if (isNaN(tCOGS) || tCOGS <= 0) {
-          alert("الرجاء إدخال مواد خام وساعات تصنيع لحساب التكلفة أولاً.");
-          return;
-        }
-        if (isNaN(marginPercent) || marginPercent < 0) {
-          alert("الرجاء إدخال هامش ربح صحيح.");
-          return;
-        }
-
+        if (isNaN(tCOGS) || tCOGS <= 0 || isNaN(marginPercent)) return;
         const multiplier = 1 + marginPercent / 100;
         const calculatedPrice = tCOGS * multiplier;
-
         suggestedFinalPrice.textContent = calculatedPrice.toFixed(2);
         applyCalculatedPriceBtn.disabled = false;
       }
 
       function handleApplyCalculatedPrice() {
         const price = parseFloat(suggestedFinalPrice.textContent);
-        if (isNaN(price)) return;
-
-        document.getElementById("product-price").value = price.toFixed(2);
-        alert(`تم تطبيق السعر المقترح: ${price.toFixed(2)} شيكل.`);
+        if (!isNaN(price)) {
+          document.getElementById("product-price").value = price.toFixed(2);
+        }
       }
 
-      // --------------------------------------------------------
-      // وظائف جلب وعرض المنتجات
-      // --------------------------------------------------------
       async function fetchRawMaterials() {
         try {
           const snapshot = await getDocs(collection(db, "raw_materials"));
@@ -763,14 +744,13 @@
             id: doc.id,
             ...doc.data(),
             cost_per_unit: parseFloat(doc.data().cost_per_unit || 0),
-            current_stock: parseFloat(doc.data().current_stock || 0), // جلب المخزون
-            reorder_point: parseFloat(doc.data().reorder_point || 0), // جلب نقطة إعادة الطلب
+            current_stock: parseFloat(doc.data().current_stock || 0),
           }));
           rawMaterialsMap.clear();
           allRawMaterials.forEach((mat) => rawMaterialsMap.set(mat.id, mat));
           fillMaterialSelect();
         } catch (e) {
-          console.error("Error fetching raw materials: ", e);
+          console.error(e);
         }
       }
 
@@ -784,34 +764,30 @@
             id: doc.id,
             ...doc.data(),
             price: parseFloat(doc.data().price || 0),
-            is_available: doc.data().is_available !== false,
             manufacturing_time_hours: parseFloat(
               doc.data().manufacturing_time_hours || 0
             ),
           }));
 
+          // حساب الحالة عند العرض
           allProducts = allProducts.map((product) => {
-            // إعادة حساب الحالة عند جلب المنتجات
             const costs = calculateProductCosts(product);
-            product.availabilityCheck = costs.availabilityCheck;
-            // 💡 إضافة قائمة المواد الناقصة إلى بيانات المنتج
+            product.is_available = costs.isAvailable; // التحديث المحلي
             product.missing_materials = costs.detailedMissingMaterials;
             return product;
           });
 
           renderProductsTable(allProducts);
         } catch (e) {
-          console.error("Error fetching products: ", e);
           container.innerHTML =
-            '<p class="loading-msg" style="color: red;">حدث خطأ في جلب المنتجات.</p>';
+            '<p class="loading-msg" style="color: red;">خطأ في التحميل.</p>';
         }
       }
 
       function renderProductsTable(products) {
         const container = document.getElementById("products-table-container");
         if (products.length === 0) {
-          container.innerHTML =
-            '<p class="loading-msg">لا توجد منتجات مسجلة.</p>';
+          container.innerHTML = '<p class="loading-msg">لا توجد منتجات.</p>';
           return;
         }
 
@@ -819,66 +795,49 @@
           <table class="orders-table">
             <thead>
               <tr>
-                <th><i class="fa-solid fa-tag"></i> الـ ID</th>
-                <th><i class="fa-solid fa-chair"></i> اسم المنتج</th>
-                <th><i class="fa-solid fa-list-ul"></i> الفئة</th>
-                <th><i class="fa-solid fa-money-bill"></i> السعر (شيكل)</th>
-                <th><i class="fa-solid fa-dollar-sign"></i> إجمالي التكلفة (TCOGS)</th>
-                <th><i class="fa-solid fa-info-circle"></i> الحالة</th>
-                <th><i class="fa-solid fa-tools"></i> الإجراءات</th>
+                <th>المنتج</th>
+                <th>الفئة</th>
+                <th>السعر</th>
+                <th>التكلفة</th>
+                <th>الحالة</th>
+                <th>الإجراءات</th>
               </tr>
             </thead>
             <tbody>
         `;
         products.forEach((product) => {
-          const costs = calculateProductCosts(product); // إعادة الحساب للعرض
+          const costs = calculateProductCosts(product); // تأكيد الحساب
 
-          let statusClass;
-          let statusContent;
-          const check = product.availabilityCheck;
-          const actionButtons = `
-            <button class="btn btn-secondary btn-sm edit-product-btn" data-id="${product.id}">
-                <i class="fa-solid fa-pencil"></i> تعديل
-            </button>
-            <button class="btn btn-danger btn-sm delete-product-btn" data-id="${product.id}">
-                <i class="fa-solid fa-trash"></i> حذف
-            </button>
-          `;
-
-          let alertIcon = "";
-          // يتم تحديد الحالة المرئية بناءً على:
-          if (check === "Unavailable_Auto") {
-            statusClass = "product-status-unavailable-auto";
-            statusContent = `نقص مواد خام`;
-            // 💡 أيقونة التنبيه التي تفتح المودال (تم إزالة onClick)
-            alertIcon = `<i class="fa-solid fa-bell missing-materials-alert" 
-                           data-id="${product.id}" 
-                           data-name="${product.name}"
-                           title="عرض المواد الناقصة"
-                        ></i>`;
-          } else if (product.is_available === false) {
-            // غير متوفر يدوياً (حتى لو توفرت المواد)
-            statusClass = "product-status-unavailable-manual";
-            statusContent = "غير متوفر يدوياً";
+          let statusHtml = "";
+          if (costs.isAvailable) {
+            statusHtml = `<div class="product-status-available"><i class="fa-solid fa-check-circle"></i> متوفر</div>`;
           } else {
-            statusClass = "product-status-available";
-            statusContent = `متوفر`;
+            // 💡 زر التنبيه عند عدم التوفر
+            statusHtml = `
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <div class="product-status-unavailable"><i class="fa-solid fa-xmark-circle"></i> نقص مواد</div>
+                    <button class="missing-materials-btn" title="عرض النقص" 
+                        onclick="window.showMissingMaterials('${product.id}', '${product.name}')">
+                        <i class="fa-solid fa-bell"></i>
+                    </button>
+                </div>`;
           }
 
           tableHtml += `
             <tr data-id="${product.id}">
-              <td>${product.id}</td>
               <td>${product.name}</td>
               <td>${product.category}</td>
               <td>${product.price.toFixed(2)}</td>
               <td>${costs.total_cost.toFixed(2)}</td> 
-              <td>
-                <div class="${statusClass}">
-                    ${statusContent}
-                    ${alertIcon}
-                </div>
+              <td>${statusHtml}</td>
+              <td class="actions-buttons" style="white-space: nowrap;">
+                <button class="btn btn-secondary btn-sm edit-product-btn" data-id="${
+                  product.id
+                }"><i class="fa-solid fa-pencil"></i></button>
+                <button class="btn btn-danger btn-sm delete-product-btn" data-id="${
+                  product.id
+                }"><i class="fa-solid fa-trash"></i></button>
               </td>
-              <td class="actions-buttons">${actionButtons}</td>
             </tr>
           `;
         });
@@ -891,23 +850,8 @@
         document.querySelectorAll(".delete-product-btn").forEach((btn) => {
           btn.addEventListener("click", handleDeleteClick);
         });
+      }
 
-        // 💡 NEW: إضافة مُستمعي حدث النقر لأيقونات التنبيه (لحل مشكلة CSP)
-        document
-          .querySelectorAll(".missing-materials-alert")
-          .forEach((icon) => {
-            icon.addEventListener("click", (e) => {
-              const id = e.currentTarget.dataset.id;
-              const name = e.currentTarget.dataset.name;
-              // استدعاء الدالة المعرفة في نطاق window
-              window.showMissingMaterials(id, name);
-            });
-          });
-      } // نهاية دالة renderProductsTable
-
-      // --------------------------------------------------------
-      // منطق إضافة/تعديل المنتجات (محدث)
-      // --------------------------------------------------------
       document
         .getElementById("add-product-btn")
         .addEventListener("click", () => {
@@ -924,11 +868,10 @@
       function handleEditProduct(e) {
         const id = e.currentTarget.dataset.id;
         const product = allProducts.find((p) => p.id == id);
-
         if (product) {
           document.getElementById(
             "product-modal-title"
-          ).textContent = `تعديل المنتج: ${product.name}`;
+          ).textContent = `تعديل: ${product.name}`;
           document.getElementById("product-id").value = product.id;
           document.getElementById("product-name").value = product.name;
           document.getElementById("product-category").value = product.category;
@@ -938,9 +881,8 @@
           document.getElementById("product-description").value =
             product.description || "";
           document.getElementById("product-specs").value = product.specs || "";
-          // 💡 نستخدم حالة is_available المخزنة في قاعدة البيانات
-          document.getElementById("product-is-available").value =
-            product.is_available ? "true" : "false";
+
+          // 💡 لا يوجد تعبئة لحقل الحالة اليدوية لأنه تم حذفه
 
           currentRequiredMaterials = (product.required_materials || []).map(
             (req) => {
@@ -948,24 +890,19 @@
               return {
                 ...req,
                 name: mat ? mat.name_ar : "مادة مفقودة",
-                unit: mat ? mat.unit : "وحدة",
+                unit: mat ? mat.unit : "",
               };
             }
           );
 
-          // إعادة تعيين حاسبة السعر
           suggestedFinalPrice.textContent = "---";
           applyCalculatedPriceBtn.disabled = true;
-
           renderRequiredMaterials();
           openModal("product-modal");
           updateCostDisplay();
         }
       }
 
-      // --------------------------------------------------------
-      // منطق إدارة المواد الخام المطلوبة للمنتج
-      // --------------------------------------------------------
       function fillMaterialSelect() {
         const select = document.getElementById("material-select");
         select.innerHTML =
@@ -982,34 +919,31 @@
         .getElementById("add-material-btn")
         .addEventListener("click", () => {
           const materialId = materialSelect.value;
-          const quantityInput = document.getElementById("quantity-input");
-          const quantity = parseFloat(quantityInput.value);
+          const quantity = parseFloat(
+            document.getElementById("quantity-input").value
+          );
           const material = rawMaterialsMap.get(materialId);
 
           if (!materialId || isNaN(quantity) || quantity <= 0) {
-            alert("يرجى اختيار مادة وإدخال كمية صحيحة.");
+            alert("بيانات غير صحيحة.");
             return;
           }
 
           const existingIndex = currentRequiredMaterials.findIndex(
             (item) => item.id === materialId
           );
-
-          const newMaterial = {
-            id: materialId,
-            name: material.name_ar,
-            unit: material.unit,
-            quantity: quantity,
-          };
-
           if (existingIndex > -1) {
             currentRequiredMaterials[existingIndex].quantity = quantity;
           } else {
-            currentRequiredMaterials.push(newMaterial);
+            currentRequiredMaterials.push({
+              id: materialId,
+              name: material.name_ar,
+              unit: material.unit,
+              quantity: quantity,
+            });
           }
-
           renderRequiredMaterials();
-          quantityInput.value = 1;
+          document.getElementById("quantity-input").value = 1;
           materialSelect.value = "";
         });
 
@@ -1028,145 +962,84 @@
         currentRequiredMaterials.forEach((item) => {
           const row = requiredMaterialsTableBody.insertRow();
           row.dataset.id = item.id;
-
           row.innerHTML = `
-            <td>${item.name || "مادة غير معروفة"}</td> 
-            <td>${item.unit || "---"}</td>
-            <td><input type="number" value="${
-              item.quantity
-            }" min="0.01" step="0.01" data-id="${
-            item.id
-          }" class="quantity-update-input" style="width: 80px; text-align: center;"></td>
+            <td>${item.name}</td> 
+            <td><input type="number" value="${item.quantity}" min="0.01" step="0.01" data-id="${item.id}" class="quantity-update-input" style="width: 80px;"> ${item.unit}</td>
             <td><button type="button" class="btn btn-danger btn-sm remove-material-btn"><i class="fa-solid fa-xmark"></i></button></td>
           `;
         });
-
-        // 💡 (جديد) ربط حقول الإدخال المباشر في الجدول
         document.querySelectorAll(".quantity-update-input").forEach((input) => {
           input.addEventListener("change", (e) => {
-            const idToUpdate = e.target.dataset.id;
-            const newQuantity = parseFloat(e.target.value);
-            const item = currentRequiredMaterials.find(
-              (i) => i.id === idToUpdate
-            );
-            if (item && newQuantity > 0) {
-              item.quantity = newQuantity;
-              updateCostDisplay(); // 💡 تحديث التكلفة عند تغيير الكمية
+            const id = e.target.dataset.id;
+            const val = parseFloat(e.target.value);
+            const item = currentRequiredMaterials.find((i) => i.id === id);
+            if (item && val > 0) {
+              item.quantity = val;
+              updateCostDisplay();
             }
           });
         });
-
         updateCostDisplay();
       }
 
-      // ربط حقل ساعات التصنيع بـ updateCostDisplay
       document
         .getElementById("manufacturing-hours")
         .addEventListener("change", updateCostDisplay);
 
-      // --------------------------------------------------------
-      // 💡 (جديد) دالة تحديث جميع التكاليف (الزر الجديد)
-      // --------------------------------------------------------
+      // --- 💡 التحديث الجماعي (شامل الحالة التلقائية) ---
       async function updateAllProductCosts() {
-        if (
-          !confirm(
-            `هل أنت متأكد من أنك تريد إعادة حساب وحفظ التكاليف (TCOGS) لـ ${allProducts.length} منتج؟\n\nسيقوم هذا بتحديث حقل 'total_cost' لجميع المنتجات في قاعدة البيانات بناءً على التكاليف الحالية للمواد الخام وساعات العمل.`
-          )
-        ) {
-          return;
-        }
-
-        const loadingMsg = "جارٍ تحديث التكاليف... يرجى الانتظار.";
-        alert(loadingMsg); // إشعار فوري
+        if (!confirm(`تحديث التكاليف وحالة التوفر لجميع المنتجات؟`)) return;
+        const loadingMsg = "جارٍ التحديث...";
         document.getElementById(
           "products-table-container"
         ).innerHTML = `<p class="loading-msg">${loadingMsg}</p>`;
 
         const batch = writeBatch(db);
-        let successCount = 0;
+        let count = 0;
 
         try {
           for (const product of allProducts) {
-            // 1. إعادة حساب التكاليف
             const costs = calculateProductCosts(product);
-
-            // 2. تحضير البيانات للتحديث (نحدث التكلفة فقط)
-            const updatePayload = {
+            const ref = doc(db, "products", product.id.toString());
+            batch.update(ref, {
               total_cost: costs.total_cost,
-              // ملاحظة: نحن لا نلمس 'is_available' هنا
-              // لأن المنطق الآلي موجود في واجهة العميل (products.html)
-            };
-
-            // 3. إضافة للباتش
-            const productRef = doc(db, "products", product.id.toString());
-            batch.update(productRef, updatePayload);
-            successCount++;
+              is_available: costs.isAvailable, // 💡 حفظ الحالة المحسوبة تلقائياً
+            });
+            count++;
           }
-
-          // 4. تنفيذ الباتش
           await batch.commit();
-
-          alert(`✅ تم تحديث تكاليف ${successCount} منتج بنجاح.`);
-
-          // 5. إعادة تحميل الجدول (مع البيانات المحدثة)
+          alert(`✅ تم تحديث ${count} منتج.`);
           fetchAndRenderProducts();
         } catch (e) {
-          console.error("Error updating all costs:", e);
-          alert("حدث خطأ فادح أثناء تحديث التكاليف: " + e.message);
-          fetchAndRenderProducts(); // إعادة تحميل الجدول حتى لو فشل
+          alert("خطأ: " + e.message);
+          fetchAndRenderProducts();
         }
       }
 
-      // --------------------------------------------------------
-      // منطق الحفظ والحذف (مع التعديل المطلوب)
-      // --------------------------------------------------------
       productForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-
         const isNew = document.getElementById("product-id").value === "";
-        const id =
-          document.getElementById("product-id").value ||
-          doc(collection(db, "products")).id;
-
-        // يجب أن يكون الـ ID رقمي إذا لم يكن موجودًا بالفعل
+        const idVal = document.getElementById("product-id").value;
         const idNumber = isNew
           ? (allProducts.length > 0
               ? Math.max(...allProducts.map((p) => parseInt(p.id)))
               : 0) + 1
-          : id;
+          : idVal;
 
         const requiredMaterials = currentRequiredMaterials.map((item) => ({
           id: item.id,
           quantity: item.quantity,
         }));
 
-        // 1. حساب التكاليف وفحص التوفر بناءً على المواد المطلوبة الحالية
         const productDataForCheck = {
           required_materials: requiredMaterials,
           manufacturing_time_hours:
             parseFloat(document.getElementById("manufacturing-hours").value) ||
             0,
         };
+
+        // 💡 حساب الحالة أوتوماتيكياً قبل الحفظ
         const costs = calculateProductCosts(productDataForCheck);
-
-        // 💡 (الكود المعدل يبدأ هنا)
-        // 2. تحديد حالة التوفر النهائية للوثيقة
-        // حالة التوفر المخزنة (is_available) يجب أن تعكس فقط الاختيار اليدوي للمدير.
-        // سيقوم منطق العرض (render) في صفحة العميل بإخفاء المنتج تلقائياً إذا كانت المواد ناقصة.
-        const finalAvailabilityStatus =
-          document.getElementById("product-is-available").value === "true";
-
-        // فحص منفصل للتحذير فقط
-        const checkedAvailability = costs.availabilityCheck;
-        if (
-          checkedAvailability === "Unavailable_Auto" &&
-          finalAvailabilityStatus === true
-        ) {
-          alert(
-            "⚠️ تنبيه: لقد حفظت المنتج كـ 'متوفر (يدوي)'، ولكنه سيظهر للعملاء كـ 'غير متوفر' بسبب نقص المواد الخام. سيتم تحديث حالته تلقائياً عند توفر المواد."
-          );
-        }
-        // 💡 (الكود المعدل ينتهي هنا)
 
         const productData = {
           id: idNumber,
@@ -1179,33 +1052,32 @@
           description:
             document.getElementById("product-description").value || null,
           specs: document.getElementById("product-specs").value || null,
-          // 💡 استخدام الحالة اليدوية فقط
-          is_available: finalAvailabilityStatus,
           required_materials: requiredMaterials,
-          // حفظ التكلفة أيضاً (للسرعة)
           total_cost: costs.total_cost,
+          is_available: costs.isAvailable, // 💡 الحفظ بناءً على الحساب فقط
         };
 
         try {
-          // نحفظ باستخدام ID الرقمي كـ string
           await setDoc(doc(db, "products", idNumber.toString()), productData);
           closeModal("product-modal");
           await fetchAndRenderProducts();
-          alert(
-            `تم ${isNew ? "إضافة" : "تحديث"} المنتج وربط المواد الخام بنجاح.`
-          );
+
+          if (!costs.isAvailable) {
+            alert(
+              `⚠️ تم حفظ المنتج، ولكنه "غير متوفر" حالياً بسبب نقص في المواد الخام.`
+            );
+          } else {
+            alert("✅ تم حفظ المنتج بنجاح.");
+          }
         } catch (error) {
-          console.error("Error saving product: ", error);
-          alert("حدث خطأ أثناء حفظ المنتج.");
+          alert("حدث خطأ.");
         }
       });
 
       function handleDeleteClick(e) {
         const id = e.currentTarget.dataset.id;
-        showConfirmationModal(
-          "تأكيد الحذف",
-          `هل أنت متأكد من حذف المنتج ذو المعرف ${id}؟ لا يمكن التراجع عن هذا الإجراء.`,
-          () => deleteProduct(id)
+        showConfirmationModal("تأكيد الحذف", `حذف المنتج ${id}؟`, () =>
+          deleteProduct(id)
         );
       }
 
@@ -1214,18 +1086,16 @@
           await deleteDoc(doc(db, "products", id.toString()));
           closeModal("confirmation-modal");
           fetchAndRenderProducts();
-          alert("تم حذف المنتج بنجاح.");
+          alert("تم الحذف.");
         } catch (e) {
-          console.error("Error deleting product: ", e);
-          alert("حدث خطأ أثناء حذف المنتج.");
+          alert("خطأ في الحذف.");
         }
       }
 
       function showConfirmationModal(title, message, callback) {
-        const confirmActionBtn = document.getElementById("confirm-action-btn");
         document.getElementById("confirm-title").textContent = title;
         document.getElementById("confirm-message").textContent = message;
-        confirmActionBtn.onclick = () => {
+        document.getElementById("confirm-action-btn").onclick = () => {
           callback();
           closeModal("confirmation-modal");
         };
