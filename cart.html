@@ -58,7 +58,7 @@
       }
       #checkout-modal .modal-body {
         padding: 20px 30px;
-        overflow-y: auto; /* 💡 (هذا هو الإصلاح الرئيسي) */
+        overflow-y: auto;
       }
       /* 💡 (جديد) نمط الإيميل للقراءة فقط */
       #email[readonly] {
@@ -67,6 +67,7 @@
         cursor: not-allowed;
       }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.2/dist/gsap.min.js"></script>
   </head>
   <body>
     <header>
@@ -210,12 +211,20 @@
                 ></textarea>
               </div>
 
-              <button
-                type="submit"
-                class="btn checkout-btn"
-                id="confirm-order-btn"
-              >
-                تأكيد الطلب
+              <button type="button" class="truck-button" id="confirm-order-btn">
+                <span class="default">تأكيد الطلب</span>
+                <span class="success">
+                  تم الطلب
+                  <svg viewbox="0 0 12 10">
+                    <polyline points="1.5 6 4.5 9 10.5 1"></polyline>
+                  </svg>
+                </span>
+                <div class="truck">
+                  <div class="wheel"></div>
+                  <div class="back"></div>
+                  <div class="front"></div>
+                  <div class="box"></div>
+                </div>
               </button>
             </form>
           </div>
@@ -508,12 +517,119 @@
         }
       }
 
+      function resetTruckButton(button) {
+        button.classList.remove("animation", "done");
+        gsap.set(button.querySelector(".truck"), { x: 4 });
+        gsap.set(button, {
+          "--progress": 0,
+          "--hx": 0,
+          "--bx": 0,
+          "--box-s": 0.5,
+          "--box-o": 0,
+          "--truck-y": 0,
+          "--truck-y-n": -26,
+        });
+        gsap.set(button.querySelector(".box"), { x: -24, y: -6 });
+      }
+
+      async function processOrderSubmission() {
+        return new Promise((resolve, reject) => {
+          onAuthStateChanged(auth, async (user) => {
+            if (user) {
+              const selectedCity = document.getElementById("city").value;
+              const streetAddress =
+                document.getElementById("street-address").value;
+              const notes = document.getElementById("notes").value;
+              const fullAddress = `${selectedCity}, ${streetAddress}`;
+              const phoneInput = document.getElementById("phone");
+              const emailInput = document.getElementById("email");
+
+              const customerData = {
+                customer_uid: user.uid,
+                order_uid: "ORD-" + Date.now(),
+                name: document.getElementById("name").value,
+                phone: phoneInput.value,
+                email: emailInput.value,
+                address: fullAddress,
+                city: selectedCity,
+                notes: notes,
+                order_date: new Date().toISOString(),
+                status: "قيد المراجعة",
+              };
+
+              try {
+                const userDocRef = doc(db, "users", user.uid);
+                await updateDoc(userDocRef, {
+                  name: customerData.name,
+                  phone: customerData.phone,
+                  address: customerData.address,
+                  city: customerData.city,
+                  notes: customerData.notes,
+                });
+
+                const batch = writeBatch(db);
+                const ordersCollection = collection(db, "orders");
+                const customDesignsCollection = collection(
+                  db,
+                  "custom_designs"
+                );
+                const readyItems = cart.filter((item) => !item.isCustom);
+                const customItems = cart.filter((item) => item.isCustom);
+
+                if (readyItems.length > 0) {
+                  const readyOrder = {
+                    ...customerData,
+                    items: readyItems,
+                    total: readyItems.reduce(
+                      (sum, item) =>
+                        sum + parseFloat(item.price) * item.quantity,
+                      0
+                    ),
+                  };
+                  // استخدم معرف الطلب كمفتاح الوثيقة (اختياري، هنا نستخدم auto-id)
+                  const newOrderRef = doc(collection(db, "orders"));
+                  batch.set(newOrderRef, readyOrder);
+                }
+
+                if (customItems.length > 0) {
+                  customItems.forEach((item) => {
+                    const customOrder = {
+                      ...customerData,
+                      ...item.details,
+                      price: item.price,
+                      status: "قيد المراجعة",
+                    };
+                    const newCustomRef = doc(collection(db, "custom_designs"));
+                    batch.set(newCustomRef, customOrder);
+                  });
+                }
+
+                await batch.commit();
+
+                // إرسال الإيميل في الخلفية
+                sendOrderConfirmationEmail(
+                  customerData,
+                  readyItems,
+                  customItems
+                );
+
+                resolve("Success");
+              } catch (e) {
+                reject(e);
+              }
+            } else {
+              alert("يرجى تسجيل الدخول.");
+              reject("User not logged in");
+            }
+          });
+        });
+      }
+
       document.addEventListener("DOMContentLoaded", () => {
         loadCart();
         updateCartUI();
         fillCityDropdown();
 
-        // 💡 (جديد) منطق القائمة المنسدلة
         onAuthStateChanged(auth, async (user) => {
           if (user) {
             const userDocRef = doc(db, "users", user.uid);
@@ -539,13 +655,11 @@
           }
         });
 
-        // (بقية المنطق كما هو)
         const checkoutBtn = document.querySelector(".checkout-btn");
         const checkoutModal = document.getElementById("checkout-modal");
         const orderConfirmModal = document.getElementById(
           "order-confirm-modal"
         );
-        const checkoutForm = document.getElementById("checkout-form");
         const modalCloseBtns = document.querySelectorAll(".modal-close");
         const cartItemsList = document.getElementById("cart-items-list");
 
@@ -573,9 +687,7 @@
               if (user) {
                 const userDocRef = doc(db, "users", user.uid);
                 const userDocSnap = await getDoc(userDocRef);
-                const emailInput = document.getElementById("email"); // 💡 (جديد)
-
-                // 💡 (إصلاح الإيميل) تعبئة إيميل الحساب وجعله للقراءة فقط
+                const emailInput = document.getElementById("email");
                 emailInput.value = user.email;
 
                 if (userDocSnap.exists()) {
@@ -583,7 +695,6 @@
                   document.getElementById("name").value = userData.name || "";
                   document.getElementById("phone").value = userData.phone || "";
 
-                  // 💡 (معدل) منطق تعبئة العنوان التفصيلي
                   const userAddress = userData.address || "";
                   const cityMatch = palestinianCities.find((c) =>
                     userAddress.startsWith(c)
@@ -600,7 +711,6 @@
                     document.getElementById("street-address").value =
                       userAddress;
                   }
-                  // 💡 (جديد) تعبئة الملاحظات
                   document.getElementById("notes").value = userData.notes || "";
                 }
                 checkoutModal.classList.add("active");
@@ -619,113 +729,120 @@
           );
         });
 
-        checkoutForm.addEventListener("submit", async (e) => {
-          e.preventDefault();
-          const phoneInput = document.getElementById("phone");
-          const emailInput = document.getElementById("email");
-          const phonePattern = /^(05[69][0-9]{7})$/;
-          if (!phonePattern.test(phoneInput.value)) {
-            alert(
-              "صيغة رقم الهاتف غير صحيحة. يجب أن يبدأ بـ 056 أو 059 ويحتوي على 10 أرقام."
-            );
-            return;
-          }
-          // 💡 (الإيميل مضمون الآن لأنه readonly)
-          if (!emailInput.value) {
-            alert("الرجاء إدخال البريد الإلكتروني.");
-            return;
-          }
+        // 💡 منطق زر الشاحنة الجديد مع GSAP
+        const truckButton = document.getElementById("confirm-order-btn");
 
-          onAuthStateChanged(auth, async (user) => {
-            if (user) {
-              const selectedCity = document.getElementById("city").value;
-              const streetAddress =
-                document.getElementById("street-address").value;
-              const notes = document.getElementById("notes").value;
-              const fullAddress = `${selectedCity}, ${streetAddress}`;
+        if (truckButton) {
+          truckButton.addEventListener("click", async (e) => {
+            e.preventDefault();
 
-              const customerData = {
-                customer_uid: user.uid,
-                order_uid: "ORD-" + Date.now(),
-                name: document.getElementById("name").value,
-                phone: phoneInput.value,
-                email: emailInput.value, // 💡 (معدل) القيمة هي إيميل الحساب الآن
-                address: fullAddress,
-                city: selectedCity,
-                notes: notes,
-                order_date: new Date().toISOString(),
-                status: "قيد المراجعة",
-              };
+            const form = document.getElementById("checkout-form");
+            if (!form.checkValidity()) {
+              form.reportValidity();
+              return;
+            }
 
-              try {
-                // 💡 (معدل) تحديث بيانات المستخدم مع الحقول الجديدة
-                const userDocRef = doc(db, "users", user.uid);
-                await updateDoc(userDocRef, {
-                  name: customerData.name,
-                  phone: customerData.phone,
-                  address: customerData.address,
-                  city: customerData.city,
-                  // 💡 لا نحدث الإيميل هنا لأنه ثابت
-                  notes: customerData.notes,
+            const phoneInput = document.getElementById("phone");
+            const phonePattern = /^(05[69][0-9]{7})$/;
+
+            if (!phonePattern.test(phoneInput.value)) {
+              alert("صيغة رقم الهاتف غير صحيحة. يجب أن يبدأ بـ 056 أو 059.");
+              return;
+            }
+
+            if (!truckButton.classList.contains("done")) {
+              if (!truckButton.classList.contains("animation")) {
+                truckButton.classList.add("animation");
+
+                gsap.to(truckButton, {
+                  "--box-s": 1,
+                  "--box-o": 1,
+                  duration: 0.3,
+                  delay: 0.5,
                 });
 
-                const batch = writeBatch(db);
-                const ordersCollection = collection(db, "orders");
-                const customDesignsCollection = collection(
-                  db,
-                  "custom_designs"
-                );
-                const readyItems = cart.filter((item) => !item.isCustom);
-                const customItems = cart.filter((item) => item.isCustom);
+                gsap.to(truckButton.querySelector(".box"), {
+                  x: 0,
+                  duration: 0.4,
+                  delay: 0.7,
+                });
 
-                if (readyItems.length > 0) {
-                  const readyOrder = {
-                    ...customerData,
-                    items: readyItems,
-                    total: readyItems.reduce(
-                      (sum, item) =>
-                        sum + parseFloat(item.price) * item.quantity,
-                      0
-                    ),
-                  };
-                  batch.set(doc(ordersCollection), readyOrder);
-                }
+                gsap.to(truckButton, {
+                  "--hx": -5,
+                  "--bx": 50,
+                  duration: 0.18,
+                  delay: 0.92,
+                });
 
-                if (customItems.length > 0) {
-                  customItems.forEach((item) => {
-                    const customOrder = {
-                      ...customerData,
-                      ...item.details,
-                      price: item.price,
-                      status: "قيد المراجعة",
-                    };
-                    batch.set(doc(customDesignsCollection), customOrder);
-                  });
-                }
+                gsap.to(truckButton.querySelector(".box"), {
+                  y: 0,
+                  duration: 0.1,
+                  delay: 1.15,
+                });
 
-                await batch.commit();
-                sendOrderConfirmationEmail(
-                  customerData,
-                  readyItems,
-                  customItems
-                );
-                closeModal("checkout-modal");
-                orderConfirmModal.classList.add("active");
-                document.body.classList.add("scroll-lock");
-                cart = [];
-                saveCart();
-                updateCartUI();
-              } catch (e) {
-                console.error("Error adding document: ", e);
-                alert("حدث خطأ أثناء إرسال الطلب.");
+                gsap.set(truckButton, {
+                  "--truck-y": 0,
+                  "--truck-y-n": -26,
+                });
+
+                gsap.to(truckButton, {
+                  "--truck-y": 1,
+                  "--truck-y-n": -25,
+                  duration: 0.2,
+                  delay: 1.25,
+                  onComplete: async () => {
+                    try {
+                      await processOrderSubmission();
+
+                      gsap
+                        .timeline({
+                          onComplete() {
+                            truckButton.classList.add("done");
+                            setTimeout(() => {
+                              closeModal("checkout-modal");
+                              orderConfirmModal.classList.add("active");
+                              document.body.classList.add("scroll-lock");
+                              cart = [];
+                              saveCart();
+                              updateCartUI();
+                              resetTruckButton(truckButton);
+                            }, 1500); // تأخير قليل لرؤية علامة الصح
+                          },
+                        })
+                        .to(truckButton.querySelector(".truck"), {
+                          x: 0,
+                          duration: 0.4,
+                        })
+                        .to(truckButton.querySelector(".truck"), {
+                          x: 40,
+                          duration: 1,
+                        })
+                        .to(truckButton.querySelector(".truck"), {
+                          x: 20,
+                          duration: 0.6,
+                        })
+                        .to(truckButton.querySelector(".truck"), {
+                          x: 96,
+                          duration: 0.4,
+                        });
+
+                      gsap.to(truckButton, {
+                        "--progress": 1,
+                        duration: 2.4,
+                        ease: "power2.in",
+                      });
+                    } catch (error) {
+                      console.error("Order failed:", error);
+                      alert("حدث خطأ أثناء الإرسال. حاول مرة أخرى.");
+                      resetTruckButton(truckButton);
+                    }
+                  },
+                });
               }
-            } else {
-              alert("يرجى تسجيل الدخول قبل إرسال الطلب.");
             }
           });
-        });
+        }
 
-        // (منطق القائمة الجانبية للموبايل كما هو)
         const menuToggle = document.getElementById("menu-toggle");
         const mobileMenu = document.getElementById("mobile-menu");
         const body = document.body;

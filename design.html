@@ -418,9 +418,11 @@
       const db = getFirestore(app);
       const auth = getAuth(app);
 
-      const API_KEY = "AIzaSyBcFkJsomDYhm1uGqoq3-8mHr0LTu-mZ9s";
+      const API_KEY = "AIzaSyAgqtZVBiwfZqsyweNdSVb-HvHTwDNxefU";
       const genAI = new GoogleGenerativeAI(API_KEY);
-      const textModel = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+      const textModel = genAI.getGenerativeModel({
+        model: "gemini-2.5-flash-lite",
+      });
 
       // (متغيرات وعناصر الواجهة كما هي)
       let allProducts = [];

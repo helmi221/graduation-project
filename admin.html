@@ -863,17 +863,17 @@
         measurementId: "G-NVYK3DZR00",
       };
       // 🛑 💡 (هام جداً) استبدل هذا المفتاح بمفتاحك الخاص
-      const API_KEY = "AIzaSyBcFkJsomDYhm1uGqoq3-8mHr0LTu-mZ9s"; // ⚠️⚠️⚠️ استبدل هذا
+      const API_KEY = "AIzaSyAgqtZVBiwfZqsyweNdSVb-HvHTwDNxefU"; // ⚠️⚠️⚠️ استبدل هذا
       const genAI = new GoogleGenerativeAI(API_KEY);
 
       const forecastAiModel = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash-lite",
         tools: {
           googleSearch: {},
         },
       });
       const analystAiModel = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash",
+        model: "gemini-2.5-flash-lite",
         tools: {
           googleSearch: {},
         },
